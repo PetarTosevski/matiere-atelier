@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseArtworkForm, parseCentimetres } from "@/lib/artwork-form";
 import type { AdminArtwork } from "@/lib/artworks";
-import { amountToInput, parseAmount } from "@/lib/money";
+import { amountToInput, convertAmount, parseAmount } from "@/lib/money";
 import { slugify } from "@/lib/slug";
 
 describe("slugify", () => {
@@ -64,6 +64,19 @@ function form(fields: Record<string, string>) {
 }
 
 const image = JSON.stringify([{ storageId: "s1", width: 100, height: 100, alt: "" }]);
+
+describe("convertAmount", () => {
+  it("converts at a rate in millionths and rounds to a whole amount", () => {
+    expect(convertAmount(145000, 1_120_600)).toBe(162500); // 1624.87 rounds to 1625
+    expect(convertAmount(64050, 1_000_000)).toBe(64100); // 640.50 rounds half up
+    expect(convertAmount(64049, 1_000_000)).toBe(64000);
+    expect(convertAmount(310000, 11_234_500)).toBe(3482700);
+  });
+
+  it("stays exact for large amounts", () => {
+    expect(convertAmount(99_999_999_999, 1_500_000)).toBe(150_000_000_000);
+  });
+});
 
 describe("parseCentimetres", () => {
   it("reads whole and decimal centimetres, with a dot or comma", () => {

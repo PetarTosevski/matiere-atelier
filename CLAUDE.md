@@ -119,6 +119,7 @@ src/
     artwork-form.ts parseArtworkFields(): checks for one artwork; message keys as errors
     collection-changes.ts  parseCollectionChanges(): checks a whole "Publish changes" request
     currency.ts     SHOP_CURRENCIES, currencySymbol()
+    exchange-rates.ts  getExchangeRate(): ECB rates via the Frankfurter API, for the admin's Convert prices
     images.ts       sharp processing; sniffs the real file type; HEIC is refused
     storage.ts      small file-storage interface over Convex storage
     money.ts        "1450.50" to integer cents and back, without floats
@@ -183,7 +184,7 @@ Rules:
 - Money is stored as integer minor units plus a currency code. Never use floats for money.
 - Changing `priceMode` never clears `priceAmount`, so switching back to Price restores the old price.
 - `AUCTION` is not selectable yet. If it ever appears in data, render it exactly like `DISPLAY`.
-- The shop has one currency (`SiteSettings.currency`): EUR, USD, GBP, CHF or SEK, all with two decimal places so minor units keep their meaning. Switching it in the admin sets every artwork's `currency` to match and **does not convert amounts** (€1,450 becomes $1,450); the admin says so next to the switch. Exchange-rate conversion is not built.
+- The shop has one currency (`SiteSettings.currency`): EUR, USD, GBP, CHF or SEK, all with two decimal places so minor units keep their meaning. Switching it in the admin sets every artwork's `currency` to match. Amounts are relabelled as they are (€1,450 becomes $1,450) unless the artist presses **Convert prices**, which converts every stored amount (Display pieces too) at the day's European Central Bank rate (Frankfurter API, `lib/exchange-rates.ts`, no key) and rounds to whole amounts, with integer arithmetic (`convertAmount` in `lib/money.ts`). The conversion can be undone until Publish.
 - Dimensions are a structured field, not part of the markdown description. They are shown width first ("80 × 100 cm", with locale number formatting) under the title on the grid and on the artwork page. Depth, inches and showing pieces at their true relative scale can build on this field later.
 
 ## Price and stock display rules
@@ -365,13 +366,13 @@ Decided:
 - Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
 - "Edit page layout": reordering artworks plus editing the About page (portrait and bio) in the admin (2026-10-11).
 - HEIC uploads are rejected with a message (2026-10-11).
-- Shop currency: one site-wide currency, switchable in the admin among EUR, USD, GBP, CHF and SEK; switching relabels prices without converting them (2026-10-11).
+- Shop currency: one site-wide currency, switchable in the admin among EUR, USD, GBP, CHF and SEK; switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
 
 ## Later (do not build yet)
 
-Auction, currency conversion (exchange rates) and per-piece currencies, translated artwork content, prints, customer accounts, search.
+Auction, per-piece currencies, translated artwork content, prints, customer accounts, search.
 
 ## Working rules
 

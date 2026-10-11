@@ -8,6 +8,8 @@ import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { applyCollectionChanges, deleteArtwork, getAllArtworksForAdmin } from "@/lib/artworks";
 import { parseCollectionChanges, toEditorWork, type EditorWork } from "@/lib/collection-changes";
 import { getAdminSession, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
+import { isShopCurrency } from "@/lib/currency";
+import { getExchangeRate, type ExchangeRate } from "@/lib/exchange-rates";
 import { saveAboutPage } from "@/lib/pages";
 import { rateLimit } from "@/lib/rate-limit";
 import { discardFiles } from "@/lib/storage";
@@ -104,6 +106,14 @@ export async function publishChangesAction(changes: unknown): Promise<PublishSta
     refreshStorefront();
     const works = (await getAllArtworksForAdmin()).map(toEditorWork);
     return { status: "published", works, currency: parsed.currency, showPrices: parsed.showPrices };
+  });
+}
+
+/** Today's exchange rate for converting prices when the shop currency changes. */
+export async function exchangeRateAction(from: unknown, to: unknown): Promise<ExchangeRate | null> {
+  return asAdmin(async () => {
+    if (!isShopCurrency(from) || !isShopCurrency(to) || from === to) return null;
+    return getExchangeRate(from, to);
   });
 }
 

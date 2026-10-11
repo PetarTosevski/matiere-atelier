@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useTransition, type DragEvent } f
 import {
   deleteArtworkAction,
   discardUploadsAction,
+  exchangeRateAction,
   publishChangesAction,
 } from "@/app/admin/actions";
 import { GRID_CLASS } from "@/components/grid";
@@ -13,6 +14,7 @@ import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { toChanges, type EditorImage, type EditorWork } from "@/lib/collection-changes";
 import { SHOP_CURRENCIES } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
+import { amountToInput, convertAmount, parseAmount, RATE_SCALE } from "@/lib/money";
 import { SITE_NAME } from "@/lib/site";
 import { EditPanel } from "./EditPanel";
 import { titleFromFileName, uploadImage, type UploadProblem } from "./upload";
@@ -22,6 +24,16 @@ type Props = {
   initialWorks: EditorWork[];
   initialCurrency: string;
   initialShowPrices: boolean;
+};
+
+/** The last price conversion, kept so it can be undone before publishing. */
+type Conversion = {
+  from: string;
+  to: string;
+  rate: number;
+  date: string;
+  /** Amounts as they were before, by piece key. */
+  previous: Map<string, string>;
 };
 
 type Notice =
@@ -49,6 +61,12 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
   const [works, setWorks] = useState(initialWorks);
   const [currency, setCurrency] = useState(initialCurrency);
   const [showPrices, setShowPrices] = useState(initialShowPrices);
+  // The currency the typed amounts are in. It differs from `currency` after
+  // a switch until the prices are converted (or published as they are).
+  const [amountsCurrency, setAmountsCurrency] = useState(initialCurrency);
+  const [conversion, setConversion] = useState<Conversion | null>(null);
+  const [converting, setConverting] = useState(false);
+  const [rateFailed, setRateFailed] = useState(false);
   const [saved, setSaved] = useState({
     currency: initialCurrency,
     showPrices: initialShowPrices,
@@ -198,6 +216,8 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
       if (result.status === "published") {
         setWorks(result.works);
         setCurrency(result.currency);
+        setAmountsCurrency(result.currency);
+        setConversion(null);
         setShowPrices(result.showPrices);
         setSaved({
           currency: result.currency,
@@ -239,8 +259,43 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
     setOverKey(null);
   }
 
-  const savedPrice = formatPrice(145000, saved.currency, "en");
-  const newPrice = formatPrice(145000, currency, "en");
+  async function convertPrices() {
+    const from = amountsCurrency;
+    const to = currency;
+    setConverting(true);
+    setRateFailed(false);
+    const result = await exchangeRateAction(from, to);
+    setConverting(false);
+    if (!result) {
+      setRateFailed(true);
+      return;
+    }
+    const previous = new Map(works.map((work) => [work.key, work.amount]));
+    setWorks((current) =>
+      current.map((work) => {
+        const amount = parseAmount(work.amount);
+        // Empty or mistyped amounts are left for the artist to fix.
+        return amount === null ? work : { ...work, amount: amountToInput(convertAmount(amount, result.rate)) };
+      }),
+    );
+    setAmountsCurrency(to);
+    setConversion({ from, to, rate: result.rate, date: result.date, previous });
+  }
+
+  function undoConversion() {
+    if (!conversion) return;
+    setWorks((current) =>
+      current.map((work) =>
+        conversion.previous.has(work.key) ? { ...work, amount: conversion.previous.get(work.key)! } : work,
+      ),
+    );
+    setAmountsCurrency(conversion.from);
+    setConversion(null);
+  }
+
+  const unconverted = currency !== amountsCurrency;
+  const examplePrice = formatPrice(145000, amountsCurrency, "en");
+  const relabelledPrice = formatPrice(145000, currency, "en");
   const year = new Date().getFullYear();
 
   return (
@@ -253,8 +308,12 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
             <select
               id="admin-currency"
               value={currency}
-              onChange={(event) => setCurrency(event.target.value)}
-              aria-describedby={currency !== saved.currency ? "admin-currency-note" : undefined}
+              onChange={(event) => {
+                setCurrency(event.target.value);
+                setConversion(null);
+                setRateFailed(false);
+              }}
+              aria-describedby={unconverted || conversion ? "admin-currency-note" : undefined}
               className="min-h-10 border border-paper bg-white px-2.5 text-sm text-paper"
             >
               {SHOP_CURRENCIES.map((code) => (
@@ -311,10 +370,34 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
               {publishing ? t("publishing") : t("publish")}
             </button>
           </div>
-          {currency !== saved.currency && (
-            <p id="admin-currency-note" className="w-full text-sm">
-              {t("currencyNote", { example: savedPrice, converted: newPrice })}
-            </p>
+          {unconverted && (
+            <div id="admin-currency-note" className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <p>{t("currencyNote", { example: examplePrice, converted: relabelledPrice })}</p>
+              <button
+                type="button"
+                onClick={convertPrices}
+                disabled={converting}
+                className="min-h-10 border border-paper px-3.5 font-semibold disabled:opacity-60"
+              >
+                {converting ? t("converting") : t("convert", { from: amountsCurrency, to: currency })}
+              </button>
+              {rateFailed && <p role="alert" className="font-semibold">{t("convertFailed")}</p>}
+            </div>
+          )}
+          {!unconverted && conversion && (
+            <div id="admin-currency-note" className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <p role="status">
+                {t("converted", {
+                  from: conversion.from,
+                  to: conversion.to,
+                  rate: new Intl.NumberFormat("en", { maximumFractionDigits: 4 }).format(conversion.rate / RATE_SCALE),
+                  date: new Date(`${conversion.date}T12:00:00Z`),
+                })}
+              </p>
+              <button type="button" onClick={undoConversion} className="min-h-10 underline underline-offset-4">
+                {t("undoConvert")}
+              </button>
+            </div>
           )}
           {/* Read out with the switch; shown once it differs from what is live. */}
           <p id="admin-show-prices-hint" className={showPrices !== saved.showPrices ? "w-full text-sm" : "sr-only"}>
