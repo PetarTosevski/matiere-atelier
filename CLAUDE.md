@@ -15,7 +15,7 @@ The site name lives in one constant (`SITE_NAME = "Matière Atelier"` in `src/li
 Work happens in phases. Finish and verify a phase before starting the next. Do not build anything under "Later" unless asked.
 
 - **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, language switcher. Artwork data comes from a typed file.
-  - Status: the skeleton is built (layout, Originals grid, artwork page with full-screen viewer, language switcher). Still to do: cart logic (the header count is a static 0 and "Add to cart" does nothing yet), forms, and real content for Commissions, About, Contact, Cart and Request, which are stub pages for now.
+  - Status: built. Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
 
 ## Tech stack
@@ -68,6 +68,9 @@ src/
     not-found.tsx                 404 for requests outside the locale routes
     globals.css                   base styles and small utilities
     tokens.css                    design tokens: the one file to change for palette and type
+    actions/
+      cart.ts                     resolveCartAction(): checks remembered cart IDs on the server
+      inquiry.ts                  submitInquiry(): validate, honeypot, rate limit, email
     [locale]/
       layout.tsx                  <html>, header, footer (cart provider later)
       page.tsx                    redirects to /[locale]/originals
@@ -88,6 +91,8 @@ src/
       settings/page.tsx           "Show prices" switch
     media/[...path]/route.ts      Phase 2. Serves uploaded images
   components/
+    InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
+    cart/                         cart store (localStorage), provider, notices, cart page view
   lib/
     types.ts        the data model below
     site.ts         SITE_NAME, INSTAGRAM_URL
@@ -97,7 +102,11 @@ src/
     settings.ts     site settings (showPrices)
     metadata.ts     artwork page metadata (never contains a price)
     markdown.ts     plain-text excerpts of descriptions
-    mail.ts
+    cart.ts         resolveCart(), subtotals(): which remembered pieces can still be bought
+    inquiry.ts      Zod schemas and field lists for every inquiry form
+    inquiry-email.ts  builds the plain-text email the artist receives
+    rate-limit.ts   in-memory per-IP limiter (single server; see hosting decision)
+    mail.ts         Nodemailer SMTP; in dev without SMTP, writes .eml files to .outbox/
     auth.ts         Phase 2
   data/
     artworks.ts     Phase 1 artwork data
@@ -294,12 +303,13 @@ Ask the developer before building around any of these:
 1. Which languages besides English.
 2. Checkout: a payment provider (Stripe Checkout is a good fit) or inquiry-only. Before taking payments, the site needs terms, a privacy policy, shipping info, and a check of EU consumer withdrawal rules, including the online withdrawal function EU shops need from June 2026.
 3. Hosting. SQLite and local uploads need a persistent disk, so serverless hosting would need a hosted database and object storage instead.
-4. SMTP or email provider.
-5. HEIC handling.
-6. Whether "edit page layout" should go beyond reordering artworks.
+4. HEIC handling.
+5. Whether "edit page layout" should go beyond reordering artworks.
 
 Decided:
 - Wordmark spelling: "Matière" everywhere on the site (2026-10-10).
+- Email: the artist's Google Workspace mailbox, sent through Gmail SMTP (smtp.gmail.com:465) with an app password in `SMTP_PASS` (2026-10-11). Without SMTP configured, development writes emails to `.outbox/` and production refuses to send.
+- Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
 
 ## Later (do not build yet)

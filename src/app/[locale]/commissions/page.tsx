@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { InquiryForm } from "@/components/InquiryForm";
 import { toLocale } from "@/i18n/locale";
 
 export async function generateMetadata({
@@ -11,20 +11,24 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-// Placeholder: the intro copy and commission form come in a later session.
+// The intro copy is a placeholder until the artist provides her own text.
 export default async function CommissionsPage({
   params,
 }: PageProps<"/[locale]/commissions">) {
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
-  const [t, tPlaceholder] = await Promise.all([
-    getTranslations("Commissions"),
-    getTranslations("Placeholder"),
-  ]);
+  const t = await getTranslations("Commissions");
 
   return (
-    <PlaceholderPage title={t("title")}>
-      <p>{tPlaceholder("comingSoon")}</p>
-    </PlaceholderPage>
+    <div className="site-container pt-2 md:pt-6">
+      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+      <div className="mt-4 max-w-prose space-y-4 text-muted">
+        <p>{t("intro")}</p>
+        <p>{t("process")}</p>
+      </div>
+      <div className="mt-10">
+        <InquiryForm type="COMMISSION" />
+      </div>
+    </div>
   );
 }

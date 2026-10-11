@@ -1,11 +1,13 @@
+"use client";
+
 import { useTranslations } from "next-intl";
+import { useCart } from "@/components/cart/CartProvider";
 import { Link } from "@/i18n/navigation";
 
-type Props = { count: number };
-
-// TODO(cart session): becomes a client component reading the cart provider.
-export function CartLink({ count }: Props) {
+export function CartLink() {
   const t = useTranslations("CartLink");
+  const { ids } = useCart();
+  const count = ids.length;
 
   return (
     <Link

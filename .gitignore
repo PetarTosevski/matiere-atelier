@@ -51,3 +51,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local email outbox (dev only, when SMTP is not configured)
+/.outbox/

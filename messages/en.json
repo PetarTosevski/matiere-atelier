@@ -39,7 +39,11 @@
     "addToCart": "Add to cart",
     "requestPiece": "Request this piece",
     "askAboutPiece": "Ask about this piece",
-    "backToOriginals": "Back to originals"
+    "backToOriginals": "Back to originals",
+    "inCart": "In cart",
+    "addedToCart": "Added to cart.",
+    "viewCart": "View cart",
+    "continueBrowsing": "Continue browsing"
   },
   "Gallery": {
     "viewFullScreen": "View full screen",
@@ -58,33 +62,110 @@
     "positionWithAlt": "Image {index} of {total}: {alt}",
     "zoomedRegion": "Image at actual size. Use the arrow keys or drag to move around."
   },
-  "Placeholder": {
-    "comingSoon": "This page is being prepared. Please check back soon."
-  },
   "Commissions": {
     "metaTitle": "Commissions",
-    "title": "Commissions"
+    "title": "Commissions",
+    "intro": "Placeholder: the artist's own words about commissions go here.",
+    "process": "Describe the piece you have in mind and the artist will reply to talk through size, timing and price."
   },
   "About": {
     "metaTitle": "About",
-    "title": "About"
+    "title": "About",
+    "portraitLabel": "Portrait of the artist (placeholder)",
+    "bio1": "Placeholder: a short introduction to the artist, her background and how she came to painting.",
+    "bio2": "Placeholder: her materials and way of working, from texture paste to the final layers."
   },
   "Contact": {
     "metaTitle": "Contact",
-    "title": "Contact"
+    "title": "Contact",
+    "intro": "Questions about a piece, shipping or anything else? Send a message and the artist will reply by email."
   },
   "Cart": {
     "metaTitle": "Cart",
     "title": "Cart",
-    "empty": "Your cart is empty."
+    "loading": "Checking your cart…",
+    "empty": "Your cart is empty.",
+    "browseOriginals": "Browse originals",
+    "itemsHeading": "Pieces in your cart",
+    "remove": "Remove",
+    "removeLabel": "Remove {title} from your cart",
+    "subtotal": "Subtotal",
+    "subtotalNote": "Shipping is arranged with the artist and not included.",
+    "checkoutHeading": "Checkout",
+    "checkoutIntro": "There is no online payment yet. Send your order request and the artist will reply by email to arrange payment and shipping.",
+    "orderSentTitle": "Thank you, your order request was sent",
+    "orderSentBody": "The artist will reply by email to arrange payment and shipping. Until then, the pieces are not reserved."
   },
   "Request": {
     "metaTitle": "{action, select, REQUEST {Request {title}} other {Ask about {title}}}",
-    "comingSoon": "The request form is being prepared. Please check back soon."
+    "pieceLabel": "The piece",
+    "intro": "Send a message and the artist will reply by email."
   },
   "NotFound": {
     "title": "Page not found",
     "body": "This page doesn't exist, or the piece is no longer on show.",
     "backToOriginals": "See all originals"
+  },
+  "CartNotices": {
+    "removed": "{title} was removed from your cart because {reason, select, SOLD {it has sold} other {it is no longer for sale}}.",
+    "unavailable": "A piece in your cart is no longer available and was removed.",
+    "dismiss": "Dismiss"
+  },
+  "Form": {
+    "optional": "(optional)",
+    "honeypot": "Leave this field empty",
+    "sending": "Sending…",
+    "submit": "{type, select, CONTACT {Send message} COMMISSION {Send commission inquiry} REQUEST {Send request} ORDER {Send order request} other {Send}}",
+    "fields": {
+      "name": {
+        "label": "Your name",
+        "hint": "So the artist knows who to reply to."
+      },
+      "email": {
+        "label": "Email",
+        "hint": "The artist will reply to this address."
+      },
+      "message": {
+        "label": "Message",
+        "hint": "{type, select, REQUEST {Ask anything about this piece, for example size, framing or shipping.} ORDER {Anything the artist should know, for example where it will be shipped.} other {What would you like to ask or tell the artist?}}"
+      },
+      "description": {
+        "label": "The piece you have in mind",
+        "hint": "Subject, colors, mood, where it will hang: anything that helps."
+      },
+      "size": {
+        "label": "Approximate size",
+        "hint": "For example 60 x 80 cm, or the wall it is for."
+      },
+      "budget": {
+        "label": "Budget",
+        "hint": "A rough range is fine."
+      }
+    },
+    "errors": {
+      "required": "Please fill this in.",
+      "invalidEmail": "Please enter an email address like name@example.com.",
+      "tooLong": "This is too long. Please shorten it."
+    },
+    "formErrors": "{error, select, invalid {Please check the fields marked below.} rateLimited {You have sent several messages in a short time. Please wait a few minutes and try again.} unavailable {This piece is no longer available.} cartChanged {Your cart changed since you opened this page. Please check it and send again.} sendFailed {Your message could not be sent. Please try again later, or email the artist directly.} other {Something went wrong. Please try again.}}",
+    "success": {
+      "title": "Thank you, your message was sent",
+      "body": "{type, select, COMMISSION {The artist will reply by email to talk about your commission.} REQUEST {The artist will reply by email about this piece.} other {The artist will reply by email.}}"
+    }
+  },
+  "Email": {
+    "subject": "{type, select, CONTACT {Message from {name}} COMMISSION {Commission inquiry from {name}} REQUEST {Inquiry about {title} from {name}} ORDER {Order request from {name}} other {Message from {name}}}",
+    "intro": "{type, select, CONTACT {New message from the website.} COMMISSION {New commission inquiry from the website.} REQUEST {New inquiry about a piece.} ORDER {New order request. Reply to arrange payment and shipping.} other {New message from the website.}}",
+    "name": "Name",
+    "email": "Email",
+    "piece": "Piece",
+    "pieces": "Pieces",
+    "total": "Total",
+    "description": "Description",
+    "size": "Approximate size",
+    "budget": "Budget",
+    "message": "Message",
+    "notGiven": "Not given",
+    "replyHint": "Reply to this email to answer {name} directly."
   }
 }

@@ -9,6 +9,7 @@
   --color-ink: #1f1e1c; /* text and primary buttons */
   --color-muted: #66635d; /* secondary text (5.6:1 on paper) */
   --color-line: #dcdbd8; /* hairline dividers */
+  --color-field: #ffffff; /* form field background */
   --color-band: #e4d5bf; /* tan header band behind the menus (ink only: muted is 4.2:1 here) */
 
   --font-sans:

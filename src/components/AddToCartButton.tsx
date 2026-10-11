@@ -1,22 +1,57 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useState } from "react";
+import { useCart } from "@/components/cart/CartProvider";
+import { Link } from "@/i18n/navigation";
 
 type Props = { artworkId: string };
 
-// TODO(cart session): add the ID to the cart (localStorage, IDs only), switch
-// the label to "In cart" and show the "View cart" / "Continue browsing"
-// confirmation. Until then the button does nothing.
+/** Each original is unique: no quantity, and once added it reads "In cart". */
 export function AddToCartButton({ artworkId }: Props) {
   const t = useTranslations("Artwork");
+  const { has, add } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
+  const inCart = has(artworkId);
 
   return (
-    <button
-      type="button"
-      data-artwork-id={artworkId}
-      className="button-primary w-full sm:w-auto"
-    >
-      {t("addToCart")}
-    </button>
+    <div>
+      {inCart ? (
+        <button
+          type="button"
+          aria-disabled="true"
+          className="button-primary w-full opacity-70 sm:w-auto"
+        >
+          {t("inCart")}
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            add(artworkId);
+            setJustAdded(true);
+          }}
+          className="button-primary w-full sm:w-auto"
+        >
+          {t("addToCart")}
+        </button>
+      )}
+
+      <div role="status" className="mt-4">
+        {inCart && (
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {justAdded && <p>{t("addedToCart")}</p>}
+            <Link href="/cart" className="link">
+              {t("viewCart")}
+            </Link>
+            {justAdded && (
+              <Link href="/originals" className="link">
+                {t("continueBrowsing")}
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

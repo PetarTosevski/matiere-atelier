@@ -1,0 +1,78 @@
+import "server-only";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import nodemailer, { type Transporter } from "nodemailer";
+
+// Sends inquiry emails to the artist (MAIL_TO) through SMTP. In development,
+// when SMTP isn't configured, messages are written to .outbox/ as .eml files
+// instead, so nothing real is sent while building.
+
+export type OutgoingMail = {
+  subject: string;
+  text: string;
+  /** The visitor's address, so replying from the inbox reaches them. */
+  replyTo: string;
+};
+
+export class MailNotConfiguredError extends Error {
+  constructor() {
+    super("SMTP is not configured: set SMTP_HOST, SMTP_USER, SMTP_PASS and MAIL_TO");
+  }
+}
+
+const OUTBOX_DIR = path.join(process.cwd(), ".outbox");
+
+let smtp: Transporter | null = null;
+
+function smtpConfig() {
+  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM, MAIL_TO } =
+    process.env;
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || !MAIL_TO) return null;
+  const port = Number(SMTP_PORT) || 465;
+  return {
+    transport: {
+      host: SMTP_HOST,
+      port,
+      // 465 is TLS from the start; 587 upgrades with STARTTLS.
+      secure: port === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+    },
+    from: MAIL_FROM || SMTP_USER,
+    to: MAIL_TO,
+  };
+}
+
+export async function sendMail(mail: OutgoingMail): Promise<void> {
+  const config = smtpConfig();
+
+  if (config) {
+    smtp ??= nodemailer.createTransport(config.transport);
+    await smtp.sendMail({
+      from: config.from,
+      to: config.to,
+      replyTo: mail.replyTo,
+      subject: mail.subject,
+      text: mail.text,
+    });
+    return;
+  }
+
+  if (process.env.NODE_ENV === "production") throw new MailNotConfiguredError();
+  await writeToOutbox(mail);
+}
+
+async function writeToOutbox(mail: OutgoingMail) {
+  const outbox = nodemailer.createTransport({ streamTransport: true, buffer: true });
+  const info = await outbox.sendMail({
+    from: process.env.MAIL_FROM || "website@localhost",
+    to: process.env.MAIL_TO || "artist@localhost",
+    replyTo: mail.replyTo,
+    subject: mail.subject,
+    text: mail.text,
+  });
+
+  await mkdir(OUTBOX_DIR, { recursive: true });
+  const file = path.join(OUTBOX_DIR, `${new Date().toISOString().replace(/[:.]/g, "-")}.eml`);
+  await writeFile(file, info.message as Buffer);
+  console.info(`[mail] SMTP not configured; saved to ${file}\n${mail.subject}\n\n${mail.text}`);
+}

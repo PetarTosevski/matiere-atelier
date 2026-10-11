@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
 import { toLocale } from "@/i18n/locale";
 
 export async function generateMetadata({
@@ -11,20 +10,28 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-// Placeholder: the portrait and bio come in a later session.
+// Portrait and bio are placeholders until the artist provides them.
 export default async function AboutPage({
   params,
 }: PageProps<"/[locale]/about">) {
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
-  const [t, tPlaceholder] = await Promise.all([
-    getTranslations("About"),
-    getTranslations("Placeholder"),
-  ]);
+  const t = await getTranslations("About");
 
   return (
-    <PlaceholderPage title={t("title")}>
-      <p>{tPlaceholder("comingSoon")}</p>
-    </PlaceholderPage>
+    <div className="site-container pt-2 md:pt-6">
+      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+      <div className="mt-8 grid gap-10 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-16">
+        <div
+          role="img"
+          aria-label={t("portraitLabel")}
+          className="aspect-frame w-full max-w-md border border-line bg-field"
+        />
+        <div className="max-w-prose space-y-4 text-muted">
+          <p>{t("bio1")}</p>
+          <p>{t("bio2")}</p>
+        </div>
+      </div>
+    </div>
   );
 }

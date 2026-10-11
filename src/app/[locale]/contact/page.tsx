@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
+import { InquiryForm } from "@/components/InquiryForm";
 import { toLocale } from "@/i18n/locale";
 
 export async function generateMetadata({
@@ -11,20 +11,20 @@ export async function generateMetadata({
   return { title: t("metaTitle") };
 }
 
-// Placeholder: the contact form comes in a later session.
 export default async function ContactPage({
   params,
 }: PageProps<"/[locale]/contact">) {
   const locale = toLocale((await params).locale);
   setRequestLocale(locale);
-  const [t, tPlaceholder] = await Promise.all([
-    getTranslations("Contact"),
-    getTranslations("Placeholder"),
-  ]);
+  const t = await getTranslations("Contact");
 
   return (
-    <PlaceholderPage title={t("title")}>
-      <p>{tPlaceholder("comingSoon")}</p>
-    </PlaceholderPage>
+    <div className="site-container pt-2 md:pt-6">
+      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+      <p className="mt-4 max-w-prose text-muted">{t("intro")}</p>
+      <div className="mt-10">
+        <InquiryForm type="CONTACT" />
+      </div>
+    </div>
   );
 }

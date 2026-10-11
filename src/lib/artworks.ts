@@ -28,6 +28,15 @@ export const getArtworkBySlug = cache(
   },
 );
 
+/**
+ * Looks up artworks by ID, drafts included, so the cart can tell a visitor
+ * why a piece it remembered is gone. Callers decide what may be shown.
+ */
+export async function getArtworksByIds(ids: string[]): Promise<Artwork[]> {
+  const wanted = new Set(ids);
+  return artworks.filter((artwork) => wanted.has(artwork.id));
+}
+
 export async function getPublishedSlugs(): Promise<string[]> {
   const published = await getPublishedArtworks();
   return published.map((artwork) => artwork.slug);

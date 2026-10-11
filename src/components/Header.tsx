@@ -27,8 +27,7 @@ export async function Header() {
           <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
-          {/* TODO(cart session): live item count from the cart provider. */}
-          {showCart && <CartLink count={0} />}
+          {showCart && <CartLink />}
           <MobileMenu openLabel={t("openMenu")} closeLabel={t("closeMenu")}>
             <nav aria-label={t("mainNavLabel")}>
               <NavLinks orientation="vertical" />

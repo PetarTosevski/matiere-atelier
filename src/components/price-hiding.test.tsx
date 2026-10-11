@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ArtworkCard } from "@/components/ArtworkCard";
 import { ArtworkDetails } from "@/components/ArtworkDetails";
+import { CartProvider } from "@/components/cart/CartProvider";
 import { artworks } from "@/data/artworks";
 import { getArtworkMetadata } from "@/lib/metadata";
 import { getPriceView } from "@/lib/pricing";
@@ -51,7 +52,7 @@ const shop: SiteSettings = { showPrices: true };
 function render(node: ReactNode): string {
   return renderToStaticMarkup(
     <NextIntlClientProvider locale="en" messages={messages}>
-      {node}
+      <CartProvider enabled>{node}</CartProvider>
     </NextIntlClientProvider>,
   );
 }
