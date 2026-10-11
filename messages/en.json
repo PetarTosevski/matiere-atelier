@@ -404,8 +404,8 @@
     "approx": "about"
   },
   "ThemeToggle": {
-    "toLight": "Light mode",
-    "toDark": "Dark mode",
-    "label": "{theme, select, light {Switch to dark mode} other {Switch to light mode}}"
+    "light": "Light mode",
+    "dark": "Dark mode",
+    "label": "{theme, select, light {Light mode, switch to dark} other {Dark mode, switch to light}}"
   }
 }
