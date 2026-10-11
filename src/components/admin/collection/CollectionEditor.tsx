@@ -313,15 +313,17 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
       </div>
 
       {/* The storefront header, as visitors see it (a picture of it, not links). */}
-      <div aria-hidden="true" className="label-caps site-container flex items-center justify-between gap-6 py-4 lg:py-5">
-        <span className="font-semibold">{SITE_NAME}</span>
-        <span className="hidden gap-8 md:flex">
-          <span>{tNav("originals")}</span>
-          <span>{tNav("commissions")}</span>
-          <span>{tNav("about")}</span>
-          <span>{tNav("contact")}</span>
-          {showPrices && <span className="text-accent">{tCart("text", { count: 0 })}</span>}
-        </span>
+      <div aria-hidden="true" className="border-b border-line">
+        <div className="label-caps site-container flex items-center justify-between gap-6 py-4 lg:py-5">
+          <span className="font-semibold">{SITE_NAME}</span>
+          <span className="hidden gap-8 md:flex">
+            <span>{tNav("originals")}</span>
+            <span>{tNav("commissions")}</span>
+            <span>{tNav("about")}</span>
+            <span>{tNav("contact")}</span>
+            {showPrices && <span className="text-accent">{tCart("text", { count: 0 })}</span>}
+          </span>
+        </div>
       </div>
 
       <main className="site-container">

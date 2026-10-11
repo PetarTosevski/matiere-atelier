@@ -15,7 +15,7 @@ export async function Header() {
   const showCart = isCartEnabled(settings);
 
   return (
-    <header className="label-caps sticky top-0 z-30 bg-paper">
+    <header className="label-caps sticky top-0 z-30 border-b border-line bg-paper">
       <div className="site-container flex items-center justify-between gap-6 py-2 md:py-4 lg:py-5">
         <Wordmark />
 
