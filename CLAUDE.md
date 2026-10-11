@@ -374,7 +374,7 @@ Decided:
 - Light mode: visitors switch for themselves; the admin sets the default for everyone (2026-10-12).
 - Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
-- Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
+- Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `master`, renamed from `main` on 2026-10-12).
 
 ## Later (do not build yet)
 
