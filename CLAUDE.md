@@ -96,7 +96,7 @@ src/
       (panel)/settings/page.tsx   "Show prices" switch
   components/
     InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
-    OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx  storefront Originals and artwork page parts
+    OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx, grid.ts  storefront Originals and artwork page parts
     admin/                        login, About form, MarkdownField (toolbar + preview), settings
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
@@ -212,7 +212,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Originals (`/originals`)
 - Intro: a large serif title with one word in the accent color, and a short statement (placeholder until the artist provides text). On desktop the statement sits beside the title.
-- Grid of published artworks ("two-up spreads"): 1 column on phones, 2 from tablet (768 px) up.
+- Grid of published artworks ("two-up spreads"): 1 column on phones, 2 from tablet (768 px), 3 from 1280 px (`GRID_CLASS` in `components/grid.ts`, shared with the admin). In three columns the cards are tighter and the covers smaller, and price and "View piece" sit under the title.
 - Each card is a panel: the cover at its own proportions, then a number ("01"), title, dimensions and availability, price, and a "View piece" cue. The whole card links to the artwork page; the cue is not a separate button.
 - When a piece has a second image, hovering the card (or focusing it with the keyboard) crossfades to it; a close-up of the surface works best. This is a deliberate exception to "no hover animations on every card": it only happens where there is a detail photo, it carries information, and the transition is removed for reduced motion.
 - Ordered by `sortOrder`, then newest first.
@@ -266,7 +266,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Collection editor (`/admin`)
 - Design: Claude Design "Art Storefront Layouts – ADMIN PANEL · admin" (adopted 2026-10-11). The page shows the collection as visitors see it (storefront header, Originals intro, two-up cards, footer) with admin controls on top. Header and footer there are a picture of the storefront, not links.
 - Pink bar: "Admin mode" with links to Collection, About page, Settings, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
-- Each card: drag handle with "Drag to move · Row 2, left" ("Position 3 of 8" on phones), ← / → buttons, and **Edit**. Below, the same parts as the storefront card. "No price set", "Check the price", "Draft, not on the site" and "Needs attention" show in the warning color. All artworks are listed, drafts included.
+- Each card: drag handle with "Drag to move · Row 2, left" (left, middle or right in three columns) ("Position 3 of 8" on phones), ← / → buttons, and **Edit**. Below, the same parts as the storefront card. "No price set", "Check the price", "Draft, not on the site" and "Needs attention" show in the warning color. All artworks are listed, drafts included.
 - **Add new works** tile at the end (also "+ Upload works" and dropping files on a card): each image becomes a new draft piece titled after its file name, added at the end, and the edit panel opens on it.
 - **Edit panel** (fixed on the right, full width on phones): image preview and "Replace image" (the cover), Name, Price (shop currency symbol in front; "Shown on the site as …"), Description (MarkdownField), then More details: size, price mode (Price, Auction (WIP) only where already set, Display), status, "Show on the site", web address, all images with alt text and order. "Delete this piece" deletes right away after confirmation (not on Publish). "Done" closes the panel.
 - **Publish changes**: edits, reordering, new pieces and the currency stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.

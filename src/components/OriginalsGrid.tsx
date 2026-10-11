@@ -1,4 +1,5 @@
 import { ArtworkCard } from "@/components/ArtworkCard";
+import { GRID_CLASS } from "@/components/grid";
 import type { PriceView } from "@/lib/pricing";
 import type { ArtworkImage, Dimensions } from "@/lib/types";
 
@@ -28,7 +29,7 @@ export function OriginalsGrid({
   highlightId?: string;
 }) {
   return (
-    <ul aria-label={label} className="grid gap-4 md:grid-cols-2 md:gap-5 lg:gap-7">
+    <ul aria-label={label} className={GRID_CLASS}>
       {items.map((item, index) => (
         <li
           key={item.id}

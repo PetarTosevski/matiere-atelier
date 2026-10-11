@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
+import { gridPosition } from "@/components/grid";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import type { ArtworkFieldError, ArtworkFormErrors } from "@/lib/artwork-form";
 import type { EditorImage, EditorWork } from "@/lib/collection-changes";
@@ -105,7 +106,8 @@ export function EditPanel({
         </button>
       </div>
       <p className="-mt-3 text-[0.8125rem] text-faint">
-        {tCollection("position", { row: Math.floor(index / 2) + 1, side: index % 2 ? "right" : "left" })}
+        <span className="xl:hidden">{tCollection("position", gridPosition(index, 2))}</span>
+        <span className="hidden xl:inline">{tCollection("position", gridPosition(index, 3))}</span>
       </p>
 
       <div className="flex min-h-55 items-center justify-center bg-paper p-5">

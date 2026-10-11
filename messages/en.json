@@ -368,7 +368,7 @@
       "leaveWarning": "You have unpublished changes.",
       "listLabel": "Works in display order",
       "dragHandle": "Drag to move",
-      "position": "Row {row}, {side, select, left {left} other {right}}",
+      "position": "Row {row}, {side, select, left {left} middle {middle} other {right}}",
       "positionMobile": "Position {index} of {total}",
       "moveEarlier": "Move {title} earlier",
       "moveLater": "Move {title} later",

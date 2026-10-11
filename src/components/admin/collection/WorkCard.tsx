@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { DragEvent } from "react";
 import type { EditorWork } from "@/lib/collection-changes";
+import { gridPosition } from "@/components/grid";
 import { formatPrice } from "@/lib/format";
 import { parseAmount } from "@/lib/money";
 
@@ -82,11 +83,11 @@ export function WorkCard({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       aria-label={title}
-      className={`flex h-full cursor-grab flex-col gap-6 bg-panel px-5 pt-3 pb-6 outline-offset-4 active:cursor-grabbing md:px-6 lg:gap-7 lg:px-11 lg:pb-9 ${outline} ${
+      className={`flex h-full cursor-grab flex-col gap-6 bg-panel px-5 pt-3 pb-6 outline-offset-4 active:cursor-grabbing md:px-6 lg:gap-7 lg:px-11 lg:pb-9 xl:gap-6 xl:px-7 xl:pb-7 ${outline} ${
         dragging ? "opacity-35" : ""
       }`}
     >
-      <div className="-mx-2 flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-control/70 pb-3 lg:-mx-8">
+      <div className="-mx-2 flex flex-wrap items-center justify-between gap-2 border-b border-dashed border-control/70 pb-3 lg:-mx-8 xl:-mx-3">
         <span className="flex items-center gap-2 text-[0.8125rem] text-faint">
           <svg aria-hidden="true" width="14" height="18" viewBox="0 0 16 20" fill="currentColor">
             <circle cx="5" cy="4" r="1.6" />
@@ -96,8 +97,11 @@ export function WorkCard({
             <circle cx="5" cy="16" r="1.6" />
             <circle cx="11" cy="16" r="1.6" />
           </svg>
-          <span className="hidden md:inline">
-            {t("dragHandle")} · {t("position", { row: Math.floor(index / 2) + 1, side: index % 2 ? "right" : "left" })}
+          <span className="hidden md:inline xl:hidden">
+            {t("dragHandle")} · {t("position", gridPosition(index, 2))}
+          </span>
+          <span className="hidden xl:inline">
+            {t("dragHandle")} · {t("position", gridPosition(index, 3))}
           </span>
           <span className="md:hidden">{t("positionMobile", { index: index + 1, total })}</span>
         </span>
@@ -132,32 +136,32 @@ export function WorkCard({
         </span>
       </div>
 
-      <div className="flex min-h-70 flex-1 items-center justify-center lg:min-h-90">
+      <div className="flex min-h-70 flex-1 items-center justify-center lg:min-h-90 xl:min-h-72">
         {cover ? (
           <Image
             src={cover.src}
             alt={cover.alt || title}
             width={cover.width}
             height={cover.height}
-            sizes="(min-width: 48rem) 42vw, 86vw"
+            sizes="(min-width: 80rem) 28vw, (min-width: 48rem) 42vw, 86vw"
             draggable={false}
-            className="h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem]"
+            className="h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem] xl:max-h-[19rem]"
           />
         ) : (
           <p className="text-sm text-faint">{t("noImage")}</p>
         )}
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-6 lg:pt-6">
+      <div className="flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-6 lg:pt-6 xl:flex-col xl:items-stretch xl:gap-4">
         <div className="flex flex-1 items-start gap-4">
           <span
             aria-hidden="true"
-            className="font-serif text-[2.25rem] leading-[0.9] text-accent italic lg:text-[2.75rem]"
+            className="font-serif text-[2.25rem] leading-[0.9] text-accent italic lg:text-[2.75rem] xl:text-[2.25rem]"
           >
             {String(index + 1).padStart(2, "0")}
           </span>
           <div className="flex min-w-0 flex-col gap-1 lg:gap-1.5">
-            <h2 className={`font-serif text-2xl font-medium lg:text-[1.75rem] ${work.title.trim() ? "" : "text-faint"}`}>
+            <h2 className={`font-serif text-2xl font-medium lg:text-[1.75rem] xl:text-2xl ${work.title.trim() ? "" : "text-faint"}`}>
               {title}
             </h2>
             <p className="text-sm text-muted">
@@ -170,11 +174,11 @@ export function WorkCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2.5">
+        <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2.5 xl:flex-row xl:items-center xl:gap-3">
           <span className={`font-semibold whitespace-nowrap ${price.warn ? "text-warn" : "text-ink"}`}>
             {price.label}
           </span>
-          <span aria-hidden="true" className="button-primary pointer-events-none ml-auto whitespace-nowrap lg:ml-0">
+          <span aria-hidden="true" className="button-primary pointer-events-none ml-auto whitespace-nowrap lg:ml-0 xl:ml-auto">
             {t("viewPiece")}
           </span>
         </div>

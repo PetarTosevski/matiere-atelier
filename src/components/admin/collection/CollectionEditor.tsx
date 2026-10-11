@@ -7,6 +7,7 @@ import {
   discardUploadsAction,
   publishChangesAction,
 } from "@/app/admin/actions";
+import { GRID_CLASS } from "@/components/grid";
 import { OriginalsIntro } from "@/components/OriginalsIntro";
 import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { toChanges, type EditorImage, type EditorWork } from "@/lib/collection-changes";
@@ -328,7 +329,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
 
         {works.length === 0 && <p className="mb-6 text-muted">{t("empty")}</p>}
 
-        <ul aria-label={t("listLabel")} className="grid gap-4 md:grid-cols-2 md:gap-5 lg:gap-7">
+        <ul aria-label={t("listLabel")} className={GRID_CLASS}>
           {works.map((work, index) => (
             <li key={work.key}>
               <WorkCard
@@ -366,7 +367,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
                 event.preventDefault();
                 if (event.dataTransfer.files.length > 0) void addWorks(event.dataTransfer.files);
               }}
-              className="flex h-full min-h-[22rem] cursor-pointer flex-col items-center justify-center gap-3.5 border-[1.5px] border-dashed border-control bg-[#181717] p-10 text-center focus-within:outline-2 focus-within:outline-ink lg:min-h-[32.5rem]"
+              className="flex h-full min-h-[22rem] cursor-pointer flex-col items-center justify-center gap-3.5 border-[1.5px] border-dashed border-control bg-[#181717] p-10 text-center focus-within:outline-2 focus-within:outline-ink lg:min-h-[32.5rem] xl:min-h-[26rem]"
             >
               <svg aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" className="stroke-accent" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 16V4" />
