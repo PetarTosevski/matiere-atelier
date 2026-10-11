@@ -72,9 +72,15 @@ describe("parseCollectionChanges", () => {
   });
 
   it("refuses a currency the shop doesn't offer", () => {
-    for (const currency of ["JPY", "eur", "XYZ"]) {
+    for (const currency of ["THB", "eur", "XYZ"]) {
       expect(parseCollectionChanges(request(currency, [toEditorWork(a)]), [a])).toMatchObject({ ok: false });
     }
+  });
+
+  it("takes yen and won in whole amounts only", () => {
+    expect(parseCollectionChanges(request("JPY", [toEditorWork(a)]), [a]).ok).toBe(true);
+    const result = parseCollectionChanges(request("JPY", [{ ...toEditorWork(a), amount: "1450.50" }]), [a]);
+    expect(result).toMatchObject({ ok: false, errors: { a: { amount: "wholeAmount" } } });
   });
 
   it("marks the piece whose web address is already taken", () => {

@@ -14,8 +14,8 @@ The site name lives in one constant (`SITE_NAME = "Matière Atelier"` in `src/li
 
 Work happens in phases. Finish and verify a phase before starting the next. Do not build anything under "Later" unless asked.
 
-- **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, language switcher. Artwork data comes from a typed file.
-  - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
+- **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, currency switcher. Artwork data comes from a typed file.
+  - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, visitor currency switcher (replaced the language switcher 2026-10-12), cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
   - Status: built. Sign-in, the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Still to do: link a Convex cloud project, choose hosting.
 
@@ -99,6 +99,7 @@ src/
     admin/                        login, About form, MarkdownField (toolbar + preview)
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
+    currency/                     visitor currency: store (localStorage), provider, DisplayPrice, CurrencySwitcher
   lib/
     types.ts        the data model below
     site.ts         SITE_NAME, INSTAGRAM_URL
@@ -165,7 +166,7 @@ type Artwork = {
   title: string;
   description: string;        // markdown
   priceMode: PriceMode;
-  priceAmount: number | null; // integer minor units (cents)
+  priceAmount: number | null; // integer hundredths of the main unit (cents), for every currency
   currency: string;           // ISO 4217; always the shop currency (SiteSettings.currency)
   status: Status;
   published: boolean;         // drafts never appear on the storefront
@@ -181,10 +182,10 @@ type InquiryType = "CONTACT" | "COMMISSION" | "REQUEST" | "ORDER";
 ```
 
 Rules:
-- Money is stored as integer minor units plus a currency code. Never use floats for money.
+- Money is stored as integer hundredths of the main unit plus a currency code, for every currency (so ¥160,000 is stored as 16000000). Yen and won have no cents, so their amounts must be whole (`wholeAmount` error in the admin). A payment provider that expects ISO minor units (JPY has none) needs a conversion at checkout. Never use floats for money.
 - Changing `priceMode` never clears `priceAmount`, so switching back to Price restores the old price.
 - `AUCTION` is not selectable yet. If it ever appears in data, render it exactly like `DISPLAY`.
-- The shop has one currency (`SiteSettings.currency`): EUR, USD, GBP, CHF or SEK, all with two decimal places so minor units keep their meaning. Switching it in the admin sets every artwork's `currency` to match. Amounts are relabelled as they are (€1,450 becomes $1,450) unless the artist presses **Convert prices**, which converts every stored amount (Display pieces too) at the day's European Central Bank rate (Frankfurter API, `lib/exchange-rates.ts`, no key) and rounds to whole amounts, with integer arithmetic (`convertAmount` in `lib/money.ts`). The conversion can be undone until Publish.
+- The shop has one currency (`SiteSettings.currency`): EUR, USD, GBP, CHF, SEK, AUD, JPY, CNY, HKD, SGD, KRW or INR (`SHOP_CURRENCIES`). Switching it in the admin sets every artwork's `currency` to match. Amounts are relabelled as they are (€1,450 becomes $1,450) unless the artist presses **Convert prices**, which converts every stored amount (Display pieces too) at the day's European Central Bank rate (Frankfurter API, `lib/exchange-rates.ts`, no key) and rounds to whole amounts, with integer arithmetic (`convertAmount` in `lib/money.ts`). The conversion can be undone until Publish.
 - Dimensions are a structured field, not part of the markdown description. They are shown width first ("80 × 100 cm", with locale number formatting) under the title on the grid and on the artwork page. Depth, inches and showing pieces at their true relative scale can build on this field later.
 
 ## Price and stock display rules
@@ -201,13 +202,14 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - **Hidden means not rendered on the server.** A hidden price must not appear in the HTML, client component props, JSON-LD, or Open Graph tags. Do not hide prices with CSS `display: none`, because the value would still be readable in the page source.
 - **The global switch never writes to artworks.** `showPrices` is a separate setting that overrides display only. Turning it off hides every price; turning it back on restores each piece's own mode automatically. Never implement it by bulk-updating `priceMode`.
 - In showcase mode the cart icon and all "Add to cart" buttons are hidden.
-- Prices are formatted with `Intl.NumberFormat` using the active locale and `currencyDisplay: "narrowSymbol"`, so EUR always shows the € symbol. Whole amounts drop the decimals.
+- Prices are formatted with `Intl.NumberFormat` using the active locale and `currencyDisplay: "narrowSymbol"`, so EUR always shows the € symbol; AUD, CNY, HKD and SGD use their own symbol (A$, CN¥, HK$, SGD) so they don't read as $ or ¥. Whole amounts drop the decimals; yen and won never show any.
+- **Visitor currency:** visitors can view prices in any shop currency (header from 1024 px, menu, footer; only while prices are shown). The choice is a code in localStorage; rates come from the server (ECB via `getExchangeRates`, cached an hour) and the conversion happens in the browser (`components/currency/`). Converted prices are marked "≈" (read as "about") and rounded to whole amounts. The server and first render always show the shop currency. Orders, emails, metadata and JSON-LD stay in the shop currency, and the cart says the artist invoices in it.
 
 ## Phase 1: storefront
 
 ### Layout
-- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), language switcher, "Cart (n)" link, all in small tracked capitals. Below 768 px the nav collapses into a menu (two-line icon); the header language switcher shows from 1024 px, and is in the menu and footer otherwise.
-- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), language switcher.
+- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, "Cart (n)" link, all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher shows from 1024 px, and is in the menu and footer otherwise.
+- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), currency switcher.
 - No search and no customer accounts.
 
 ### Originals (`/originals`)
@@ -250,7 +252,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Languages
 - Every UI string lives in `messages/<locale>.json`. No hard-coded copy in components.
 - Default locale is `en`. Additional locales are an open decision.
-- The language switcher keeps the visitor on the same page.
+- There is no language switcher (removed 2026-10-12 while the site is English only). Bring one back if a second locale is added.
 - Artwork titles and descriptions are single-language in V1.
 
 ## Phase 2: admin and database
@@ -366,7 +368,7 @@ Decided:
 - Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
 - "Edit page layout": reordering artworks plus editing the About page (portrait and bio) in the admin (2026-10-11).
 - HEIC uploads are rejected with a message (2026-10-11).
-- Shop currency: one site-wide currency, switchable in the admin among EUR, USD, GBP, CHF and SEK; switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
+- Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
 

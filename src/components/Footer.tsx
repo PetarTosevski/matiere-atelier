@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
 import { Link } from "@/i18n/navigation";
 import { INSTAGRAM_URL, SITE_NAME } from "@/lib/site";
 
@@ -24,7 +24,7 @@ export async function Footer() {
               </Link>
             </li>
           </ul>
-          <LanguageSwitcher />
+          <CurrencySwitcher />
         </div>
       </div>
     </footer>

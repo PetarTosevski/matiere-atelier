@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { AdminArtwork, ArtworkInput } from "@/lib/artworks";
-import { DEFAULT_CURRENCY } from "@/lib/currency";
+import { DEFAULT_CURRENCY, hasMinorUnit } from "@/lib/currency";
 import { parseAmount } from "@/lib/money";
 import { MAX_SLUG_LENGTH, SLUG_PATTERN, slugify } from "@/lib/slug";
 
@@ -14,6 +14,7 @@ export type ArtworkFieldError =
   | "slugTaken"
   | "amountRequired"
   | "invalidAmount"
+  | "wholeAmount"
   | "imagesRequired"
   | "invalidImages"
   | "invalidDimensions"
@@ -143,6 +144,8 @@ export function parseArtworkFields(
   if (amountText) {
     const parsed = parseAmount(amountText);
     if (parsed === null) errors.amount = "invalidAmount";
+    // Yen and won have no cents (amounts are kept in hundredths, see lib/currency.ts).
+    else if (parsed % 100 !== 0 && !hasMinorUnit(currency)) errors.amount = "wholeAmount";
     else priceAmount = parsed;
   } else if (priceMode === "PRICE") {
     // A draft may wait for its price ("No price set"); a piece on the site may not.

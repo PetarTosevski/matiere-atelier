@@ -1,5 +1,5 @@
-import { useLocale, useTranslations } from "next-intl";
-import { formatPrice } from "@/lib/format";
+import { useTranslations } from "next-intl";
+import { DisplayPrice } from "@/components/currency/DisplayPrice";
 import type { PriceView } from "@/lib/pricing";
 import type { Status } from "@/lib/types";
 
@@ -11,8 +11,8 @@ export function FormattedPrice({
 }: {
   price: NonNullable<PriceView["price"]>;
 }) {
-  const locale = useLocale();
-  return formatPrice(price.amount, price.currency, locale);
+  // Only the visible price reaches the browser, for the visitor's currency choice.
+  return <DisplayPrice price={{ amount: price.amount, currency: price.currency }} />;
 }
 
 export function AvailabilityLabel({ availability }: { availability: Status }) {

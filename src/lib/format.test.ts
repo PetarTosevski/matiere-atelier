@@ -24,13 +24,16 @@ describe("formatPrice", () => {
     expect(formatPrice(250000, "USD", "en")).toBe("$2,500");
   });
 
-  it("respects currencies without minor units", () => {
-    expect(formatPrice(5000, "JPY", "en")).toBe("¥5,000");
+  it("shows yen and won as whole amounts (stored in hundredths like every currency)", () => {
+    expect(formatPrice(500000, "JPY", "en")).toBe("¥5,000");
+    expect(formatPrice(16000000, "KRW", "en")).toBe("₩160,000");
   });
 
-  it("respects currencies with three minor units", () => {
-    expect(plain(formatPrice(1234567, "KWD", "en"))).toMatch(/1,234\.567/);
-    expect(plain(formatPrice(1234000, "KWD", "en"))).toMatch(/1,234$/);
+  it("gives dollar and yuan currencies other than USD their own symbol", () => {
+    expect(formatPrice(162500, "AUD", "en")).toBe("A$1,625");
+    expect(formatPrice(162500, "HKD", "en")).toBe("HK$1,625");
+    expect(formatPrice(162500, "CNY", "en")).toBe("CN¥1,625");
+    expect(formatPrice(162500, "INR", "en")).toBe("₹1,625");
   });
 
   it("follows the active locale's conventions", () => {

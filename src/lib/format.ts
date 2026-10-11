@@ -1,7 +1,10 @@
+import { currencyDisplay, hasMinorUnit } from "@/lib/currency";
+
 /**
- * Formats an integer amount of minor units (e.g. cents) for display.
- * Uses the currency's narrow symbol (always € for EUR) and drops the
- * decimals when the amount is whole.
+ * Formats an amount in hundredths of the main unit (cents for EUR; see
+ * lib/currency.ts) for display. Uses the currency's narrow symbol where it is
+ * unambiguous (always € for EUR) and drops the decimals when the amount is
+ * whole. Currencies without cents (JPY, KRW) never show decimals.
  */
 export function formatPrice(
   amountMinor: number,
@@ -14,18 +17,13 @@ export function formatPrice(
     );
   }
 
-  // Minor units per currency differ (EUR 2, JPY 0, KWD 3).
-  const fractionDigits =
-    new Intl.NumberFormat(locale, { style: "currency", currency })
-      .resolvedOptions().maximumFractionDigits ?? 2;
-  const divisor = 10 ** fractionDigits;
-  const digits = amountMinor % divisor === 0 ? 0 : fractionDigits;
+  const digits = amountMinor % 100 === 0 || !hasMinorUnit(currency) ? 0 : 2;
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    currencyDisplay: "narrowSymbol",
+    currencyDisplay: currencyDisplay(currency),
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
-  }).format(amountMinor / divisor);
+  }).format(amountMinor / 100);
 }

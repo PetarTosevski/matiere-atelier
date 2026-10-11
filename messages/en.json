@@ -21,10 +21,6 @@
     "label": "Cart, {count, plural, =0 {no items} one {# item} other {# items}}",
     "text": "Cart ({count})"
   },
-  "LanguageSwitcher": {
-    "label": "Language",
-    "locale": "{locale, select, en {English} other {{locale}}}"
-  },
   "Footer": {
     "instagram": "Instagram",
     "contact": "Contact",
@@ -100,7 +96,8 @@
     "checkoutHeading": "Checkout",
     "checkoutIntro": "There is no online payment yet. Send your order request and the artist will reply by email to arrange payment and shipping.",
     "orderSentTitle": "Thank you, your order request was sent",
-    "orderSentBody": "The artist will reply by email to arrange payment and shipping. Until then, the pieces are not reserved."
+    "orderSentBody": "The artist will reply by email to arrange payment and shipping. Until then, the pieces are not reserved.",
+    "currencyNote": "Prices in {currency} are approximate, at today's European Central Bank rate. The artist invoices in {shop}: {total}."
   },
   "Request": {
     "metaTitle": "{action, select, REQUEST {Request {title}} other {Ask about {title}}}",
@@ -284,7 +281,8 @@
         "imagesRequired": "Add at least one image before showing it on the site.",
         "invalidImages": "The images could not be read. Please add them again.",
         "auctionUnavailable": "Auction is not available yet.",
-        "invalidDimensions": "Enter both width and height in centimetres, for example 61 and 51.5."
+        "invalidDimensions": "Enter both width and height in centimetres, for example 61 and 51.5.",
+        "wholeAmount": "This currency has no cents: enter a whole amount."
       },
       "uploadErrors": "{error, select, tooLarge {{name} is over 20 MB.} heic {{name} is a HEIC photo. Please upload a JPEG, PNG or WebP. On iPhone, Settings, Camera, Formats, Most Compatible saves JPEG.} unsupported {{name} is not a JPEG, PNG or WebP image.} unreadable {{name} could not be read.} unauthorized {Your session has ended. Please sign in again.} other {{name} could not be uploaded. Please try again.}}",
       "toolbar": {
@@ -347,7 +345,7 @@
       "metaTitle": "Collection",
       "hint": "Drag pieces to reorder · use Edit on a piece to change its details",
       "currency": "Currency",
-      "currencies": "{code, select, EUR {Euro (€)} USD {US dollar ($)} GBP {British pound (£)} CHF {Swiss franc (CHF)} SEK {Swedish krona (kr)} other {{code}}}",
+      "currencies": "{code, select, EUR {Euro (€)} USD {US dollar ($)} GBP {British pound (£)} CHF {Swiss franc (CHF)} SEK {Swedish krona (kr)} AUD {Australian dollar (A$)} JPY {Japanese yen (¥)} CNY {Chinese yuan (CN¥)} HKD {Hong Kong dollar (HK$)} SGD {Singapore dollar (SGD)} KRW {South Korean won (₩)} INR {Indian rupee (₹)} other {{code}}}",
       "currencyNote": "Prices are not converted yet: {example} would become {converted}.",
       "convert": "Convert prices from {from} to {to} at today's rate",
       "converting": "Getting today's rate…",
@@ -411,5 +409,10 @@
         "cancel": "Cancel"
       }
     }
+  },
+  "CurrencySwitcher": {
+    "label": "Currency",
+    "option": "{symbol, select, none {{code}} other {{code} ({symbol})}}",
+    "approx": "about"
   }
 }

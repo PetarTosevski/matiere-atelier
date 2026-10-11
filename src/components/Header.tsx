@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { CartLink } from "@/components/CartLink";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
 import { MobileMenu } from "@/components/MobileMenu";
 import { NavLinks } from "@/components/NavLinks";
 import { Wordmark } from "@/components/Wordmark";
@@ -24,14 +24,14 @@ export async function Header() {
             <NavLinks />
           </nav>
           <div className="hidden lg:block">
-            <LanguageSwitcher />
+            <CurrencySwitcher />
           </div>
           {showCart && <CartLink />}
           <MobileMenu openLabel={t("openMenu")} closeLabel={t("closeMenu")}>
             <nav aria-label={t("mainNavLabel")}>
               <NavLinks orientation="vertical" />
             </nav>
-            <LanguageSwitcher />
+            <CurrencySwitcher />
           </MobileMenu>
         </div>
       </div>

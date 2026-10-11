@@ -7,7 +7,7 @@ import { gridPosition } from "@/components/grid";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import type { ArtworkFieldError, ArtworkFormErrors } from "@/lib/artwork-form";
 import type { EditorImage, EditorWork } from "@/lib/collection-changes";
-import { currencySymbol } from "@/lib/currency";
+import { currencySymbol, hasMinorUnit } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
 import { parseAmount } from "@/lib/money";
 import { slugify } from "@/lib/slug";
@@ -162,7 +162,7 @@ export function EditPanel({
             id={`${id}-amount`}
             inputMode="decimal"
             value={work.amount}
-            placeholder="0.00"
+            placeholder={hasMinorUnit(currency) ? "0.00" : "0"}
             onChange={(event) => onChange({ amount: event.target.value })}
             aria-invalid={errors.amount ? true : undefined}
             aria-describedby={describe("amount", `${id}-amount-shown`)}

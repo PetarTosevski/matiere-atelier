@@ -6,6 +6,8 @@ import { useState } from "react";
 import { InquiryForm } from "@/components/InquiryForm";
 import { Link } from "@/i18n/navigation";
 import { subtotals } from "@/lib/cart";
+import { DisplayPrice } from "@/components/currency/DisplayPrice";
+import { useCurrency } from "@/components/currency/CurrencyProvider";
 import { formatPrice } from "@/lib/format";
 import { useCart } from "./CartProvider";
 
@@ -14,6 +16,8 @@ export function CartView() {
   const t = useTranslations("Cart");
   const locale = useLocale();
   const { hydrated, items, remove, clear, refresh } = useCart();
+  const currency = useCurrency();
+  const converted = currency !== null && currency.selected !== currency.shop;
   const [orderSent, setOrderSent] = useState(false);
 
   if (orderSent) {
@@ -64,7 +68,7 @@ export function CartView() {
                   {item.title}
                 </Link>
                 <p className="mt-1">
-                  {formatPrice(item.price.amount, item.price.currency, locale)}
+                  <DisplayPrice price={item.price} />
                 </p>
               </div>
               <button
@@ -81,11 +85,25 @@ export function CartView() {
         <p className="mt-6 flex justify-between text-lg">
           <span>{t("subtotal")}</span>
           <span>
-            {subtotals(items)
-              .map((total) => formatPrice(total.amount, total.currency, locale))
-              .join(" + ")}
+            {subtotals(items).map((total, index) => (
+              <span key={total.currency}>
+                {index > 0 && " + "}
+                <DisplayPrice price={total} />
+              </span>
+            ))}
           </span>
         </p>
+        {converted && (
+          <p className="mt-2 text-sm text-muted">
+            {t("currencyNote", {
+              currency: currency.selected,
+              shop: currency.shop,
+              total: subtotals(items)
+                .map((total) => formatPrice(total.amount, total.currency, locale))
+                .join(" + "),
+            })}
+          </p>
+        )}
         <p className="mt-2 text-sm text-muted">{t("subtotalNote")}</p>
       </section>
 

@@ -4,10 +4,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { fontVariables } from "@/app/fonts";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { CartProvider } from "@/components/cart/CartProvider";
+import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { toLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
+import { getExchangeRates } from "@/lib/exchange-rates";
 import { baseOpenGraph } from "@/lib/metadata";
 import { isCartEnabled } from "@/lib/pricing";
 import { getSiteSettings } from "@/lib/settings";
@@ -44,11 +46,14 @@ export default async function LocaleLayout({
     getTranslations("Layout"),
     getSiteSettings(),
   ]);
+  // Other currencies only matter while prices are shown.
+  const exchange = settings.showPrices ? await getExchangeRates(settings.currency) : null;
 
   return (
     <html lang={locale} className={fontVariables}>
       <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased">
         <NextIntlClientProvider>
+          <CurrencyProvider shop={settings.currency} rates={exchange?.rates ?? null}>
           <CartProvider enabled={isCartEnabled(settings)}>
           <a
             href="#main"
@@ -63,6 +68,7 @@ export default async function LocaleLayout({
           </main>
           <Footer />
           </CartProvider>
+          </CurrencyProvider>
         </NextIntlClientProvider>
       </body>
     </html>
