@@ -20,8 +20,8 @@ export function NavLinks({ orientation = "horizontal" }: Props) {
     <ul
       className={
         orientation === "horizontal"
-          ? "flex items-center gap-8"
-          : "flex flex-col gap-5 text-menu-lg"
+          ? "flex items-center gap-6 lg:gap-8"
+          : "flex flex-col gap-2 font-serif text-menu tracking-normal normal-case"
       }
     >
       {items.map(({ href, key }) => {
@@ -32,7 +32,11 @@ export function NavLinks({ orientation = "horizontal" }: Props) {
             <Link
               href={href}
               aria-current={isPage ? "page" : isSection ? "true" : undefined}
-              className="underline-offset-8 hover:underline aria-[current]:underline"
+              className={
+                orientation === "horizontal"
+                  ? "inline-flex min-h-11 items-center underline-offset-8 hover:underline aria-[current]:underline"
+                  : "inline-flex min-h-12 items-center underline-offset-8 hover:underline aria-[current]:underline"
+              }
             >
               {t(key)}
             </Link>

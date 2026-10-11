@@ -28,11 +28,20 @@ export default async function OriginalsPage({
   ]);
 
   return (
-    <div className="site-container pt-2 md:pt-6">
-      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+    <div className="site-container">
+      <section className="flex flex-col gap-5 pt-14 pb-12 md:gap-6 md:pt-20 md:pb-16 lg:flex-row lg:items-end lg:justify-between lg:gap-16 lg:pt-22 lg:pb-18">
+        <h1 className="font-serif text-display font-normal">
+          {t.rich("title", {
+            em: (chunks) => <em className="text-accent">{chunks}</em>,
+          })}
+        </h1>
+        <p className="max-w-[32.5rem] leading-[1.65] text-muted md:text-[1.0625rem] lg:w-[22.5rem] lg:max-w-none lg:shrink-0">
+          {t("intro")}
+        </p>
+      </section>
 
       {artworks.length === 0 ? (
-        <p className="mt-8 max-w-prose text-muted">
+        <p className="max-w-prose text-muted">
           {t.rich("empty", {
             commissions: (chunks) => (
               <Link href="/commissions" className="link text-ink">
@@ -47,7 +56,10 @@ export default async function OriginalsPage({
           })}
         </p>
       ) : (
-        <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-8 md:mt-12 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-16">
+        <ul
+          aria-label={t("listLabel")}
+          className="grid gap-4 md:grid-cols-2 md:gap-5 lg:gap-7"
+        >
           {artworks.map((artwork, index) => (
             <li key={artwork.id}>
               <ArtworkCard
@@ -55,7 +67,8 @@ export default async function OriginalsPage({
                 title={artwork.title}
                 cover={artwork.images[0]}
                 view={getPriceView(artwork, settings)}
-                preload={index < 3}
+                number={index + 1}
+                preload={index < 2}
               />
             </li>
           ))}

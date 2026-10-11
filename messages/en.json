@@ -18,7 +18,8 @@
     "contact": "Contact"
   },
   "CartLink": {
-    "label": "Cart, {count, plural, =0 {no items} one {# item} other {# items}}"
+    "label": "Cart, {count, plural, =0 {no items} one {# item} other {# items}}",
+    "text": "Cart ({count})"
   },
   "LanguageSwitcher": {
     "label": "Language",
@@ -26,12 +27,15 @@
   },
   "Footer": {
     "instagram": "Instagram",
+    "contact": "Contact",
     "copyright": "© {year} {siteName}"
   },
   "Originals": {
     "metaTitle": "Originals",
-    "title": "Originals",
-    "empty": "There are no originals on show right now. You can <commissions>commission a piece</commissions> or <contact>get in touch</contact>."
+    "title": "Original <em>paintings</em>",
+    "intro": "Placeholder: a short statement about this body of work, in the artist's own words.",
+    "empty": "There are no originals on show right now. You can <commissions>commission a piece</commissions> or <contact>get in touch</contact>.",
+    "listLabel": "Originals"
   },
   "Artwork": {
     "available": "Available",
@@ -43,7 +47,8 @@
     "inCart": "In cart",
     "addedToCart": "Added to cart.",
     "viewCart": "View cart",
-    "continueBrowsing": "Continue browsing"
+    "continueBrowsing": "Continue browsing",
+    "viewPiece": "View piece"
   },
   "Gallery": {
     "viewFullScreen": "View full screen",

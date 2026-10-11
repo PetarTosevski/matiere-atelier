@@ -17,10 +17,10 @@ type Props = {
 export function ArtworkDetails({ id, slug, title, description, view }: Props) {
   return (
     <div className="lg:sticky lg:top-[calc(var(--spacing-header)+2rem)] lg:self-start">
-      <h1 className="text-2xl tracking-tight md:text-3xl">{title}</h1>
-      <div className="mt-4 space-y-1">
+      <h1 className="heading-display">{title}</h1>
+      <div className="mt-6 space-y-1 border-t border-line pt-5">
         {view.price && (
-          <p className="text-xl">
+          <p className="text-xl font-semibold">
             <FormattedPrice price={view.price} />
           </p>
         )}
@@ -31,7 +31,7 @@ export function ArtworkDetails({ id, slug, title, description, view }: Props) {
       <div className="mt-8">
         <PrimaryAction id={id} slug={slug} view={view} />
       </div>
-      <Markdown className="prose-description mt-10 max-w-prose">
+      <Markdown className="prose-description mt-10 max-w-prose text-muted [&_strong]:text-ink">
         {description}
       </Markdown>
     </div>

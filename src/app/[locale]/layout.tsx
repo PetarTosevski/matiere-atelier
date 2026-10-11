@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { fontVariables } from "@/app/fonts";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { Footer } from "@/components/Footer";
@@ -45,19 +46,19 @@ export default async function LocaleLayout({
   ]);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={fontVariables}>
       <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased">
         <NextIntlClientProvider>
           <CartProvider enabled={isCartEnabled(settings)}>
           <a
             href="#main"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:bg-paper focus:px-4 focus:py-2"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:bg-paper focus:text-ink focus:px-4 focus:py-2"
           >
             {t("skipToContent")}
           </a>
           <Header />
           <CartNotices />
-          <main id="main" tabIndex={-1} className="flex-1 pt-6 focus:outline-none md:pt-8">
+          <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             {children}
           </main>
           <Footer />

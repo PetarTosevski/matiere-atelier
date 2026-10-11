@@ -68,6 +68,7 @@ src/
     not-found.tsx                 404 for requests outside the locale routes
     globals.css                   base styles and small utilities
     tokens.css                    design tokens: the one file to change for palette and type
+    fonts.ts                      Karla and Cormorant Garamond via next/font
     actions/
       cart.ts                     resolveCartAction(): checks remembered cart IDs on the server
       inquiry.ts                  submitInquiry(): validate, honeypot, rate limit, email
@@ -180,13 +181,14 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ## Phase 1: storefront
 
 ### Layout
-- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), language switcher, cart icon with item count. On small screens the nav collapses into a menu.
-- Footer: Instagram link (URL from config, placeholder for now), language switcher, copyright line.
+- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), language switcher, "Cart (n)" link, all in small tracked capitals. Below 768 px the nav collapses into a menu (two-line icon); the header language switcher shows from 1024 px, and is in the menu and footer otherwise.
+- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), language switcher.
 - No search and no customer accounts.
 
 ### Originals (`/originals`)
-- Grid of published artworks: 2 columns on small screens, 3 on desktop.
-- Each card: cover image, then title, price, and availability below it. The whole card links to the artwork page.
+- Intro: a large serif title with one word in the accent color, and a short statement (placeholder until the artist provides text). On desktop the statement sits beside the title.
+- Grid of published artworks ("two-up spreads"): 1 column on phones, 2 from tablet (768 px) up.
+- Each card is a panel: the cover at its own proportions, then a number ("01"), title, availability, price, and a "View piece" cue. The whole card links to the artwork page; the cue is not a separate button.
 - Ordered by `sortOrder`, then newest first.
 - Empty state with a short line pointing to Commissions or Contact.
 
@@ -302,10 +304,11 @@ MAIL_TO=                  # the artist's inbox for inquiries
 
 ## Design
 
-- The paintings carry all the color. The interface stays quiet so the work reads as if hung on a plain wall.
-- Palette and typeface are chosen with the artist. Until then, keep neutral placeholder tokens in one place so swapping them is a one-file change. Use one type family, two at most.
-- Generous whitespace, large images, few borders, no card shadows. Avoid template habits: all-caps labels above headings, hover animations on every card, decorative gradients.
-- On the grid, show each cover in a uniform frame (for example 4:5) using `object-fit: contain` so rows line up without cropping the art. On the artwork page, show the full image.
+- Look: "Two-up Spreads" (Claude Design, adopted 2026-10-11). A dark gallery wall (`#141414`) with slightly lighter panels behind the work, warm off-white text and one dusty-pink accent used sparingly (card numbers, cart link, buttons, one word of the Originals title). All tokens live in `src/app/tokens.css`, so changing the palette is a one-file change.
+- Type: Cormorant Garamond for headings and numbers, Karla for everything else, both through `next/font/google` (`src/app/fonts.ts`).
+- Sizing is in rem and the root font size grows on large screens (16 px up to about 1440 px wide, about 25 px at 2560), so the whole layout scales up rather than floating in a narrow column.
+- Generous whitespace, large images, no card shadows. Avoid hover animations on every card and decorative gradients.
+- Never crop the art: grid covers keep their own proportions inside the panel; the artwork page shows the full image.
 - Availability is conveyed in text, never by color alone.
 - Quality floor: works down to 360 px wide, visible keyboard focus, `prefers-reduced-motion` respected, AA contrast, alt text on every image.
 - Copy: sentence case, plain verbs, and consistent action names ("Add to cart" leads to "Added to cart").
@@ -340,10 +343,11 @@ Auction, currency selection and conversion, translated artwork content, prints, 
 - Validate every input on the server with Zod.
 - Never pass a whole `Artwork` to a client component. Its props are serialized into the page, so a hidden price would leak. Pass only the fields it displays.
 - Run `lint`, `typecheck` and `test` before finishing.
+- Commit after every change (standing rule from the developer, 2026-10-11): each finished change gets its own commit right away, without asking first. Pushing still needs the developer's go-ahead.
 - Update this file when commands, structure, or decisions change.
 
 
-<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:1105d646 -->
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:46cd31e7 -->
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
@@ -387,6 +391,7 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 
    # Team-maintainer opt-in only, unless current instructions forbid it:
    git pull --rebase
+   bd dolt push
    git push
    git status
    ```

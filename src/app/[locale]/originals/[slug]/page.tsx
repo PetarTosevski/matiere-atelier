@@ -39,11 +39,15 @@ export default async function ArtworkPage({
   if (!artwork) notFound();
 
   return (
-    <div className="site-container">
-      <Link href="/originals" className="link text-sm text-muted">
+    <div className="site-container pt-6 md:pt-10">
+      <Link
+        href="/originals"
+        className="label-caps inline-flex min-h-11 items-center text-muted"
+      >
+        <span aria-hidden="true">←&nbsp;</span>
         {t("backToOriginals")}
       </Link>
-      <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
+      <div className="mt-4 grid gap-10 md:mt-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16 xl:gap-20">
         <ArtworkGallery title={artwork.title} images={artwork.images} />
         <ArtworkDetails
           id={artwork.id}

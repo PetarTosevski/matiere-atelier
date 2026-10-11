@@ -51,7 +51,7 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
   if (state.status === "success") {
     return (
       <div ref={successRef} tabIndex={-1} role="status" className="focus:outline-none">
-        <h2 className="text-xl">{t("success.title")}</h2>
+        <h2 className="font-serif text-3xl">{t("success.title")}</h2>
         <p className="mt-2 text-muted">{t("success.body", { type })}</p>
       </div>
     );
@@ -73,7 +73,7 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
 
       <div ref={summaryRef} tabIndex={-1} role="alert" className="focus:outline-none">
         {state.status === "error" && (
-          <p className="border-l-2 border-ink pl-3">{t("formErrors", { error: state.error })}</p>
+          <p className="border-l-2 border-accent pl-3">{t("formErrors", { error: state.error })}</p>
         )}
       </div>
 
@@ -96,7 +96,7 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
           "aria-describedby": describedBy,
           autoComplete: AUTOCOMPLETE[field],
           className:
-            "mt-2 block w-full border border-ink/40 bg-field px-3 py-2.5 aria-[invalid=true]:border-ink aria-[invalid=true]:border-2",
+            "mt-2 block w-full border border-ink/40 bg-field px-3 py-2.5 text-ink aria-[invalid=true]:border-2 aria-[invalid=true]:border-accent",
         };
 
         return (

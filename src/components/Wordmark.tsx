@@ -8,7 +8,7 @@ export function Wordmark() {
   const hasLogo = existsSync(path.join(process.cwd(), "public", "logo.svg"));
 
   return (
-    <Link href="/originals" className="text-lg tracking-tight md:text-xl">
+    <Link href="/originals" className="inline-flex min-h-11 items-center font-semibold">
       {hasLogo ? (
         // A plain <img> because the logo's dimensions aren't known in advance.
         // eslint-disable-next-line @next/next/no-img-element

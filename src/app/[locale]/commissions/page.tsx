@@ -20,9 +20,9 @@ export default async function CommissionsPage({
   const t = await getTranslations("Commissions");
 
   return (
-    <div className="site-container pt-2 md:pt-6">
-      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
-      <div className="mt-4 max-w-prose space-y-4 text-muted">
+    <div className="site-container pt-12 md:pt-16 lg:pt-20">
+      <h1 className="heading-display">{t("title")}</h1>
+      <div className="mt-6 max-w-prose leading-[1.65] space-y-4 text-muted">
         <p>{t("intro")}</p>
         <p>{t("process")}</p>
       </div>

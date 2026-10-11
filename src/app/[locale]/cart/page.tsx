@@ -27,8 +27,8 @@ export default async function CartPage({
   if (!isCartEnabled(settings)) notFound();
 
   return (
-    <div className="site-container pt-2 md:pt-6">
-      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+    <div className="site-container pt-12 md:pt-16 lg:pt-20">
+      <h1 className="heading-display">{t("title")}</h1>
       <CartView />
     </div>
   );

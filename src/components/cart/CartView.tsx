@@ -90,7 +90,7 @@ export function CartView() {
       </section>
 
       <section aria-labelledby="checkout">
-        <h2 id="checkout" className="text-xl">
+        <h2 id="checkout" className="font-serif text-3xl">
           {t("checkoutHeading")}
         </h2>
         <p className="mt-2 mb-8 text-muted">{t("checkoutIntro")}</p>
@@ -111,7 +111,7 @@ export function CartView() {
 function InquirySuccess({ title, body }: { title: string; body: string }) {
   return (
     <div role="status" className="mt-6 max-w-prose">
-      <h2 className="text-xl">{title}</h2>
+      <h2 className="font-serif text-3xl">{title}</h2>
       <p className="mt-2 text-muted">{body}</p>
     </div>
   );

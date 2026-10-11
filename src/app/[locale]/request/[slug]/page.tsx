@@ -50,11 +50,11 @@ export default async function RequestPage({
   const cover = artwork.images[0];
 
   return (
-    <div className="site-container pt-2 md:pt-6">
-      <h1 className="text-2xl tracking-tight md:text-3xl">
+    <div className="site-container pt-12 md:pt-16 lg:pt-20">
+      <h1 className="heading-display">
         {action === "REQUEST" ? tArtwork("requestPiece") : tArtwork("askAboutPiece")}
       </h1>
-      <p className="mt-4 max-w-prose text-muted">{t("intro")}</p>
+      <p className="mt-6 max-w-prose leading-[1.65] text-muted">{t("intro")}</p>
 
       <section aria-label={t("pieceLabel")} className="mt-8 flex items-center gap-4">
         {cover && (

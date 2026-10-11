@@ -62,24 +62,39 @@ export function MobileMenu({ openLabel, closeLabel, children }: Props) {
   }, [isOpen]);
 
   return (
-    <div className="lg:hidden">
+    <div className="md:hidden">
       <button
         ref={buttonRef}
         type="button"
         aria-expanded={isOpen}
         aria-controls={panelId}
+        aria-label={isOpen ? closeLabel : openLabel}
         onClick={() => setOpenOn(isOpen ? null : pathname)}
-        className="-mr-2 min-h-11 px-2"
+        className="-mr-2.5 flex size-11 items-center justify-center"
       >
-        {isOpen ? closeLabel : openLabel}
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          className="size-[1.375rem]"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        >
+          {isOpen ? (
+            <path d="M6 6l12 12M18 6 6 18" />
+          ) : (
+            <path d="M4 8h16M4 16h16" />
+          )}
+        </svg>
       </button>
       <div
         ref={panelRef}
         id={panelId}
         hidden={!isOpen}
-        className="absolute inset-x-0 top-full z-20 border-b border-line bg-band"
+        className="absolute inset-x-0 top-full z-20 h-[calc(100dvh-100%)] overflow-y-auto border-t border-line bg-paper"
       >
-        <div className="site-container flex flex-col gap-8 pt-2 pb-8">
+        <div className="site-container flex flex-col gap-10 pt-6 pb-10">
           {children}
         </div>
       </div>

@@ -31,14 +31,14 @@ export function ArtworkGallery({ title, images }: Props) {
         type="button"
         onClick={openViewer}
         aria-label={t("openImage", { alt: image.alt })}
-        className="block w-full cursor-zoom-in"
+        className="block w-full cursor-zoom-in bg-panel p-5 sm:p-8 lg:p-12"
       >
         {/* Sized to the image's own ratio: the whole piece is always visible. */}
         <span
           className="relative mx-auto block"
           style={{
             aspectRatio: `${image.width} / ${image.height}`,
-            width: `min(100%, calc(80svh * ${image.width / image.height}))`,
+            width: `min(100%, calc(75svh * ${image.width / image.height}))`,
           }}
         >
           <Image
@@ -69,7 +69,7 @@ export function ArtworkGallery({ title, images }: Props) {
                     total: images.length,
                   })}
                   aria-current={index === activeIndex ? "true" : undefined}
-                  className="relative block size-16 border border-transparent aria-[current]:border-ink sm:size-20"
+                  className="relative block size-16 border border-transparent bg-panel aria-[current]:border-accent sm:size-20"
                 >
                   <Image
                     src={thumb.src}

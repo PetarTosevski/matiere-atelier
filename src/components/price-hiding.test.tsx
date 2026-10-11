@@ -66,6 +66,7 @@ function renderComponents(artwork: Artwork, settings: SiteSettings): string {
         title={artwork.title}
         cover={artwork.images[0]}
         view={view}
+        number={1}
       />,
     ),
     render(

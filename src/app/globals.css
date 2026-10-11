@@ -5,8 +5,16 @@
   html {
     background-color: var(--color-paper);
     color: var(--color-ink);
+    /* Everything is sized in rem, so the layout grows with large screens:
+       16px up to about 1440px wide, 19px at 1920, 25px at 2560. */
+    font-size: clamp(100%, 0.275rem + 0.8vw, 175%);
+    color-scheme: dark;
     /* Keep in-page jumps (skip link, anchors) clear of the sticky header. */
     scroll-padding-top: var(--spacing-header);
+  }
+
+  a:hover {
+    color: var(--color-accent);
   }
 
   :focus-visible {
@@ -55,17 +63,19 @@
 
 @utility button-primary {
   display: inline-flex;
-  min-height: 3rem;
+  min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.75rem;
-  background-color: var(--color-ink);
-  color: var(--color-paper);
+  padding: 0.5rem 1.375rem;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-size: 0.875rem;
+  font-weight: 600;
   text-align: center;
 
   &:hover {
-    text-decoration-line: underline;
-    text-underline-offset: 0.25em;
+    background-color: var(--color-accent);
+    color: var(--color-paper);
   }
 }
 
@@ -75,19 +85,38 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--color-ink);
+  border: 1px solid var(--color-line);
   background-color: var(--color-paper);
   color: var(--color-ink);
 
   &:hover {
-    text-decoration-line: underline;
-    text-underline-offset: 0.25em;
+    border-color: var(--color-ink);
   }
 
   &:disabled,
   &[aria-disabled="true"] {
     opacity: 0.4;
     text-decoration-line: none;
+  }
+}
+
+/* Small capitals with open tracking, for the header and footer. */
+@utility label-caps {
+  font-size: var(--text-label);
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+}
+
+/* A page's main heading: large serif, with one word in the accent. */
+@utility heading-display {
+  font-family: var(--font-serif);
+  font-size: var(--text-title);
+  font-weight: 400;
+  line-height: var(--text-title--line-height);
+  letter-spacing: var(--text-title--letter-spacing);
+
+  & em {
+    color: var(--color-accent);
   }
 }
 
@@ -125,6 +154,8 @@
 
   & h2,
   & h3 {
-    font-weight: 600;
+    font-family: var(--font-serif);
+    font-size: 1.5em;
+    font-weight: 500;
   }
 }
