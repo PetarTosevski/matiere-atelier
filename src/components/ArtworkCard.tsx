@@ -67,7 +67,7 @@ export function ArtworkCard({
               height={cover.height}
               sizes={IMAGE_SIZES}
               preload={preload}
-              className={`block h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem] xl:max-h-[19rem] ${
+              className={`block h-auto max-h-[22rem] w-auto max-w-full shadow-[var(--shadow-art)] lg:max-h-[26rem] xl:max-h-[19rem] ${
                 swap
                   ? "transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0"
                   : ""
@@ -126,7 +126,7 @@ export function ArtworkCard({
           {/* A visual cue only: the whole card is the link. */}
           <span
             aria-hidden="true"
-            className="button-primary ml-auto whitespace-nowrap group-hover:bg-accent group-hover:text-paper lg:ml-0 xl:ml-auto"
+            className="button-primary ml-auto whitespace-nowrap group-hover:bg-accent group-hover:text-on-accent lg:ml-0 xl:ml-auto"
           >
             {t("viewPiece")}
           </span>

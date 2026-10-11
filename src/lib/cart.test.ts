@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { artworks } from "@/data/artworks";
 import { resolveCart, subtotals } from "@/lib/cart";
 
-const shop = { showPrices: true, currency: "EUR" };
-const showcase = { showPrices: false, currency: "EUR" };
+const shop = { showPrices: true, currency: "EUR", theme: "dark" as const };
+const showcase = { showPrices: false, currency: "EUR", theme: "dark" as const };
 const id = (slug: string) => artworks.find((a) => a.slug === slug)!.id;
 
 describe("resolveCart", () => {

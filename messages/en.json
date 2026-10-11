@@ -305,21 +305,6 @@
       "width": "Width (cm)",
       "height": "Height (cm)"
     },
-    "preview": {
-      "label": "Page preview",
-      "title": "Preview",
-      "close": "Close preview",
-      "tabs": "Preview pages",
-      "originalsTab": "Originals",
-      "artworkTab": "Artwork page",
-      "unsaved": "This shows your changes as they will look once saved. Nothing has been saved yet. Click a piece to see its page.",
-      "draft": "This piece is a draft, so it won't appear on the site until you turn on “Show on the site”. It is outlined here for the preview.",
-      "showcase": "Prices are hidden on the whole site (Show prices is off in Settings).",
-      "noImage": "Add an image to see the artwork page.",
-      "untitled": "Untitled",
-      "current": "This is the Originals page as visitors see it now. Drafts are not shown. Click a piece to see its page.",
-      "pickPiece": "Click a piece on the Originals tab to see its page here."
-    },
     "about": {
       "title": "About page",
       "intro": "This is what visitors see on the About page. The page heading stays “About”.",
@@ -356,6 +341,9 @@
       "showPricesHint": "When off, the site hides every price, the cart and all Add to cart buttons. Each artwork keeps its own price setting and goes back to it when this is turned on again.",
       "showPricesOn": "On",
       "showPricesOff": "Off",
+      "theme": "Theme",
+      "themes": "{theme, select, light {Light} other {Dark}}",
+      "themeHint": "The theme every visitor sees first. Visitors can still switch it for themselves in the site's header.",
       "upload": "+ Upload works",
       "dirty": "Unpublished changes",
       "clean": "All changes are live",
@@ -396,7 +384,7 @@
         "namePlaceholder": "Title of the piece",
         "price": "Price",
         "shownAs": "Shown on the site as <strong>{price}</strong>",
-        "shownNone": "{reason, select, display {Not shown on the site: the price mode is Display.} hidden {Prices are hidden on the whole site (Show prices is off in Settings).} other {No price yet.}}",
+        "shownNone": "{reason, select, display {Not shown on the site: the price mode is Display.} hidden {Prices are hidden on the whole site (Show prices is off in the toolbar).} other {No price yet.}}",
         "description": "Description",
         "descriptionHint": "Medium, frame and a few words about the piece. Markdown: **bold**, *italic*, lists that start with -.",
         "details": "More details",
@@ -414,5 +402,10 @@
     "label": "Currency",
     "option": "{symbol, select, none {{code}} other {{code} ({symbol})}}",
     "approx": "about"
+  },
+  "ThemeToggle": {
+    "toLight": "Light mode",
+    "toDark": "Dark mode",
+    "label": "{theme, select, light {Switch to dark mode} other {Switch to light mode}}"
   }
 }

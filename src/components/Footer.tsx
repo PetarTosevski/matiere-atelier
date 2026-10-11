@@ -1,10 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Link } from "@/i18n/navigation";
+import { getSiteSettings } from "@/lib/settings";
 import { INSTAGRAM_URL, SITE_NAME } from "@/lib/site";
 
 export async function Footer() {
-  const t = await getTranslations("Footer");
+  const [t, settings] = await Promise.all([getTranslations("Footer"), getSiteSettings()]);
   const year = new Date().getFullYear();
 
   return (
@@ -24,7 +26,10 @@ export async function Footer() {
               </Link>
             </li>
           </ul>
-          <CurrencySwitcher />
+          <div className="flex flex-wrap items-center gap-x-8">
+            <CurrencySwitcher />
+            <ThemeToggle siteTheme={settings.theme} />
+          </div>
         </div>
       </div>
     </footer>

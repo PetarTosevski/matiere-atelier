@@ -7,6 +7,7 @@ import { CartProvider } from "@/components/cart/CartProvider";
 import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { ThemeScript } from "@/components/theme/ThemeScript";
 import { toLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
 import { getExchangeRates } from "@/lib/exchange-rates";
@@ -50,7 +51,11 @@ export default async function LocaleLayout({
   const exchange = settings.showPrices ? await getExchangeRates(settings.currency) : null;
 
   return (
-    <html lang={locale} className={fontVariables}>
+    // The theme script may change data-theme before React hydrates.
+    <html lang={locale} className={fontVariables} data-theme={settings.theme} suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body className="flex min-h-dvh flex-col bg-paper font-sans text-ink antialiased">
         <NextIntlClientProvider>
           <CurrencyProvider shop={settings.currency} rates={exchange?.rates ?? null}>

@@ -209,11 +209,12 @@ export const applyChanges = serverMutation({
   args: {
     currency: v.string(),
     showPrices: v.boolean(),
+    theme: v.union(v.literal("dark"), v.literal("light")),
     artworks: v.array(
       v.object({ id: v.union(v.id("artworks"), v.null()), ...writableFields }),
     ),
   },
-  handler: async (ctx, { currency, showPrices, artworks }) => {
+  handler: async (ctx, { currency, showPrices, theme, artworks }) => {
     if (!/^[A-Z]{3}$/.test(currency)) throw new ConvexError("currency must be an ISO 4217 code");
 
     const ids: Id<"artworks">[] = [];
@@ -246,8 +247,8 @@ export const applyChanges = serverMutation({
 
     const settings = await ctx.db.query("siteSettings").first();
     // "Show prices" only ever writes here, never to the artworks (CLAUDE.md price rules).
-    if (settings) await ctx.db.patch(settings._id, { currency, showPrices });
-    else await ctx.db.insert("siteSettings", { showPrices, currency });
+    if (settings) await ctx.db.patch(settings._id, { currency, showPrices, theme });
+    else await ctx.db.insert("siteSettings", { showPrices, currency, theme });
 
     await deleteFiles(ctx, unusedFiles);
     return ids as string[];

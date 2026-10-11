@@ -3,9 +3,10 @@ import { parseArtworkFields, type ArtworkFormErrors } from "@/lib/artwork-form";
 import type { AdminArtwork, ArtworkInput } from "@/lib/artworks";
 import { isShopCurrency, type ShopCurrency } from "@/lib/currency";
 import { amountToInput } from "@/lib/money";
+import type { SiteSettings, Theme } from "@/lib/types";
 
 // Server-side checks for the admin's "Publish changes": the whole collection
-// in its new order, plus the shop currency and the "Show prices" switch. Each piece goes through the same
+// in its new order, plus the site settings (shop currency, "Show prices", theme). Each piece goes through the same
 // rules as a single artwork (parseArtworkFields).
 
 export const MAX_WORKS = 500;
@@ -29,6 +30,7 @@ const workSchema = z.object({
 export const collectionChangesSchema = z.object({
   currency: z.string().max(3),
   showPrices: z.boolean(),
+  theme: z.enum(["dark", "light"]),
   works: z.array(workSchema).max(MAX_WORKS),
 });
 
@@ -40,6 +42,7 @@ export type ParsedChanges =
       ok: true;
       currency: ShopCurrency;
       showPrices: boolean;
+      theme: Theme;
       /** Every artwork in its new order; `id` is null for new pieces. */
       artworks: (ArtworkInput & { id: string | null })[];
     }
@@ -57,7 +60,7 @@ export type ParsedChanges =
 export function parseCollectionChanges(raw: unknown, saved: AdminArtwork[]): ParsedChanges {
   const parsed = collectionChangesSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, errors: {} };
-  const { currency, showPrices, works } = parsed.data;
+  const { currency, showPrices, theme, works } = parsed.data;
   if (!isShopCurrency(currency)) return { ok: false, errors: {}, currencyInvalid: true };
 
   const byId = new Map(saved.map((artwork) => [artwork.id, artwork]));
@@ -119,7 +122,7 @@ export function parseCollectionChanges(raw: unknown, saved: AdminArtwork[]): Par
   }
 
   if (Object.keys(errors).length > 0) return { ok: false, errors };
-  return { ok: true, currency, showPrices, artworks };
+  return { ok: true, currency, showPrices, theme, artworks };
 }
 
 // ---- What the admin editor works with ----
@@ -162,10 +165,11 @@ export function toEditorWork(artwork: AdminArtwork): EditorWork {
 }
 
 /** The publish request for the editor's current state. */
-export function toChanges(currency: string, showPrices: boolean, works: EditorWork[]): CollectionChanges {
+export function toChanges(settings: SiteSettings, works: EditorWork[]): CollectionChanges {
   return {
-    currency,
-    showPrices,
+    currency: settings.currency,
+    showPrices: settings.showPrices,
+    theme: settings.theme,
     works: works.map((work) => ({
       ...work,
       images: work.images.map(({ storageId, width, height, alt }) => ({ storageId, width, height, alt })),

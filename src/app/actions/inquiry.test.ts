@@ -8,7 +8,7 @@ import { submitInquiry, type InquiryState } from "./inquiry";
 const mocks = vi.hoisted(() => ({
   sendMail: vi.fn(),
   ip: "203.0.113.1",
-  settings: { showPrices: true, currency: "EUR" },
+  settings: { showPrices: true, currency: "EUR", theme: "dark" as const },
 }));
 
 vi.mock("@/lib/mail", () => ({ sendMail: mocks.sendMail }));
@@ -47,7 +47,7 @@ beforeEach(() => {
   mocks.sendMail.mockReset();
   mocks.sendMail.mockResolvedValue(undefined);
   mocks.ip = "203.0.113.1";
-  mocks.settings = { showPrices: true, currency: "EUR" };
+  mocks.settings = { showPrices: true, currency: "EUR", theme: "dark" as const };
 });
 
 describe("submitInquiry", () => {
@@ -144,7 +144,7 @@ describe("submitInquiry", () => {
   });
 
   it("refuses orders in showcase mode", async () => {
-    mocks.settings = { showPrices: false, currency: "EUR" };
+    mocks.settings = { showPrices: false, currency: "EUR", theme: "dark" as const };
     const state = await submitInquiry(
       idle,
       form({ ...contact, type: "ORDER", artworkIds: [id("low-tide")] }),

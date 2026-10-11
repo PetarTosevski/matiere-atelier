@@ -100,6 +100,7 @@ src/
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
     currency/                     visitor currency: store (localStorage), provider, DisplayPrice, CurrencySwitcher
+    theme/                        theme store (localStorage), ThemeScript (applies it before paint), ThemeToggle
   lib/
     types.ts        the data model below
     site.ts         SITE_NAME, INSTAGRAM_URL
@@ -176,7 +177,7 @@ type Artwork = {
   createdAt: string;
 };
 
-type SiteSettings = { showPrices: boolean; currency: string }; // currency: the shop currency, default "EUR"
+type SiteSettings = { showPrices: boolean; currency: string; theme: "dark" | "light" }; // currency: the shop currency, default "EUR"; theme: the default for visitors, default "dark"
 
 type InquiryType = "CONTACT" | "COMMISSION" | "REQUEST" | "ORDER";
 ```
@@ -208,8 +209,8 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ## Phase 1: storefront
 
 ### Layout
-- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, "Cart (n)" link, all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher shows from 1024 px, and is in the menu and footer otherwise.
-- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), currency switcher.
+- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, theme toggle, "Cart (n)" link, all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
+- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), currency switcher, theme toggle.
 - No search and no customer accounts.
 
 ### Originals (`/originals`)
@@ -267,11 +268,11 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Collection editor (`/admin`)
 - Design: Claude Design "Art Storefront Layouts – ADMIN PANEL · admin" (adopted 2026-10-11). The page shows the collection as visitors see it (storefront header, Originals intro, two-up cards, footer) with admin controls on top. Header and footer there are a picture of the storefront, not links.
-- Pink bar: "Admin mode" with links to Collection, About page, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, **Show prices** switch (On/Off; its explanation shows once it differs from the live setting), "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
+- Pink bar: "Admin mode" with links to Collection, About page, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, **Show prices** switch (On/Off; its explanation shows once it differs from the live setting), **Theme** (Dark | Light: the default every visitor sees; the admin page previews it as you switch), "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
 - Each card: drag handle with "Drag to move · Row 2, left" (left, middle or right in three columns) ("Position 3 of 8" on phones), ← / → buttons, and **Edit**. Below, the same parts as the storefront card. "No price set", "Check the price", "Draft, not on the site" and "Needs attention" show in the warning color. With "Show prices" off the cards hide their prices (and the header picture its cart link), as the site does; the price warnings stay so they can be fixed. All artworks are listed, drafts included.
 - **Add new works** tile at the end (also "+ Upload works" and dropping files on a card): each image becomes a new draft piece titled after its file name, added at the end, and the edit panel opens on it.
 - **Edit panel** (fixed on the right, full width on phones): image preview and "Replace image" (the cover), Name, Price (shop currency symbol in front; "Shown on the site as …"), Description (MarkdownField), then More details: size, price mode (Price, Auction (WIP) only where already set, Display), status, "Show on the site", web address, all images with alt text and order. "Delete this piece" deletes right away after confirmation (not on Publish). "Done" closes the panel.
-- **Publish changes**: edits, reordering, new pieces, the currency and "Show prices" stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.
+- **Publish changes**: edits, reordering, new pieces, the currency, "Show prices" and the theme stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.
 - New uploads are stored in Convex right away (so Publish can reference them); an unpublished upload that is removed or replaced is deleted.
 - A draft may be saved without a price; a piece shown on the site in Price mode needs one.
 
@@ -343,6 +344,8 @@ MAIL_TO=                  # the artist's inbox for inquiries
 ## Design
 
 - Look: "Two-up Spreads" (Claude Design, adopted 2026-10-11). A dark gallery wall (`#141414`) with slightly lighter panels behind the work, warm off-white text and one dusty-pink accent used sparingly (card numbers, cart link, buttons, one word of the Originals title). All tokens live in `src/app/tokens.css`, so changing the palette is a one-file change.
+- Light theme: "Warm Linen" (Claude Design, adopted 2026-10-12): linen ground (`#eee6da`), paper-white panels, dark brown text, an olive accent (`#4f5d2f`), filled primary buttons and a soft shadow under the art. It is the same tokens redefined under `<html data-theme="light">`; components use tokens only (`on-accent` for anything drawn on the accent, `well`, `--shadow-art`), never fixed colors. Control borders are darker than the design's (`#8f8170`) to keep 3:1.
+- Theme choice: the admin sets the default (`SiteSettings.theme`, Theme in the collection toolbar). Visitors can switch with "Light mode"/"Dark mode" (header from 1024 px, menu, footer); the choice is kept in localStorage and applied by an inline script before paint, so pages stay static and never flash.
 - Type: Cormorant Garamond for headings and numbers, Karla for everything else, both through `next/font/google` (`src/app/fonts.ts`).
 - Sizing is in rem and the root font size grows on large screens (16 px up to about 1440 px wide, about 25 px at 2560), so the whole layout scales up rather than floating in a narrow column.
 - Generous whitespace, large images, no card shadows. Avoid hover animations on every card and decorative gradients.
@@ -368,6 +371,7 @@ Decided:
 - Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
 - "Edit page layout": reordering artworks plus editing the About page (portrait and bio) in the admin (2026-10-11).
 - HEIC uploads are rejected with a message (2026-10-11).
+- Light mode: visitors switch for themselves; the admin sets the default for everyone (2026-10-12).
 - Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).

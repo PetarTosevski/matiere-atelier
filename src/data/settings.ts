@@ -5,4 +5,5 @@ import type { SiteSettings } from "@/lib/types";
 export const siteSettings: SiteSettings = {
   showPrices: true,
   currency: "EUR",
+  theme: "dark",
 };

@@ -93,7 +93,7 @@ export async function deleteArtwork(id: string): Promise<void> {
 
 /**
  * Saves a whole "Publish changes" in one transaction: every artwork in its
- * new order (id null for new ones), the shop currency and "Show prices".
+ * new order (id null for new ones) and the site settings (currency, "Show prices", theme).
  * Returns the ids.
  */
 export async function applyCollectionChanges(
@@ -104,6 +104,7 @@ export async function applyCollectionChanges(
   return convexMutation(api.artworks.applyChanges, {
     currency: settings.currency,
     showPrices: settings.showPrices,
+    theme: settings.theme,
     artworks: artworks.map(({ id, ...input }) => ({
       id: id as never,
       ...toConvexInput(input),

@@ -13,6 +13,10 @@
     scroll-padding-top: var(--spacing-header);
   }
 
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
   a:hover {
     color: var(--color-accent);
   }
@@ -75,7 +79,7 @@
 
   &:hover {
     background-color: var(--color-accent);
-    color: var(--color-paper);
+    color: var(--color-on-accent);
   }
 }
 
@@ -158,4 +162,10 @@
     font-size: 1.5em;
     font-weight: 500;
   }
+}
+
+/* The light theme fills the primary button (Warm Linen design). */
+:root[data-theme="light"] .button-primary {
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
 }

@@ -26,8 +26,7 @@ export default async function AdminCollectionPage() {
   return (
     <CollectionEditor
       initialWorks={artworks.map(toEditorWork)}
-      initialCurrency={settings.currency}
-      initialShowPrices={settings.showPrices}
+      initialSettings={settings}
     />
   );
 }

@@ -11,6 +11,7 @@ import { getAdminSession, requireAdmin, UnauthorizedError, verifyCredentials } f
 import { isShopCurrency } from "@/lib/currency";
 import { getExchangeRate, type ExchangeRate } from "@/lib/exchange-rates";
 import { saveAboutPage } from "@/lib/pages";
+import type { SiteSettings } from "@/lib/types";
 import { rateLimit } from "@/lib/rate-limit";
 import { discardFiles } from "@/lib/storage";
 
@@ -73,7 +74,7 @@ export async function logoutAction(): Promise<void> {
 // ---- Artworks ----
 
 export type PublishState =
-  | { status: "published"; works: EditorWork[]; currency: string; showPrices: boolean }
+  | { status: "published"; works: EditorWork[]; settings: SiteSettings }
   | {
       status: "error";
       /** Field errors per piece, by key. */
@@ -84,7 +85,7 @@ export type PublishState =
 
 /**
  * Publishes everything the artist changed on the collection page in one go:
- * order, details, new pieces, the shop currency and "Show prices".
+ * order, details, new pieces and the site settings (currency, "Show prices", theme).
  */
 export async function publishChangesAction(changes: unknown): Promise<PublishState> {
   return asAdmin(async () => {
@@ -94,18 +95,16 @@ export async function publishChangesAction(changes: unknown): Promise<PublishSta
       const hasFieldErrors = Object.keys(parsed.errors).length > 0;
       return { status: "error", errors: parsed.errors, failed: !hasFieldErrors };
     }
+    const settings: SiteSettings = { currency: parsed.currency, showPrices: parsed.showPrices, theme: parsed.theme };
     try {
-      await applyCollectionChanges(
-        { currency: parsed.currency, showPrices: parsed.showPrices },
-        parsed.artworks,
-      );
+      await applyCollectionChanges(settings, parsed.artworks);
     } catch (error) {
       console.error("[admin] publishing changes failed", error);
       return { status: "error", failed: true };
     }
     refreshStorefront();
     const works = (await getAllArtworksForAdmin()).map(toEditorWork);
-    return { status: "published", works, currency: parsed.currency, showPrices: parsed.showPrices };
+    return { status: "published", works, settings };
   });
 }
 

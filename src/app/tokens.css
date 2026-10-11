@@ -1,7 +1,8 @@
 /*
  * Design tokens: the "Two-up Spreads" look (dark gallery wall, one warm
- * accent). Changing the palette or type is a change to this file only.
- * Tailwind's default palette is cleared so components can only use these.
+ * accent) and its light "Warm Linen" theme. Changing the palette or type is a
+ * change to this file only. Tailwind's default palette is cleared so
+ * components can only use these.
  */
 @theme {
   --color-*: initial;
@@ -15,6 +16,8 @@
   --color-control: #6e6863; /* borders of admin controls (3:1 on panel, 3.3:1 on paper) */
   --color-warn: #e8c27a; /* admin only: "No price set", "Needs attention" (10:1 on panel) */
   --color-field: #1d1c1b; /* form field background */
+  --color-on-accent: #141414; /* text and icons on an accent background */
+  --color-well: #181717; /* admin: the "Add new works" drop area */
 
   --font-sans: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
@@ -38,4 +41,34 @@
   --text-label: 0.8125rem;
   --text-label--letter-spacing: 0.12em;
   --text-menu: 1.5rem;
+}
+
+/* Shadows behind the art and the admin edit panel (none on dark panels). */
+:root {
+  --shadow-art: none;
+  --shadow-drawer: -24px 0 48px rgba(0, 0, 0, 0.5);
+}
+
+/*
+ * Light theme ("Warm Linen", Claude Design, adopted 2026-10-12): linen
+ * ground, paper-white panels, olive accent. <html data-theme="light"> turns it
+ * on; the admin sets the site default and visitors can switch (ThemeToggle).
+ * Contrast is measured on the panel (#f8f3eb).
+ */
+:root[data-theme="light"] {
+  --color-paper: #eee6da; /* page background, warm linen */
+  --color-panel: #f8f3eb; /* the panel each piece hangs on */
+  --color-ink: #2a231c; /* text (14:1) */
+  --color-muted: #5e5347; /* secondary text (6.8:1) */
+  --color-faint: #6e6356; /* footer text (5.3:1, 4.7:1 on paper) */
+  --color-accent: #4f5d2f; /* olive (6.5:1) */
+  --color-line: #ddd2c2; /* hairline dividers */
+  --color-control: #8f8170; /* borders of admin controls (3.4:1; the design's #c9bca9 is too faint) */
+  --color-warn: #8a5300; /* admin warnings (5.7:1) */
+  --color-field: #ffffff;
+  --color-on-accent: #f8f3eb; /* on olive (6.5:1) */
+  --color-well: #e6dccd;
+
+  --shadow-art: 0 14px 30px rgba(42, 35, 28, 0.16);
+  --shadow-drawer: -24px 0 48px rgba(42, 35, 28, 0.18);
 }

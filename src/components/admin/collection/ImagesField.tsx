@@ -14,7 +14,7 @@ type Props = {
   error?: string | null;
 };
 
-const inputClass = "mt-1 block w-full border border-control bg-paper px-3 py-2 text-sm text-ink";
+const inputClass = "mt-1 block w-full border border-control bg-paper in-data-[theme=light]:bg-field px-3 py-2 text-sm text-ink";
 
 /** Every image of one piece: order (first is the cover), alt text, add and remove. */
 export function ImagesField({ images, title, onChange, onRemove, onAdd, error }: Props) {

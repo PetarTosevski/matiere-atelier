@@ -16,14 +16,14 @@ import { SHOP_CURRENCIES } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
 import { amountToInput, convertAmount, parseAmount, RATE_SCALE } from "@/lib/money";
 import { SITE_NAME } from "@/lib/site";
+import type { SiteSettings, Theme } from "@/lib/types";
 import { EditPanel } from "./EditPanel";
 import { titleFromFileName, uploadImage, type UploadProblem } from "./upload";
 import { WorkCard } from "./WorkCard";
 
 type Props = {
   initialWorks: EditorWork[];
-  initialCurrency: string;
-  initialShowPrices: boolean;
+  initialSettings: SiteSettings;
 };
 
 /** The last price conversion, kept so it can be undone before publishing. */
@@ -43,15 +43,14 @@ type Notice =
   | { kind: "deleted"; title: string }
   | { kind: "deleteFailed"; title: string };
 
-const snapshot = (currency: string, showPrices: boolean, works: EditorWork[]) =>
-  JSON.stringify(toChanges(currency, showPrices, works));
+const snapshot = (settings: SiteSettings, works: EditorWork[]) => JSON.stringify(toChanges(settings, works));
 
 /**
  * The admin collection page: the Originals page as visitors see it, with
  * reordering, editing and uploading on top. Everything stays in this
  * component until "Publish changes" sends it to the server in one go.
  */
-export function CollectionEditor({ initialWorks, initialCurrency, initialShowPrices }: Props) {
+export function CollectionEditor({ initialWorks, initialSettings }: Props) {
   const t = useTranslations("Admin.collection");
   const tForm = useTranslations("Admin.form");
   const tNav = useTranslations("Nav");
@@ -59,18 +58,18 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
   const tCart = useTranslations("CartLink");
 
   const [works, setWorks] = useState(initialWorks);
-  const [currency, setCurrency] = useState(initialCurrency);
-  const [showPrices, setShowPrices] = useState(initialShowPrices);
+  const [currency, setCurrency] = useState(initialSettings.currency);
+  const [showPrices, setShowPrices] = useState(initialSettings.showPrices);
+  const [theme, setTheme] = useState<Theme>(initialSettings.theme);
   // The currency the typed amounts are in. It differs from `currency` after
   // a switch until the prices are converted (or published as they are).
-  const [amountsCurrency, setAmountsCurrency] = useState(initialCurrency);
+  const [amountsCurrency, setAmountsCurrency] = useState(initialSettings.currency);
   const [conversion, setConversion] = useState<Conversion | null>(null);
   const [converting, setConverting] = useState(false);
   const [rateFailed, setRateFailed] = useState(false);
   const [saved, setSaved] = useState({
-    currency: initialCurrency,
-    showPrices: initialShowPrices,
-    snapshot: snapshot(initialCurrency, initialShowPrices, initialWorks),
+    ...initialSettings,
+    snapshot: snapshot(initialSettings, initialWorks),
     modes: new Map(initialWorks.map((work) => [work.key, work.priceMode])),
   });
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -85,9 +84,14 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
   const editButton = useRef<HTMLButtonElement | null>(null);
 
   const dirty = useMemo(
-    () => snapshot(currency, showPrices, works) !== saved.snapshot,
-    [currency, showPrices, works, saved.snapshot],
+    () => snapshot({ currency, showPrices, theme }, works) !== saved.snapshot,
+    [currency, showPrices, theme, works, saved.snapshot],
   );
+
+  // The page previews the site in the theme being set.
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   // Warn before leaving with unpublished changes.
   useEffect(() => {
@@ -212,17 +216,17 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
   function publish() {
     setNotice(null);
     startPublish(async () => {
-      const result = await publishChangesAction(toChanges(currency, showPrices, works));
+      const result = await publishChangesAction(toChanges({ currency, showPrices, theme }, works));
       if (result.status === "published") {
         setWorks(result.works);
-        setCurrency(result.currency);
-        setAmountsCurrency(result.currency);
+        setCurrency(result.settings.currency);
+        setAmountsCurrency(result.settings.currency);
         setConversion(null);
-        setShowPrices(result.showPrices);
+        setShowPrices(result.settings.showPrices);
+        setTheme(result.settings.theme);
         setSaved({
-          currency: result.currency,
-          showPrices: result.showPrices,
-          snapshot: snapshot(result.currency, result.showPrices, result.works),
+          ...result.settings,
+          snapshot: snapshot(result.settings, result.works),
           modes: new Map(result.works.map((work) => [work.key, work.priceMode])),
         });
         setErrors({});
@@ -300,7 +304,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
 
   return (
     <>
-      <div className="z-40 border-t border-paper/15 bg-accent text-paper md:sticky md:top-0">
+      <div className="z-40 border-t border-on-accent/15 bg-accent text-on-accent md:sticky md:top-0">
         <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-2.5 sm:px-8">
           <p className="text-sm">{t("hint")}</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -314,7 +318,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
                 setRateFailed(false);
               }}
               aria-describedby={unconverted || conversion ? "admin-currency-note" : undefined}
-              className="min-h-10 cursor-pointer border border-paper bg-transparent px-3 text-sm font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper [&>option]:bg-panel [&>option]:font-normal [&>option]:text-ink"
+              className="min-h-10 cursor-pointer border border-on-accent bg-transparent px-3 text-sm font-semibold text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-accent [&>option]:bg-panel [&>option]:font-normal [&>option]:text-ink"
             >
               {SHOP_CURRENCIES.map((code) => (
                 <option key={code} value={code}>{t("currencies", { code })}</option>
@@ -326,22 +330,45 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
               aria-checked={showPrices}
               aria-describedby="admin-show-prices-hint"
               onClick={() => setShowPrices((on) => !on)}
-              className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper"
+              className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-accent"
             >
               {t("showPrices")}
               <span
                 aria-hidden="true"
-                className={`relative h-6 w-11 rounded-full border border-paper ${showPrices ? "bg-paper" : ""}`}
+                className={`relative h-6 w-11 rounded-full border border-on-accent ${showPrices ? "bg-on-accent" : ""}`}
               >
                 <span
                   className={`absolute top-0.5 left-0.5 size-4.5 rounded-full motion-safe:transition-transform ${
-                    showPrices ? "translate-x-5 bg-accent" : "bg-paper"
+                    showPrices ? "translate-x-5 bg-accent" : "bg-on-accent"
                   }`}
                 />
               </span>
               <span className="w-6 text-left font-normal">{showPrices ? t("showPricesOn") : t("showPricesOff")}</span>
             </button>
-            <label className="relative inline-flex min-h-10 cursor-pointer items-center border border-paper px-3.5 text-sm font-semibold focus-within:outline-2 focus-within:outline-paper">
+            <fieldset className="flex items-center gap-2.5" aria-describedby="admin-theme-hint">
+              <legend className="float-left mr-2.5 text-sm font-semibold">{t("theme")}</legend>
+              <span className="flex border border-on-accent">
+                {(["dark", "light"] as const).map((option) => (
+                  <label
+                    key={option}
+                    className={`inline-flex min-h-10 cursor-pointer items-center px-3 text-sm focus-within:outline-2 focus-within:outline-on-accent ${
+                      theme === option ? "bg-on-accent font-semibold text-accent" : ""
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="admin-theme"
+                      value={option}
+                      checked={theme === option}
+                      onChange={() => setTheme(option)}
+                      className="sr-only"
+                    />
+                    {t("themes", { theme: option })}
+                  </label>
+                ))}
+              </span>
+            </fieldset>
+            <label className="relative inline-flex min-h-10 cursor-pointer items-center border border-on-accent px-3.5 text-sm font-semibold focus-within:outline-2 focus-within:outline-on-accent">
               {t("upload")}
               <input
                 type="file"
@@ -365,7 +392,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
               type="button"
               onClick={publish}
               disabled={!dirty || publishing || uploading !== null}
-              className="min-h-10 bg-paper px-4.5 text-sm font-semibold text-ink disabled:opacity-60"
+              className="min-h-10 bg-on-accent px-4.5 text-sm font-semibold text-accent disabled:opacity-60"
             >
               {publishing ? t("publishing") : t("publish")}
             </button>
@@ -377,7 +404,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
                 type="button"
                 onClick={convertPrices}
                 disabled={converting}
-                className="min-h-10 border border-paper px-3.5 font-semibold disabled:opacity-60"
+                className="min-h-10 border border-on-accent px-3.5 font-semibold disabled:opacity-60"
               >
                 {converting ? t("converting") : t("convert", { from: amountsCurrency, to: currency })}
               </button>
@@ -399,6 +426,9 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
               </button>
             </div>
           )}
+          <p id="admin-theme-hint" className={theme !== saved.theme ? "w-full text-sm" : "sr-only"}>
+            {t("themeHint")}
+          </p>
           {/* Read out with the switch; shown once it differs from what is live. */}
           <p id="admin-show-prices-hint" className={showPrices !== saved.showPrices ? "w-full text-sm" : "sr-only"}>
             {t("showPricesHint")}
@@ -482,7 +512,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
                 event.preventDefault();
                 if (event.dataTransfer.files.length > 0) void addWorks(event.dataTransfer.files);
               }}
-              className="flex h-full min-h-[22rem] cursor-pointer flex-col items-center justify-center gap-3.5 border-[1.5px] border-dashed border-control bg-[#181717] p-10 text-center focus-within:outline-2 focus-within:outline-ink lg:min-h-[32.5rem] xl:min-h-[26rem]"
+              className="flex h-full min-h-[22rem] cursor-pointer flex-col items-center justify-center gap-3.5 border-[1.5px] border-dashed border-control bg-well p-10 text-center focus-within:outline-2 focus-within:outline-ink lg:min-h-[32.5rem] xl:min-h-[26rem]"
             >
               <svg aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" className="stroke-accent" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 16V4" />

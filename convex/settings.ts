@@ -4,7 +4,7 @@ import { serverMutation, serverQuery } from "./guard";
 // Site-wide settings live in a single document. The "Show prices" switch only
 // ever writes here; it never touches artworks (see CLAUDE.md price rules).
 
-const DEFAULTS = { showPrices: true, currency: "EUR" };
+const DEFAULTS = { showPrices: true, currency: "EUR", theme: "dark" as const };
 
 export const get = serverQuery({
   args: {},
@@ -13,6 +13,7 @@ export const get = serverQuery({
     return {
       showPrices: doc?.showPrices ?? DEFAULTS.showPrices,
       currency: doc?.currency ?? DEFAULTS.currency,
+      theme: doc?.theme ?? DEFAULTS.theme,
     };
   },
 });

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { CartLink } from "@/components/CartLink";
 import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
 import { MobileMenu } from "@/components/MobileMenu";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { NavLinks } from "@/components/NavLinks";
 import { Wordmark } from "@/components/Wordmark";
 import { isCartEnabled } from "@/lib/pricing";
@@ -23,15 +24,19 @@ export async function Header() {
           <nav aria-label={t("mainNavLabel")} className="hidden md:block">
             <NavLinks />
           </nav>
-          <div className="hidden lg:block">
+          <div className="hidden items-center gap-8 lg:flex">
             <CurrencySwitcher />
+            <ThemeToggle siteTheme={settings.theme} />
           </div>
           {showCart && <CartLink />}
           <MobileMenu openLabel={t("openMenu")} closeLabel={t("closeMenu")}>
             <nav aria-label={t("mainNavLabel")}>
               <NavLinks orientation="vertical" />
             </nav>
-            <CurrencySwitcher />
+            <div className="flex flex-wrap items-center gap-x-8">
+              <CurrencySwitcher />
+              <ThemeToggle siteTheme={settings.theme} />
+            </div>
           </MobileMenu>
         </div>
       </div>

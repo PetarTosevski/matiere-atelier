@@ -132,7 +132,7 @@ export function WorkCard({
             onClick={(event) => onEdit(event.currentTarget)}
             aria-label={t("editLabel", { title })}
             aria-pressed={selected}
-            className="h-11 border border-accent bg-accent px-4 text-sm font-semibold text-paper md:h-9"
+            className="h-11 border border-accent bg-accent px-4 text-sm font-semibold text-on-accent md:h-9"
           >
             {t("edit")}
           </button>
@@ -148,7 +148,7 @@ export function WorkCard({
             height={cover.height}
             sizes="(min-width: 80rem) 28vw, (min-width: 48rem) 42vw, 86vw"
             draggable={false}
-            className="h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem] xl:max-h-[19rem]"
+            className="h-auto max-h-[22rem] w-auto max-w-full shadow-[var(--shadow-art)] lg:max-h-[26rem] xl:max-h-[19rem]"
           />
         ) : (
           <p className="text-sm text-faint">{t("noImage")}</p>

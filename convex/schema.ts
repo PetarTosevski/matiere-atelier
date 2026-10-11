@@ -72,6 +72,8 @@ export default defineSchema({
     showPrices: v.boolean(),
     /** The shop currency; optional so the document saved before it existed stays valid. */
     currency: v.optional(v.string()),
+    /** The default theme, "dark" or "light"; optional for the same reason. */
+    theme: v.optional(v.union(v.literal("dark"), v.literal("light"))),
   }),
 
   inquiries: defineTable({

@@ -42,10 +42,14 @@ export type Artwork = {
   createdAt: string;
 };
 
+export type Theme = "dark" | "light";
+
 export type SiteSettings = {
   showPrices: boolean;
   /** The shop currency (ISO 4217), shared by every artwork. */
   currency: string;
+  /** The default theme for every visitor; each visitor can switch. */
+  theme: Theme;
 };
 
 export type InquiryType = "CONTACT" | "COMMISSION" | "REQUEST" | "ORDER";

@@ -31,7 +31,7 @@ type Props = {
 };
 
 const inputClass =
-  "block w-full border border-control bg-paper px-3.5 py-3 text-[1.0625rem] text-ink aria-[invalid=true]:border-2 aria-[invalid=true]:border-warn";
+  "block w-full border border-control bg-paper px-3.5 py-3 in-data-[theme=light]:bg-field text-[1.0625rem] text-ink aria-[invalid=true]:border-2 aria-[invalid=true]:border-warn";
 
 /**
  * The side panel for one piece. Edits go straight into the editor's state,
@@ -85,7 +85,7 @@ export function EditPanel({
       onKeyDown={(event) => {
         if (event.key === "Escape") onClose();
       }}
-      className="fixed inset-y-0 right-0 z-50 flex w-full flex-col gap-5 overflow-y-auto border-l border-control bg-panel p-6 shadow-[-24px_0_48px_rgba(0,0,0,0.5)] sm:w-[27.5rem] sm:p-7"
+      className="fixed inset-y-0 right-0 z-50 flex w-full flex-col gap-5 overflow-y-auto border-l border-control bg-panel p-6 shadow-[var(--shadow-drawer)] sm:w-[27.5rem] sm:p-7"
     >
       <div className="flex items-center justify-between gap-3">
         <h2
@@ -154,7 +154,7 @@ export function EditPanel({
 
       <div>
         <label htmlFor={`${id}-amount`} className="mb-2 block text-sm text-muted">{t("price")}</label>
-        <div className="flex items-stretch border border-control bg-paper focus-within:outline-2 focus-within:outline-ink">
+        <div className="flex items-stretch border border-control bg-paper in-data-[theme=light]:bg-field focus-within:outline-2 focus-within:outline-ink">
           <span aria-hidden="true" className="flex items-center border-r border-control px-3.5 text-accent">
             {currencySymbol(currency, "en")}
           </span>
@@ -295,7 +295,7 @@ export function EditPanel({
       <button
         type="button"
         onClick={onClose}
-        className="min-h-12 bg-accent text-[0.9375rem] font-semibold text-paper"
+        className="min-h-12 bg-accent text-[0.9375rem] font-semibold text-on-accent"
       >
         {t("done")}
       </button>

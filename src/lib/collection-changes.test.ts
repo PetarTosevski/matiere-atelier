@@ -38,12 +38,13 @@ const newWork = (patch: Partial<EditorWork> = {}): EditorWork => ({
   ...patch,
 });
 
-const request = (currency: string, works: EditorWork[]) => toChanges(currency, true, works);
+const request = (currency: string, works: EditorWork[]) => toChanges({ currency, showPrices: true, theme: "dark" }, works);
 
 describe("parseCollectionChanges", () => {
-  it("carries the Show prices switch", () => {
-    const result = parseCollectionChanges(toChanges("EUR", false, [toEditorWork(a)]), [a]);
-    expect(result).toMatchObject({ ok: true, showPrices: false });
+  it("carries the Show prices switch and the theme", () => {
+    const result = parseCollectionChanges(toChanges({ currency: "EUR", showPrices: false, theme: "light" }, [toEditorWork(a)]), [a]);
+    expect(result).toMatchObject({ ok: true, showPrices: false, theme: "light" });
+    expect(parseCollectionChanges({ ...request("EUR", [toEditorWork(a)]), theme: "sepia" }, [a]).ok).toBe(false);
     expect(parseCollectionChanges({ ...request("EUR", [toEditorWork(a)]), showPrices: "no" }, [a]).ok).toBe(false);
   });
 
