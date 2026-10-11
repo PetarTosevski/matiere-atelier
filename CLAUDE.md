@@ -17,7 +17,7 @@ Work happens in phases. Finish and verify a phase before starting the next. Do n
 - **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, language switcher. Artwork data comes from a typed file.
   - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
-  - Status: built. Sign-in, artwork list (edit, delete, mark sold or available, reorder, page preview), upload and edit form, About page editor, settings, Convex database. Still to do: link a Convex cloud project, choose hosting.
+  - Status: built. Sign-in, the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher and a batched "Publish changes"), About page editor, settings, Convex database. Still to do: link a Convex cloud project, choose hosting.
 
 ## Tech stack
 
@@ -90,16 +90,15 @@ src/
       actions.ts                  every admin server action (each checks the session)
       upload/route.ts             image upload (a route, not an action, so the 20 MB limit stays here)
       login/page.tsx
-      (panel)/layout.tsx          admin nav; checks the session
-      (panel)/page.tsx            artwork list: edit, reorder, mark sold, delete
-      (panel)/artworks/new/page.tsx   upload
-      (panel)/artworks/[id]/page.tsx  edit
+      (panel)/layout.tsx          pink "Admin mode" bar with the admin links; checks the session
+      (panel)/page.tsx            the collection editor (see "Collection editor" below)
       (panel)/about/page.tsx      About page editor (portrait and bio)
       (panel)/settings/page.tsx   "Show prices" switch
   components/
     InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
-    OriginalsGrid.tsx, ArtworkBody.tsx  shared by the storefront and the admin preview
-    admin/                        login, artwork form, About form, MarkdownField (toolbar + preview), preview dialog, settings
+    OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx  storefront Originals and artwork page parts
+    admin/                        login, About form, MarkdownField (toolbar + preview), settings
+    admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
   lib/
     types.ts        the data model below
@@ -118,7 +117,9 @@ src/
     rate-limit.ts   in-memory per-IP limiter (single server; see hosting decision)
     mail.ts         Nodemailer SMTP; in dev without SMTP, writes .eml files to .outbox/
     auth.ts         admin session (iron-session) and credential check (bcrypt)
-    artwork-form.ts checks for the admin form; message keys as errors
+    artwork-form.ts parseArtworkFields(): checks for one artwork; message keys as errors
+    collection-changes.ts  parseCollectionChanges(): checks a whole "Publish changes" request
+    currency.ts     SHOP_CURRENCIES, currencySymbol()
     images.ts       sharp processing; sniffs the real file type; HEIC is refused
     storage.ts      small file-storage interface over Convex storage
     money.ts        "1450.50" to integer cents and back, without floats
@@ -165,7 +166,7 @@ type Artwork = {
   description: string;        // markdown
   priceMode: PriceMode;
   priceAmount: number | null; // integer minor units (cents)
-  currency: string;           // ISO 4217, default "EUR"
+  currency: string;           // ISO 4217; always the shop currency (SiteSettings.currency)
   status: Status;
   published: boolean;         // drafts never appear on the storefront
   sortOrder: number;          // controls order on Originals
@@ -174,7 +175,7 @@ type Artwork = {
   createdAt: string;
 };
 
-type SiteSettings = { showPrices: boolean };
+type SiteSettings = { showPrices: boolean; currency: string }; // currency: the shop currency, default "EUR"
 
 type InquiryType = "CONTACT" | "COMMISSION" | "REQUEST" | "ORDER";
 ```
@@ -183,6 +184,7 @@ Rules:
 - Money is stored as integer minor units plus a currency code. Never use floats for money.
 - Changing `priceMode` never clears `priceAmount`, so switching back to Price restores the old price.
 - `AUCTION` is not selectable yet. If it ever appears in data, render it exactly like `DISPLAY`.
+- The shop has one currency (`SiteSettings.currency`): EUR, USD, GBP, CHF or SEK, all with two decimal places so minor units keep their meaning. Switching it in the admin sets every artwork's `currency` to match and **does not convert amounts** (€1,450 becomes $1,450); the admin says so next to the switch. Exchange-rate conversion is not built.
 - Dimensions are a structured field, not part of the markdown description. They are shown width first ("80 × 100 cm", with locale number formatting) under the title on the grid and on the artwork page. Depth, inches and showing pieces at their true relative scale can build on this field later.
 
 ## Price and stock display rules
@@ -261,10 +263,15 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Login is rate limited (5 attempts per 15 minutes per IP, counted in Convex). To unlock after a lockout, call the `rateLimits:reset` Convex function with the secret and the key `login:<ip>`.
 - The session cookie is limited to `path=/admin`, so it is never sent with storefront requests. `secure` is on in production only, because browsers drop secure cookies on plain-http localhost.
 
-### Artwork list (`/admin`)
-- All artworks including drafts: cover, title, price mode, price, status, published.
-- Actions: edit, delete (with confirmation), mark sold or available, reorder.
-- Reordering sets `sortOrder` and is how the artist controls the Originals layout.
+### Collection editor (`/admin`)
+- Design: Claude Design "Art Storefront Layouts – ADMIN PANEL · admin" (adopted 2026-10-11). The page shows the collection as visitors see it (storefront header, Originals intro, two-up cards, footer) with admin controls on top. Header and footer there are a picture of the storefront, not links.
+- Pink bar: "Admin mode" with links to Collection, About page, Settings, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
+- Each card: drag handle with "Drag to move · Row 2, left" ("Position 3 of 8" on phones), ← / → buttons, and **Edit**. Below, the same parts as the storefront card. "No price set", "Check the price", "Draft, not on the site" and "Needs attention" show in the warning color. All artworks are listed, drafts included.
+- **Add new works** tile at the end (also "+ Upload works" and dropping files on a card): each image becomes a new draft piece titled after its file name, added at the end, and the edit panel opens on it.
+- **Edit panel** (fixed on the right, full width on phones): image preview and "Replace image" (the cover), Name, Price (shop currency symbol in front; "Shown on the site as …"), Description (MarkdownField), then More details: size, price mode (Price, Auction (WIP) only where already set, Display), status, "Show on the site", web address, all images with alt text and order. "Delete this piece" deletes right away after confirmation (not on Publish). "Done" closes the panel.
+- **Publish changes**: edits, reordering, new pieces and the currency stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.
+- New uploads are stored in Convex right away (so Publish can reference them); an unpublished upload that is removed or replaced is deleted.
+- A draft may be saved without a price; a piece shown on the site in Price mode needs one.
 
 ### About page (`/admin/about`)
 - The artist edits the About page: an optional portrait (same upload pipeline as artworks; alt text required, since there is no title to fall back on) and the bio as markdown, with the same toolbar and live preview as artwork descriptions (`components/admin/MarkdownField.tsx`).
@@ -272,22 +279,17 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Stored in Convex as a single `aboutPage` document. Saving deletes the previous portrait file when it is replaced or removed; an unsaved upload that is swapped out is deleted right away.
 - Editing other pages (Commissions intro, for example) is not built; ask the developer first.
 
-### Upload and edit form
+### Artwork fields (edit panel)
 - **Title** (required) and **slug** (generated from title, editable).
 - **Images:** one or more, drag to reorder, first is the cover. Alt text per image, defaulting to the title.
 - **Size:** width and height in centimetres (both or neither; dot or comma decimals).
-- **Description:** markdown textarea with a formatting toolbar (bold, italic, heading, bulleted and numbered lists, quote, link; Ctrl/Cmd+B, I and K) and a live preview. The toolbar edits live in `lib/markdown-format.ts`. Placeholder example:
-  ```md
-  **Medium:** acrylic and texture paste on linen canvas
-  **Frame:** optional float frame in light or dark wood
-  ```
-- **Pricing dropdown:** Price, Auction, Display.
-  - Price: amount input, EUR only for now (currency selection is under Later; the currency field is stored, so adding a select later is small). Amount is required. Amounts are typed in major units (1450 or 1450.50) and converted to cents with string arithmetic; ambiguous input such as 1,450 is rejected.
+- **Description:** markdown textarea with a formatting toolbar (bold, italic, heading, bulleted and numbered lists, quote, link; Ctrl/Cmd+B, I and K) and a live preview. The toolbar edits live in `lib/markdown-format.ts`.
+- **Pricing:** Price, Auction, Display.
+  - Price: amount in the shop currency. Amounts are typed in major units (1450 or 1450.50) and converted to cents with string arithmetic; ambiguous input such as 1,450 is rejected. Required once the piece is shown on the site.
   - Auction: visible but disabled, labeled "Auction (WIP)".
   - Display: no price on the site. Any stored amount is kept.
 - **Status:** Available or Sold.
-- **Published:** on or off. Off saves a draft.
-- **Preview page** (in the form and on the artwork list): opens a full-screen preview of the Originals grid (the piece outlined in its future position) and of the artwork page, built from the unsaved form values with the real components and `getPriceView` rules. Links and cart buttons are disabled inside it. The storefront and the preview share `components/OriginalsGrid.tsx` and `components/ArtworkBody.tsx`, so they can't drift apart.
+- **Published** ("Show on the site"): on or off. Off keeps a draft.
 
 ### Settings (`/admin/settings`)
 - A "Show prices" switch with a one-line explanation of what it does. It writes only `SiteSettings.showPrices` (see the price rules above).
@@ -364,13 +366,13 @@ Decided:
 - Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
 - "Edit page layout": reordering artworks plus editing the About page (portrait and bio) in the admin (2026-10-11).
 - HEIC uploads are rejected with a message (2026-10-11).
-- Currency on the upload form: EUR only for now (2026-10-11).
+- Shop currency: one site-wide currency, switchable in the admin among EUR, USD, GBP, CHF and SEK; switching relabels prices without converting them (2026-10-11).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
 
 ## Later (do not build yet)
 
-Auction, currency selection and conversion, translated artwork content, prints, customer accounts, search.
+Auction, currency conversion (exchange rates) and per-piece currencies, translated artwork content, prints, customer accounts, search.
 
 ## Working rules
 
