@@ -21,3 +21,15 @@ export const hit = serverMutation({
     return allowed;
   },
 });
+
+/** Clears a key, e.g. to unlock admin sign-in from the CLI after a lockout. */
+export const reset = serverMutation({
+  args: { key: v.string() },
+  handler: async (ctx, { key }) => {
+    const doc = await ctx.db
+      .query("rateLimits")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .unique();
+    if (doc) await ctx.db.delete(doc._id);
+  },
+});

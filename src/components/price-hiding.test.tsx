@@ -65,6 +65,8 @@ function renderComponents(artwork: Artwork, settings: SiteSettings): string {
         slug={artwork.slug}
         title={artwork.title}
         cover={artwork.images[0]}
+        hover={artwork.images[1]}
+        dimensions={artwork.dimensions}
         view={view}
       />,
     ),
@@ -74,6 +76,7 @@ function renderComponents(artwork: Artwork, settings: SiteSettings): string {
         slug={artwork.slug}
         title={artwork.title}
         description={artwork.description}
+        dimensions={artwork.dimensions}
         view={view}
       />,
     ),
@@ -194,6 +197,33 @@ describe("pages", () => {
       (a) => a.priceMode === "PRICE" && a.status === "AVAILABLE",
     )!;
     expect(await renderArtworkPage(priced.slug)).toContain(String(SENTINEL));
+  });
+});
+
+describe("card details", () => {
+  it("shows the dimensions under the title, on the card and the artwork page", () => {
+    const lowTide = published.find((a) => a.slug === "low-tide")!;
+    const output = renderComponents(lowTide, shop);
+    expect(output.match(/80 × 100 cm/g)).toHaveLength(2);
+  });
+
+  it("adds a hidden-from-screen-readers close-up only when there is a second image", () => {
+    const withDetail = published.find((a) => a.images.length > 1)!;
+    const single = published.find((a) => a.images.length === 1)!;
+    const card = (artwork: Artwork) =>
+      render(
+        <ArtworkCard
+          slug={artwork.slug}
+          title={artwork.title}
+          cover={artwork.images[0]}
+          hover={artwork.images[1]}
+          dimensions={artwork.dimensions}
+          view={getPriceView(artwork, shop)}
+        />,
+      );
+    expect(card(withDetail).match(/<img/g)).toHaveLength(2);
+    expect(card(withDetail)).toContain('aria-hidden="true"');
+    expect(card(single).match(/<img/g)).toHaveLength(1);
   });
 });
 

@@ -12,7 +12,6 @@ export const artworks: Artwork[] = [
     slug: "low-tide",
     title: "Low Tide",
     description: [
-      "**Size:** 80 x 100 cm",
       "**Medium:** acrylic and texture paste on linen canvas",
       "**Frame:** optional float frame in light or dark wood",
       "",
@@ -24,6 +23,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: true,
     sortOrder: 1,
+    dimensions: { width: 80, height: 100 },
     images: [
       {
         src: "/placeholders/low-tide.webp",
@@ -40,7 +40,6 @@ export const artworks: Artwork[] = [
     slug: "harbour-wall",
     title: "Harbour Wall",
     description: [
-      "**Size:** 160 x 80 cm",
       "**Medium:** acrylic and marble dust on canvas",
       "**Frame:** unframed, painted edges",
       "",
@@ -52,6 +51,7 @@ export const artworks: Artwork[] = [
     status: "SOLD",
     published: true,
     sortOrder: 2,
+    dimensions: { width: 160, height: 80 },
     images: [
       {
         src: "/placeholders/harbour-wall.webp",
@@ -68,7 +68,6 @@ export const artworks: Artwork[] = [
     slug: "field-notes-i",
     title: "Field Notes I",
     description: [
-      "**Size:** 90 x 60 cm",
       "**Medium:** acrylic and texture paste on linen canvas",
       "**Frame:** optional float frame in light or dark wood",
       "",
@@ -83,6 +82,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: true,
     sortOrder: 3,
+    dimensions: { width: 90, height: 60 },
     images: [
       {
         src: "/placeholders/field-notes-i-1.webp",
@@ -111,7 +111,6 @@ export const artworks: Artwork[] = [
     slug: "tall-grass",
     title: "Tall Grass",
     description: [
-      "**Size:** 60 x 90 cm",
       "**Medium:** acrylic on canvas",
       "**Frame:** optional float frame in light or dark wood",
       "",
@@ -123,6 +122,7 @@ export const artworks: Artwork[] = [
     status: "SOLD",
     published: true,
     sortOrder: 4,
+    dimensions: { width: 60, height: 90 },
     images: [
       {
         src: "/placeholders/tall-grass.webp",
@@ -139,7 +139,6 @@ export const artworks: Artwork[] = [
     slug: "quiet-orchard",
     title: "Quiet Orchard",
     description: [
-      "**Size:** 50 x 50 cm",
       "**Medium:** acrylic and texture paste on wood panel",
       "**Frame:** unframed",
       "",
@@ -151,6 +150,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: true,
     sortOrder: 5,
+    dimensions: { width: 50, height: 50 },
     images: [
       {
         src: "/placeholders/quiet-orchard.webp",
@@ -168,7 +168,6 @@ export const artworks: Artwork[] = [
     slug: "study-in-umber",
     title: "Study in Umber",
     description: [
-      "**Size:** 40 x 40 cm",
       "**Medium:** acrylic and texture paste on linen canvas",
       "",
       "Part of the artist's own collection, shown here but not for sale.",
@@ -179,6 +178,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: true,
     sortOrder: 6,
+    dimensions: { width: 40, height: 40 },
     images: [
       {
         src: "/placeholders/study-in-umber.webp",
@@ -195,7 +195,6 @@ export const artworks: Artwork[] = [
     slug: "weather-front",
     title: "Weather Front",
     description: [
-      "**Size:** 90 x 120 cm",
       "**Medium:** acrylic and texture paste on linen canvas",
       "**Frame:** optional float frame in light or dark wood",
       "",
@@ -207,6 +206,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: true,
     sortOrder: 6,
+    dimensions: { width: 90, height: 120 },
     images: [
       {
         src: "/placeholders/weather-front.webp",
@@ -223,7 +223,6 @@ export const artworks: Artwork[] = [
     slug: "untitled-draft",
     title: "Untitled (draft)",
     description: [
-      "**Size:** 120 x 90 cm",
       "**Medium:** acrylic on canvas",
       "",
       "Still in progress.",
@@ -234,6 +233,7 @@ export const artworks: Artwork[] = [
     status: "AVAILABLE",
     published: false,
     sortOrder: 0,
+    dimensions: { width: 120, height: 90 },
     images: [
       {
         src: "/placeholders/untitled-draft.webp",

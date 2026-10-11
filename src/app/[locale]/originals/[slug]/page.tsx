@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { ArtworkDetails } from "@/components/ArtworkDetails";
-import { ArtworkGallery } from "@/components/ArtworkGallery";
+import { ArtworkBody } from "@/components/ArtworkBody";
 import { toLocale } from "@/i18n/locale";
 import { Link } from "@/i18n/navigation";
 import { getArtworkBySlug, getPublishedSlugs } from "@/lib/artworks";
@@ -43,16 +42,15 @@ export default async function ArtworkPage({
       <Link href="/originals" className="link text-sm text-muted">
         {t("backToOriginals")}
       </Link>
-      <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
-        <ArtworkGallery title={artwork.title} images={artwork.images} />
-        <ArtworkDetails
-          id={artwork.id}
-          slug={artwork.slug}
-          title={artwork.title}
-          description={artwork.description}
-          view={getPriceView(artwork, settings)}
-        />
-      </div>
+      <ArtworkBody
+        id={artwork.id}
+        slug={artwork.slug}
+        title={artwork.title}
+        description={artwork.description}
+        images={artwork.images}
+        dimensions={artwork.dimensions}
+        view={getPriceView(artwork, settings)}
+      />
     </div>
   );
 }

@@ -22,6 +22,9 @@ const artworkSchema = z.strictObject({
   status: z.enum(["AVAILABLE", "SOLD"]),
   published: z.boolean(),
   sortOrder: z.number().int(),
+  dimensions: z
+    .strictObject({ width: z.number().positive(), height: z.number().positive() })
+    .nullable(),
   images: z
     .array(
       z.strictObject({

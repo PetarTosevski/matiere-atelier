@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { serverMutation, serverQuery } from "./guard";
+import { deleteFilesIfPresent } from "./storage";
 import { statusValidator, writableArtworkFields as writableFields } from "./schema";
 
 // Raw artwork data for the Next.js server. Pricing and display rules are NOT
@@ -28,6 +29,7 @@ async function toArtwork(ctx: QueryCtx, doc: Doc<"artworks">) {
     status: doc.status,
     published: doc.published,
     sortOrder: doc.sortOrder,
+    dimensions: doc.dimensions ?? null,
     images: images.flatMap(({ src, ...image }) => (src ? [{ ...image, src }] : [])),
     createdAt: doc.createdAt,
   };
@@ -78,6 +80,16 @@ export const getAnyBySlug = serverQuery({
   },
 });
 
+/** One artwork by ID, drafts included (admin edit form). */
+export const getById = serverQuery({
+  args: { id: v.string() },
+  handler: async (ctx, { id: raw }) => {
+    const id = ctx.db.normalizeId("artworks", raw);
+    const doc = id ? await ctx.db.get(id) : null;
+    return doc ? toArtwork(ctx, doc) : null;
+  },
+});
+
 /** Artworks by ID, drafts included; unknown or malformed IDs are skipped. */
 export const getByIds = serverQuery({
   args: { ids: v.array(v.string()) },
@@ -108,6 +120,10 @@ function assertValid(artwork: WritableArtwork) {
   }
   if (artwork.priceMode === "PRICE" && artwork.priceAmount === null) problems.push("PRICE mode needs an amount");
   if (artwork.published && artwork.images.length === 0) problems.push("a published artwork needs at least one image");
+  const size = artwork.dimensions;
+  if (size && ![size.width, size.height].every((n) => Number.isFinite(n) && n > 0 && n <= 2000)) {
+    problems.push("dimensions must be positive centimetres up to 2000");
+  }
   if (problems.length > 0) throw new ConvexError(problems.join("; "));
 }
 
@@ -121,7 +137,7 @@ async function assertSlugFree(ctx: MutationCtx, slug: string, except?: Id<"artwo
 
 /** Deletes stored files that the artwork no longer references. */
 async function deleteFiles(ctx: MutationCtx, storageIds: Id<"_storage">[]) {
-  await Promise.all(storageIds.map((id) => ctx.storage.delete(id)));
+  await deleteFilesIfPresent(ctx, storageIds);
 }
 
 export const create = serverMutation({
