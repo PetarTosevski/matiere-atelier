@@ -1,0 +1,9 @@
+export const SITE_NAME = "Matière Atelier";
+
+/** Public origin for absolute URLs (Open Graph). Set it before `npm run build`. */
+export function getSiteUrl(): URL {
+  return new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+}
+
+/** Placeholder until the artist's account is confirmed. */
+export const INSTAGRAM_URL = "https://www.instagram.com/";

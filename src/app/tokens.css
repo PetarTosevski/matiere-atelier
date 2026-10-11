@@ -1,0 +1,31 @@
+/*
+ * Design tokens. The palette and type are neutral placeholders until they
+ * are chosen with the artist: swapping them is a change to this file only.
+ * Tailwind's default palette is cleared so components can only use these.
+ */
+@theme {
+  --color-*: initial;
+  --color-paper: #f7f7f6; /* very light grey page background, like a plain wall */
+  --color-ink: #1f1e1c; /* text and primary buttons */
+  --color-muted: #66635d; /* secondary text (5.6:1 on paper) */
+  --color-line: #dcdbd8; /* hairline dividers */
+  --color-band: #e4d5bf; /* tan header band behind the menus (ink only: muted is 4.2:1 here) */
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* Uniform frame for grid covers; the art is contained, never cropped. */
+  --aspect-frame: 4 / 5;
+
+  /* Content width (1440px); the side gutter sits outside it and scales with the viewport. */
+  --container-site: 90rem;
+  --spacing-gutter: clamp(1rem, 4vw, 3rem);
+
+  /* Clearance for the sticky header (its tallest, desktop height plus room). */
+  --spacing-header: 6rem;
+
+  /* Menu text: 30% above body (1rem) and the old mobile size (1.125rem). */
+  --text-menu: 1.3rem;
+  --text-menu-lg: 1.4625rem;
+}

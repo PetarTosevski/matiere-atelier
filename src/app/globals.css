@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    /* Keep in-page jumps (skip link, anchors) clear of the sticky header. */
+    scroll-padding-top: var(--spacing-header);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+
+  /* Keep the page behind the full-screen viewer from scrolling. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  dialog::backdrop {
+    background-color: var(--color-paper);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Shared by the header, pages and footer, so their edges line up. */
+@utility site-container {
+  width: 100%;
+  max-width: calc(var(--container-site) + 2 * var(--spacing-gutter));
+  margin-inline: auto;
+  padding-inline: var(--spacing-gutter);
+}
+
+@utility link {
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+@utility button-primary {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.75rem;
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  text-align: center;
+
+  &:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
+  }
+}
+
+@utility button-quiet {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-ink);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+
+  &:hover {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  &:disabled,
+  &[aria-disabled="true"] {
+    opacity: 0.4;
+    text-decoration-line: none;
+  }
+}
+
+/* Rendered markdown from artwork descriptions. */
+@utility prose-description {
+  line-height: 1.7;
+
+  & > * + * {
+    margin-top: 1em;
+  }
+
+  /* Keep single line breaks, so "Size", "Medium" and "Frame" lines stay separate. */
+  & p {
+    white-space: pre-line;
+  }
+
+  & strong {
+    font-weight: 600;
+  }
+
+  & a {
+    text-decoration-line: underline;
+    text-underline-offset: 0.25em;
+  }
+
+  & ul {
+    list-style-type: disc;
+    padding-left: 1.25em;
+  }
+
+  & ol {
+    list-style-type: decimal;
+    padding-left: 1.25em;
+  }
+
+  & h2,
+  & h3 {
+    font-weight: 600;
+  }
+}

@@ -1,0 +1,9 @@
+# Store text with LF line endings in the repo on every platform.
+* text=auto eol=lf
+
+# Binary assets
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary

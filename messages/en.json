@@ -1,0 +1,90 @@
+{
+  "Metadata": {
+    "titleTemplate": "%s · {siteName}",
+    "description": "Original paintings, available directly from the artist."
+  },
+  "Layout": {
+    "skipToContent": "Skip to content"
+  },
+  "Header": {
+    "mainNavLabel": "Main",
+    "openMenu": "Menu",
+    "closeMenu": "Close"
+  },
+  "Nav": {
+    "originals": "Originals",
+    "commissions": "Commissions",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "CartLink": {
+    "label": "Cart, {count, plural, =0 {no items} one {# item} other {# items}}"
+  },
+  "LanguageSwitcher": {
+    "label": "Language",
+    "locale": "{locale, select, en {English} other {{locale}}}"
+  },
+  "Footer": {
+    "instagram": "Instagram",
+    "copyright": "© {year} {siteName}"
+  },
+  "Originals": {
+    "metaTitle": "Originals",
+    "title": "Originals",
+    "empty": "There are no originals on show right now. You can <commissions>commission a piece</commissions> or <contact>get in touch</contact>."
+  },
+  "Artwork": {
+    "available": "Available",
+    "soldOut": "Sold out",
+    "addToCart": "Add to cart",
+    "requestPiece": "Request this piece",
+    "askAboutPiece": "Ask about this piece",
+    "backToOriginals": "Back to originals"
+  },
+  "Gallery": {
+    "viewFullScreen": "View full screen",
+    "openImage": "View full screen: {alt}",
+    "thumbnailsLabel": "Images of {title}",
+    "showImage": "Show image {index} of {total}"
+  },
+  "Viewer": {
+    "label": "{title}, full-screen view",
+    "close": "Close",
+    "actualSize": "Actual size",
+    "fitToScreen": "Fit to screen",
+    "previous": "Previous image",
+    "next": "Next image",
+    "position": "{index} of {total}",
+    "positionWithAlt": "Image {index} of {total}: {alt}",
+    "zoomedRegion": "Image at actual size. Use the arrow keys or drag to move around."
+  },
+  "Placeholder": {
+    "comingSoon": "This page is being prepared. Please check back soon."
+  },
+  "Commissions": {
+    "metaTitle": "Commissions",
+    "title": "Commissions"
+  },
+  "About": {
+    "metaTitle": "About",
+    "title": "About"
+  },
+  "Contact": {
+    "metaTitle": "Contact",
+    "title": "Contact"
+  },
+  "Cart": {
+    "metaTitle": "Cart",
+    "title": "Cart",
+    "empty": "Your cart is empty."
+  },
+  "Request": {
+    "metaTitle": "{action, select, REQUEST {Request {title}} other {Ask about {title}}}",
+    "comingSoon": "The request form is being prepared. Please check back soon."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist, or the piece is no longer on show.",
+    "backToOriginals": "See all originals"
+  }
+}
