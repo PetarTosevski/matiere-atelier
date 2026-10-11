@@ -54,3 +54,9 @@ next-env.d.ts
 
 # local email outbox (dev only, when SMTP is not configured)
 /.outbox/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
