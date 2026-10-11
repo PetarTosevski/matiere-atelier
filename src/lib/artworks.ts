@@ -4,7 +4,7 @@ import type { StoredArtwork } from "../../convex/artworks";
 import { artworks as staticArtworks } from "@/data/artworks";
 import { api, convexMutation, convexQuery, shouldUseStaticData } from "@/lib/convex";
 import { compareArtworks } from "@/lib/order";
-import type { Artwork, ArtworkImage } from "@/lib/types";
+import type { Artwork, ArtworkImage, SiteSettings } from "@/lib/types";
 
 // Pages read artworks only through this module. Data lives in Convex; the
 // static Phase 1 file is only a development fallback (see lib/convex.ts).
@@ -93,15 +93,17 @@ export async function deleteArtwork(id: string): Promise<void> {
 
 /**
  * Saves a whole "Publish changes" in one transaction: every artwork in its
- * new order (id null for new ones) and the shop currency. Returns the ids.
+ * new order (id null for new ones), the shop currency and "Show prices".
+ * Returns the ids.
  */
 export async function applyCollectionChanges(
-  currency: string,
+  settings: SiteSettings,
   artworks: (ArtworkInput & { id: string | null })[],
 ): Promise<string[]> {
   requireConvex();
   return convexMutation(api.artworks.applyChanges, {
-    currency,
+    currency: settings.currency,
+    showPrices: settings.showPrices,
     artworks: artworks.map(({ id, ...input }) => ({
       id: id as never,
       ...toConvexInput(input),

@@ -38,9 +38,15 @@ const newWork = (patch: Partial<EditorWork> = {}): EditorWork => ({
   ...patch,
 });
 
-const request = (currency: string, works: EditorWork[]) => toChanges(currency, works);
+const request = (currency: string, works: EditorWork[]) => toChanges(currency, true, works);
 
 describe("parseCollectionChanges", () => {
+  it("carries the Show prices switch", () => {
+    const result = parseCollectionChanges(toChanges("EUR", false, [toEditorWork(a)]), [a]);
+    expect(result).toMatchObject({ ok: true, showPrices: false });
+    expect(parseCollectionChanges({ ...request("EUR", [toEditorWork(a)]), showPrices: "no" }, [a]).ok).toBe(false);
+  });
+
   it("takes the order on the page as the Originals order", () => {
     const result = parseCollectionChanges(request("EUR", [toEditorWork(b), toEditorWork(a)]), [a, b]);
     expect(result.ok && result.artworks.map((x) => [x.id, x.sortOrder])).toEqual([

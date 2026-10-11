@@ -21,7 +21,7 @@ import { WorkCard } from "./WorkCard";
 type Props = {
   initialWorks: EditorWork[];
   initialCurrency: string;
-  showPrices: boolean;
+  initialShowPrices: boolean;
 };
 
 type Notice =
@@ -31,14 +31,15 @@ type Notice =
   | { kind: "deleted"; title: string }
   | { kind: "deleteFailed"; title: string };
 
-const snapshot = (currency: string, works: EditorWork[]) => JSON.stringify(toChanges(currency, works));
+const snapshot = (currency: string, showPrices: boolean, works: EditorWork[]) =>
+  JSON.stringify(toChanges(currency, showPrices, works));
 
 /**
  * The admin collection page: the Originals page as visitors see it, with
  * reordering, editing and uploading on top. Everything stays in this
  * component until "Publish changes" sends it to the server in one go.
  */
-export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: Props) {
+export function CollectionEditor({ initialWorks, initialCurrency, initialShowPrices }: Props) {
   const t = useTranslations("Admin.collection");
   const tForm = useTranslations("Admin.form");
   const tNav = useTranslations("Nav");
@@ -47,9 +48,11 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
 
   const [works, setWorks] = useState(initialWorks);
   const [currency, setCurrency] = useState(initialCurrency);
+  const [showPrices, setShowPrices] = useState(initialShowPrices);
   const [saved, setSaved] = useState({
     currency: initialCurrency,
-    snapshot: snapshot(initialCurrency, initialWorks),
+    showPrices: initialShowPrices,
+    snapshot: snapshot(initialCurrency, initialShowPrices, initialWorks),
     modes: new Map(initialWorks.map((work) => [work.key, work.priceMode])),
   });
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -64,8 +67,8 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
   const editButton = useRef<HTMLButtonElement | null>(null);
 
   const dirty = useMemo(
-    () => snapshot(currency, works) !== saved.snapshot,
-    [currency, works, saved.snapshot],
+    () => snapshot(currency, showPrices, works) !== saved.snapshot,
+    [currency, showPrices, works, saved.snapshot],
   );
 
   // Warn before leaving with unpublished changes.
@@ -175,10 +178,9 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
       }
       // Already gone from the site, so drop it from the saved state too.
       setSaved((current) => {
-        const savedWorks = (JSON.parse(current.snapshot) as ReturnType<typeof toChanges>).works.filter(
-          (item) => item.key !== work.key,
-        );
-        return { ...current, snapshot: JSON.stringify({ currency: current.currency, works: savedWorks }) };
+        const changes = JSON.parse(current.snapshot) as ReturnType<typeof toChanges>;
+        const savedWorks = changes.works.filter((item) => item.key !== work.key);
+        return { ...current, snapshot: JSON.stringify({ ...changes, works: savedWorks }) };
       });
     } else {
       discard(work.images);
@@ -192,13 +194,15 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
   function publish() {
     setNotice(null);
     startPublish(async () => {
-      const result = await publishChangesAction(toChanges(currency, works));
+      const result = await publishChangesAction(toChanges(currency, showPrices, works));
       if (result.status === "published") {
         setWorks(result.works);
         setCurrency(result.currency);
+        setShowPrices(result.showPrices);
         setSaved({
           currency: result.currency,
-          snapshot: snapshot(result.currency, result.works),
+          showPrices: result.showPrices,
+          snapshot: snapshot(result.currency, result.showPrices, result.works),
           modes: new Map(result.works.map((work) => [work.key, work.priceMode])),
         });
         setErrors({});
@@ -257,6 +261,27 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
                 <option key={code} value={code}>{t("currencies", { code })}</option>
               ))}
             </select>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showPrices}
+              aria-describedby="admin-show-prices-hint"
+              onClick={() => setShowPrices((on) => !on)}
+              className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper"
+            >
+              {t("showPrices")}
+              <span
+                aria-hidden="true"
+                className={`relative h-6 w-11 rounded-full border border-paper ${showPrices ? "bg-paper" : ""}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 size-4.5 rounded-full motion-safe:transition-transform ${
+                    showPrices ? "translate-x-5 bg-accent" : "bg-paper"
+                  }`}
+                />
+              </span>
+              <span className="w-6 text-left font-normal">{showPrices ? t("showPricesOn") : t("showPricesOff")}</span>
+            </button>
             <label className="relative inline-flex min-h-10 cursor-pointer items-center border border-paper px-3.5 text-sm font-semibold focus-within:outline-2 focus-within:outline-paper">
               {t("upload")}
               <input
@@ -291,6 +316,10 @@ export function CollectionEditor({ initialWorks, initialCurrency, showPrices }: 
               {t("currencyNote", { example: savedPrice, converted: newPrice })}
             </p>
           )}
+          {/* Read out with the switch; shown once it differs from what is live. */}
+          <p id="admin-show-prices-hint" className={showPrices !== saved.showPrices ? "w-full text-sm" : "sr-only"}>
+            {t("showPricesHint")}
+          </p>
         </div>
       </div>
 

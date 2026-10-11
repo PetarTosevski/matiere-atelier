@@ -21,7 +21,6 @@ export default async function AdminPanelLayout({ children }: { children: React.R
             <ul className="flex flex-wrap items-center gap-x-5 text-sm">
               <li><a href="/admin" className="inline-flex min-h-10 items-center underline-offset-4 hover:text-paper hover:underline">{t("artworks")}</a></li>
               <li><a href="/admin/about" className="inline-flex min-h-10 items-center underline-offset-4 hover:text-paper hover:underline">{t("about")}</a></li>
-              <li><a href="/admin/settings" className="inline-flex min-h-10 items-center underline-offset-4 hover:text-paper hover:underline">{t("settings")}</a></li>
               <li><a href={`/${routing.defaultLocale}/originals`} className="inline-flex min-h-10 items-center underline-offset-4 hover:text-paper hover:underline">{t("viewSite")}</a></li>
               <li>
                 <form action={logoutAction}>

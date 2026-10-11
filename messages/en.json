@@ -179,7 +179,6 @@
     "nav": {
       "label": "Admin",
       "artworks": "Collection",
-      "settings": "Settings",
       "viewSite": "View site",
       "logout": "Log out",
       "about": "About page",
@@ -308,13 +307,6 @@
       "width": "Width (cm)",
       "height": "Height (cm)"
     },
-    "settings": {
-      "title": "Settings",
-      "showPrices": "Show prices",
-      "showPricesHint": "When off, the site hides every price, the cart and all Add to cart buttons. Each artwork keeps its own price setting and goes back to it when this is turned on again.",
-      "save": "Save",
-      "saved": "Saved."
-    },
     "preview": {
       "label": "Page preview",
       "title": "Preview",
@@ -357,6 +349,10 @@
       "currency": "Currency",
       "currencies": "{code, select, EUR {Euro (€)} USD {US dollar ($)} GBP {British pound (£)} CHF {Swiss franc (CHF)} SEK {Swedish krona (kr)} other {{code}}}",
       "currencyNote": "Amounts are not converted: {example} becomes {converted}.",
+      "showPrices": "Show prices",
+      "showPricesHint": "When off, the site hides every price, the cart and all Add to cart buttons. Each artwork keeps its own price setting and goes back to it when this is turned on again.",
+      "showPricesOn": "On",
+      "showPricesOff": "Off",
       "upload": "+ Upload works",
       "dirty": "Unpublished changes",
       "clean": "All changes are live",

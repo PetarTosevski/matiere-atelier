@@ -17,7 +17,7 @@ Work happens in phases. Finish and verify a phase before starting the next. Do n
 - **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, language switcher. Artwork data comes from a typed file.
   - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
-  - Status: built. Sign-in, the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher and a batched "Publish changes"), About page editor, settings, Convex database. Still to do: link a Convex cloud project, choose hosting.
+  - Status: built. Sign-in, the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Still to do: link a Convex cloud project, choose hosting.
 
 ## Tech stack
 
@@ -93,11 +93,10 @@ src/
       (panel)/layout.tsx          pink "Admin mode" bar with the admin links; checks the session
       (panel)/page.tsx            the collection editor (see "Collection editor" below)
       (panel)/about/page.tsx      About page editor (portrait and bio)
-      (panel)/settings/page.tsx   "Show prices" switch
   components/
     InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
     OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx, grid.ts  storefront Originals and artwork page parts
-    admin/                        login, About form, MarkdownField (toolbar + preview), settings
+    admin/                        login, About form, MarkdownField (toolbar + preview)
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
   lib/
@@ -265,11 +264,11 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Collection editor (`/admin`)
 - Design: Claude Design "Art Storefront Layouts – ADMIN PANEL · admin" (adopted 2026-10-11). The page shows the collection as visitors see it (storefront header, Originals intro, two-up cards, footer) with admin controls on top. Header and footer there are a picture of the storefront, not links.
-- Pink bar: "Admin mode" with links to Collection, About page, Settings, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
+- Pink bar: "Admin mode" with links to Collection, About page, View site, Log out (plain `<a>`, so leaving with unpublished changes triggers the browser's warning). Under it, on this page, the toolbar: hint, **Currency** select, **Show prices** switch (On/Off; its explanation shows once it differs from the live setting), "+ Upload works", "Unpublished changes" / "All changes are live", and **Publish changes**. The toolbar sticks to the top from 768 px up.
 - Each card: drag handle with "Drag to move · Row 2, left" (left, middle or right in three columns) ("Position 3 of 8" on phones), ← / → buttons, and **Edit**. Below, the same parts as the storefront card. "No price set", "Check the price", "Draft, not on the site" and "Needs attention" show in the warning color. All artworks are listed, drafts included.
 - **Add new works** tile at the end (also "+ Upload works" and dropping files on a card): each image becomes a new draft piece titled after its file name, added at the end, and the edit panel opens on it.
 - **Edit panel** (fixed on the right, full width on phones): image preview and "Replace image" (the cover), Name, Price (shop currency symbol in front; "Shown on the site as …"), Description (MarkdownField), then More details: size, price mode (Price, Auction (WIP) only where already set, Display), status, "Show on the site", web address, all images with alt text and order. "Delete this piece" deletes right away after confirmation (not on Publish). "Done" closes the panel.
-- **Publish changes**: edits, reordering, new pieces and the currency stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.
+- **Publish changes**: edits, reordering, new pieces, the currency and "Show prices" stay in the browser until Publish. The whole collection is then checked on the server (`parseCollectionChanges`, same rules as one artwork) and written in one Convex transaction (`artworks:applyChanges`), so either everything goes live or nothing does. Problems are marked on their cards and shown in the panel. The card order becomes `sortOrder`, which is how the artist controls the Originals layout.
 - New uploads are stored in Convex right away (so Publish can reference them); an unpublished upload that is removed or replaced is deleted.
 - A draft may be saved without a price; a piece shown on the site in Price mode needs one.
 
@@ -291,8 +290,8 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - **Status:** Available or Sold.
 - **Published** ("Show on the site"): on or off. Off keeps a draft.
 
-### Settings (`/admin/settings`)
-- A "Show prices" switch with a one-line explanation of what it does. It writes only `SiteSettings.showPrices` (see the price rules above).
+### Show prices
+- The switch lives in the collection editor's toolbar (there is no separate Settings page, decided 2026-10-12). It is published with the other changes and writes only `SiteSettings.showPrices` (see the price rules above).
 
 ### Images
 - Accept JPEG, PNG, and WebP up to 20 MB each. Uploads go through the `/admin/upload` route handler, so the server action body limit stays at the default 1 MB for public forms.

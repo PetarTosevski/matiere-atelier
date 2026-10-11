@@ -10,7 +10,6 @@ import { parseCollectionChanges, toEditorWork, type EditorWork } from "@/lib/col
 import { getAdminSession, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
 import { saveAboutPage } from "@/lib/pages";
 import { rateLimit } from "@/lib/rate-limit";
-import { setShowPrices } from "@/lib/settings";
 import { discardFiles } from "@/lib/storage";
 
 // Every action checks the admin session on the server first. Being unlinked
@@ -72,7 +71,7 @@ export async function logoutAction(): Promise<void> {
 // ---- Artworks ----
 
 export type PublishState =
-  | { status: "published"; works: EditorWork[]; currency: string }
+  | { status: "published"; works: EditorWork[]; currency: string; showPrices: boolean }
   | {
       status: "error";
       /** Field errors per piece, by key. */
@@ -83,7 +82,7 @@ export type PublishState =
 
 /**
  * Publishes everything the artist changed on the collection page in one go:
- * order, details, new pieces and the shop currency.
+ * order, details, new pieces, the shop currency and "Show prices".
  */
 export async function publishChangesAction(changes: unknown): Promise<PublishState> {
   return asAdmin(async () => {
@@ -94,14 +93,17 @@ export async function publishChangesAction(changes: unknown): Promise<PublishSta
       return { status: "error", errors: parsed.errors, failed: !hasFieldErrors };
     }
     try {
-      await applyCollectionChanges(parsed.currency, parsed.artworks);
+      await applyCollectionChanges(
+        { currency: parsed.currency, showPrices: parsed.showPrices },
+        parsed.artworks,
+      );
     } catch (error) {
       console.error("[admin] publishing changes failed", error);
       return { status: "error", failed: true };
     }
     refreshStorefront();
     const works = (await getAllArtworksForAdmin()).map(toEditorWork);
-    return { status: "published", works, currency: parsed.currency };
+    return { status: "published", works, currency: parsed.currency, showPrices: parsed.showPrices };
   });
 }
 
@@ -131,21 +133,6 @@ export async function discardUploadsAction(storageIds: string[]): Promise<void> 
       // Refused when a saved artwork still uses the file; nothing to clean up then.
       console.warn("[admin] discarding uploads skipped", error);
     }
-  });
-}
-
-// ---- Settings ----
-
-export type SettingsState = { saved: boolean };
-
-export async function saveSettingsAction(
-  _previous: SettingsState,
-  form: FormData,
-): Promise<SettingsState> {
-  return asAdmin(async () => {
-    await setShowPrices(form.get("showPrices") === "on");
-    refreshStorefront();
-    return { saved: true };
   });
 }
 
