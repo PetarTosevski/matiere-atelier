@@ -15,6 +15,14 @@ const convexHost = (() => {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The admin area is never linked or listed; this keeps it out of search too.
+  async headers() {
+    const noindex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+    return [
+      { source: "/admin", headers: noindex },
+      { source: "/admin/:path*", headers: noindex },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.convex.cloud", pathname: "/api/storage/**" },

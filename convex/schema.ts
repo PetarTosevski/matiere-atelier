@@ -26,6 +26,9 @@ export const storedImageValidator = v.object({
   alt: v.string(),
 });
 
+/** Width and height in centimetres (decimals allowed). */
+export const dimensionsValidator = v.object({ width: v.number(), height: v.number() });
+
 /** Everything an admin edits; createdAt is set once on creation. */
 export const writableArtworkFields = {
   slug: v.string(),
@@ -40,7 +43,9 @@ export const writableArtworkFields = {
   status: statusValidator,
   published: v.boolean(),
   sortOrder: v.number(),
-  /** The first image is the cover. */
+  /** Optional so artworks saved before this field existed stay valid. */
+  dimensions: v.optional(v.union(dimensionsValidator, v.null())),
+  /** The first image is the cover; the second shows on hover in the grid. */
   images: v.array(storedImageValidator),
 };
 
@@ -54,6 +59,13 @@ export default defineSchema({
   artworks: defineTable(artworkFields)
     .index("by_slug", ["slug"])
     .index("by_published", ["published"]),
+
+  /** A single document with the About page content the artist edits. */
+  aboutPage: defineTable({
+    /** Markdown. */
+    bio: v.string(),
+    portrait: v.union(storedImageValidator, v.null()),
+  }),
 
   /** A single document holding the site-wide settings. */
   siteSettings: defineTable({ showPrices: v.boolean() }),

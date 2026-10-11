@@ -19,6 +19,7 @@ export function AddToCartButton({ artworkId }: Props) {
       {inCart ? (
         <button
           type="button"
+          data-cart-action
           aria-disabled="true"
           className="button-primary w-full opacity-70 sm:w-auto"
         >
@@ -27,6 +28,7 @@ export function AddToCartButton({ artworkId }: Props) {
       ) : (
         <button
           type="button"
+          data-cart-action
           onClick={() => {
             add(artworkId);
             setJustAdded(true);

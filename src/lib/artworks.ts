@@ -2,19 +2,14 @@ import "server-only";
 import { cache } from "react";
 import type { StoredArtwork } from "../../convex/artworks";
 import { artworks as staticArtworks } from "@/data/artworks";
-import { api, convexQuery, shouldUseStaticData } from "@/lib/convex";
-import type { Artwork } from "@/lib/types";
+import { api, convexMutation, convexQuery, shouldUseStaticData } from "@/lib/convex";
+import { compareArtworks } from "@/lib/order";
+import type { Artwork, ArtworkImage, Status } from "@/lib/types";
 
 // Pages read artworks only through this module. Data lives in Convex; the
 // static Phase 1 file is only a development fallback (see lib/convex.ts).
 
-/** Originals order: sortOrder ascending, then newest first. */
-export function compareArtworks(a: Artwork, b: Artwork): number {
-  return (
-    a.sortOrder - b.sortOrder ||
-    Date.parse(b.createdAt) - Date.parse(a.createdAt)
-  );
-}
+export { compareArtworks };
 
 /** Drops Convex-only fields (storage IDs) to match the shared Artwork shape. */
 function fromConvex(stored: StoredArtwork): Artwork {
@@ -59,4 +54,66 @@ export async function getArtworksByIds(ids: string[]): Promise<Artwork[]> {
 export async function getPublishedSlugs(): Promise<string[]> {
   const published = await getPublishedArtworks();
   return published.map((artwork) => artwork.slug);
+}
+
+// ---- Admin (Convex only) ----
+
+export type AdminImage = ArtworkImage & { storageId: string };
+export type AdminArtwork = Omit<Artwork, "images"> & { images: AdminImage[] };
+
+/** What the admin form saves; createdAt is set by Convex on creation. */
+export type ArtworkInput = Omit<Artwork, "id" | "createdAt" | "images"> & {
+  images: { storageId: string; width: number; height: number; alt: string }[];
+};
+
+function requireConvex() {
+  if (shouldUseStaticData()) {
+    throw new Error("The admin area needs Convex: set CONVEX_URL and CONVEX_SERVER_SECRET");
+  }
+}
+
+const asAdmin = (stored: StoredArtwork): AdminArtwork => stored;
+
+/** Every artwork, drafts included, in Originals order. */
+export async function getAllArtworksForAdmin(): Promise<AdminArtwork[]> {
+  requireConvex();
+  const all = (await convexQuery(api.artworks.listAll, {})).map(asAdmin);
+  return all.sort(compareArtworks);
+}
+
+export async function getArtworkForAdmin(id: string): Promise<AdminArtwork | null> {
+  requireConvex();
+  const stored = await convexQuery(api.artworks.getById, { id });
+  return stored ? asAdmin(stored) : null;
+}
+
+const toConvexInput = (input: ArtworkInput) => ({
+  ...input,
+  images: input.images.map((image) => ({ ...image, storageId: image.storageId as never })),
+});
+
+export async function createArtwork(input: ArtworkInput): Promise<string> {
+  requireConvex();
+  return convexMutation(api.artworks.create, toConvexInput(input));
+}
+
+export async function updateArtwork(id: string, input: ArtworkInput): Promise<void> {
+  requireConvex();
+  await convexMutation(api.artworks.update, { id: id as never, ...toConvexInput(input) });
+}
+
+export async function deleteArtwork(id: string): Promise<void> {
+  requireConvex();
+  await convexMutation(api.artworks.remove, { id: id as never });
+}
+
+export async function setArtworkStatus(id: string, status: Status): Promise<void> {
+  requireConvex();
+  await convexMutation(api.artworks.setStatus, { id: id as never, status });
+}
+
+/** Saves a new Originals order: the first ID gets sortOrder 1, and so on. */
+export async function reorderArtworks(ids: string[]): Promise<void> {
+  requireConvex();
+  await convexMutation(api.artworks.reorder, { ids: ids as never });
 }

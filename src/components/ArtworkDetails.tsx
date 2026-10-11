@@ -4,20 +4,26 @@ import { Markdown } from "@/components/Markdown";
 import { AvailabilityLabel, FormattedPrice } from "@/components/PriceInfo";
 import { Link } from "@/i18n/navigation";
 import type { PriceView } from "@/lib/pricing";
+import type { Dimensions } from "@/lib/types";
 
 type Props = {
   id: string;
   slug: string;
   title: string;
   description: string;
+  dimensions: Dimensions | null;
   view: PriceView;
 };
 
 /** Title, price, availability, primary action and description. */
-export function ArtworkDetails({ id, slug, title, description, view }: Props) {
+export function ArtworkDetails({ id, slug, title, description, dimensions, view }: Props) {
+  const t = useTranslations("Artwork");
   return (
     <div className="lg:sticky lg:top-[calc(var(--spacing-header)+2rem)] lg:self-start">
       <h1 className="heading-display">{title}</h1>
+      {dimensions && (
+        <p className="mt-3 text-lg text-muted">{t("dimensions", dimensions)}</p>
+      )}
       <div className="mt-6 space-y-1 border-t border-line pt-5">
         {view.price && (
           <p className="text-xl font-semibold">

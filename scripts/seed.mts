@@ -76,6 +76,7 @@ for (const artwork of artworks) {
     status: artwork.status,
     published: artwork.published,
     sortOrder: artwork.sortOrder,
+    dimensions: artwork.dimensions,
     images,
     createdAt: artwork.createdAt,
   });

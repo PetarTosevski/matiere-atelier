@@ -10,6 +10,13 @@ export type ArtworkImage = {
   alt: string;
 };
 
+/**
+ * Physical size in centimetres, width first ("80 × 100 cm"). Decimals are
+ * allowed (61.5); these are measurements, not money. Depth and inches can be
+ * added later without changing existing data.
+ */
+export type Dimensions = { width: number; height: number };
+
 export type Artwork = {
   id: string;
   /** Unique, generated from the title, editable. */
@@ -27,7 +34,9 @@ export type Artwork = {
   published: boolean;
   /** Order on Originals (ascending). */
   sortOrder: number;
-  /** The first image is the cover. */
+  /** Null when not entered. */
+  dimensions: Dimensions | null;
+  /** The first image is the cover; the second shows on hover in the grid. */
   images: ArtworkImage[];
   /** ISO 8601 timestamp. */
   createdAt: string;

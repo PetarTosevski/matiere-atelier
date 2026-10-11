@@ -3,31 +3,52 @@ import { useTranslations } from "next-intl";
 import { AvailabilityLabel, FormattedPrice } from "@/components/PriceInfo";
 import { Link } from "@/i18n/navigation";
 import type { PriceView } from "@/lib/pricing";
-import type { ArtworkImage } from "@/lib/types";
+import type { ArtworkImage, Dimensions } from "@/lib/types";
 
 type Props = {
   slug: string;
   title: string;
   cover: ArtworkImage | undefined;
+  /** Shown on hover or keyboard focus, ideally a close-up of the surface. */
+  hover?: ArtworkImage;
+  dimensions: Dimensions | null;
   view: PriceView;
   /** Position on the grid, shown as "01", "02"… */
   number: number;
   preload?: boolean;
 };
 
+const IMAGE_SIZES = "(min-width: 48rem) 42vw, 86vw";
+
 /**
  * A grid card: the cover hangs on its own panel at its own proportions,
  * never cropped. The whole card links to the artwork page.
  */
-export function ArtworkCard({ slug, title, cover, view, number, preload }: Props) {
+export function ArtworkCard({
+  slug,
+  title,
+  cover,
+  hover,
+  dimensions,
+  view,
+  number,
+  preload,
+}: Props) {
   const t = useTranslations("Artwork");
-  // Name the link by title, price and availability, not the long alt text.
+  // Name the link by title, price, size and availability, not the long alt text.
   const titleId = `card-${slug}-title`;
   const priceId = `card-${slug}-price`;
+  const sizeId = `card-${slug}-size`;
   const metaId = `card-${slug}-meta`;
-  const labelledBy = [titleId, view.price ? priceId : null, metaId]
+  const labelledBy = [
+    titleId,
+    view.price ? priceId : null,
+    dimensions ? sizeId : null,
+    metaId,
+  ]
     .filter(Boolean)
     .join(" ");
+  const swap = Boolean(cover && hover);
 
   return (
     <Link
@@ -38,19 +59,36 @@ export function ArtworkCard({ slug, title, cover, view, number, preload }: Props
       {/* Each piece keeps its own proportions, like a work hung on a wall. */}
       <div className="flex min-h-70 flex-1 items-center justify-center lg:min-h-90">
         {cover && (
-          <Image
-            src={cover.src}
-            alt={cover.alt}
-            width={cover.width}
-            height={cover.height}
-            sizes="(min-width: 48rem) 42vw, 86vw"
-            preload={preload}
-            className="h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem]"
-          />
+          <div className="relative">
+            <Image
+              src={cover.src}
+              alt={cover.alt}
+              width={cover.width}
+              height={cover.height}
+              sizes={IMAGE_SIZES}
+              preload={preload}
+              className={`block h-auto max-h-[22rem] w-auto max-w-full lg:max-h-[26rem] ${
+                swap
+                  ? "transition-opacity duration-300 group-hover:opacity-0 group-focus-visible:opacity-0"
+                  : ""
+              }`}
+            />
+            {hover && (
+              // The close-up repeats the same piece, so screen readers skip it.
+              <Image
+                src={hover.src}
+                alt=""
+                aria-hidden="true"
+                fill
+                sizes={IMAGE_SIZES}
+                className="object-contain opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+              />
+            )}
+          </div>
         )}
       </div>
 
-      <div className="mt-auto flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-5.5 lg:pt-5.5">
+      <div className="flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-5.5 lg:pt-5.5">
         <div className="flex flex-1 items-start gap-4">
           <span
             aria-hidden="true"
@@ -65,8 +103,16 @@ export function ArtworkCard({ slug, title, cover, view, number, preload }: Props
             >
               {title}
             </h2>
-            <p id={metaId} className="text-sm text-muted">
-              <AvailabilityLabel availability={view.availability} />
+            <p className="text-sm text-muted">
+              {dimensions && (
+                <>
+                  <span id={sizeId}>{t("dimensions", dimensions)}</span>
+                  <span aria-hidden="true"> · </span>
+                </>
+              )}
+              <span id={metaId}>
+                <AvailabilityLabel availability={view.availability} />
+              </span>
             </p>
           </div>
         </div>
