@@ -4,13 +4,16 @@ import { serverMutation, serverQuery } from "./guard";
 // Site-wide settings live in a single document. The "Show prices" switch only
 // ever writes here; it never touches artworks (see CLAUDE.md price rules).
 
-const DEFAULTS = { showPrices: true };
+const DEFAULTS = { showPrices: true, currency: "EUR" };
 
 export const get = serverQuery({
   args: {},
   handler: async (ctx) => {
     const doc = await ctx.db.query("siteSettings").first();
-    return { showPrices: doc?.showPrices ?? DEFAULTS.showPrices };
+    return {
+      showPrices: doc?.showPrices ?? DEFAULTS.showPrices,
+      currency: doc?.currency ?? DEFAULTS.currency,
+    };
   },
 });
 

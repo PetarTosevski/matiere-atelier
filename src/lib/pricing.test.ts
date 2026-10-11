@@ -7,8 +7,8 @@ type PricedItem = Pick<
   "priceMode" | "priceAmount" | "currency" | "status"
 >;
 
-const shop = { showPrices: true };
-const showcase = { showPrices: false };
+const shop = { showPrices: true, currency: "EUR" };
+const showcase = { showPrices: false, currency: "EUR" };
 
 function item(overrides: Partial<PricedItem> = {}): PricedItem {
   return {

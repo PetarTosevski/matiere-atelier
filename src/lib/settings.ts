@@ -4,7 +4,7 @@ import { siteSettings } from "@/data/settings";
 import { api, convexMutation, convexQuery, shouldUseStaticData } from "@/lib/convex";
 import type { SiteSettings } from "@/lib/types";
 
-/** The single site settings document (showPrices). */
+/** The single site settings document (showPrices and the shop currency). */
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   if (shouldUseStaticData()) return { ...siteSettings };
   return convexQuery(api.settings.get, {});

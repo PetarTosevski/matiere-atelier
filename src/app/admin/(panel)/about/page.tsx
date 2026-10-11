@@ -21,10 +21,10 @@ export default async function AdminAboutPage() {
   ]);
 
   return (
-    <div>
-      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
-      <p className="mt-2 max-w-prose text-muted">{t("intro")}</p>
+    <main className="site-container py-10 md:py-14">
+      <h1 className="heading-display">{t("title")}</h1>
+      <p className="mt-4 max-w-prose text-muted">{t("intro")}</p>
       <AboutForm about={about} placeholderBio={`${tAbout("bio1")}\n\n${tAbout("bio2")}`} />
-    </div>
+    </main>
   );
 }

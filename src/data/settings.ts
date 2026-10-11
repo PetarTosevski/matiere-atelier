@@ -4,4 +4,5 @@ import type { SiteSettings } from "@/lib/types";
 // every price, the cart icon and all "Add to cart" buttons disappear.
 export const siteSettings: SiteSettings = {
   showPrices: true,
+  currency: "EUR",
 };

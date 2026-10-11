@@ -12,6 +12,8 @@
   --color-faint: #a39e96; /* footer text (7:1 on paper) */
   --color-accent: #e3a6a1; /* numbers, cart, buttons, one word of a heading (9:1 on paper) */
   --color-line: #34312f; /* hairline dividers */
+  --color-control: #6e6863; /* borders of admin controls (3:1 on panel, 3.3:1 on paper) */
+  --color-warn: #e8c27a; /* admin only: "No price set", "Needs attention" (10:1 on panel) */
   --color-field: #1d1c1b; /* form field background */
 
   --font-sans: var(--font-karla), ui-sans-serif, system-ui, sans-serif;

@@ -112,9 +112,18 @@ describe("parseArtworkForm", () => {
     });
   });
 
-  it("requires an amount in Price mode", () => {
-    const result = parseArtworkForm(form({ title: "A", priceMode: "PRICE", amount: "" }), null, 0);
+  it("requires an amount in Price mode once the piece is on the site", () => {
+    const result = parseArtworkForm(
+      form({ title: "A", priceMode: "PRICE", amount: "", published: "on", images: image }),
+      null,
+      0,
+    );
     expect(result).toEqual({ ok: false, errors: { amount: "amountRequired" } });
+  });
+
+  it("lets a draft wait for its price", () => {
+    const result = parseArtworkForm(form({ title: "A", priceMode: "PRICE", amount: "" }), existing, 0);
+    expect(result.ok && result.input.priceAmount).toBeNull();
   });
 
   it("keeps the stored amount when switching to Display without one", () => {

@@ -28,13 +28,26 @@ type Props = {
   placeholder?: string;
   error?: string | null;
   rows?: number;
+  /** Preview below the field instead of beside it (narrow panels). */
+  stacked?: boolean;
 };
 
 /**
  * A markdown textarea with a formatting toolbar (and Ctrl/Cmd+B, I, K) and a
  * live preview beside it. Used for artwork descriptions and the About bio.
  */
-export function MarkdownField({ id, name, label, hint, value, onChange, placeholder, error, rows = 12 }: Props) {
+export function MarkdownField({
+  id,
+  name,
+  label,
+  hint,
+  value,
+  onChange,
+  placeholder,
+  error,
+  rows = 12,
+  stacked = false,
+}: Props) {
   const t = useTranslations("Admin.form");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pendingSelection = useRef<[number, number] | null>(null);
@@ -72,7 +85,7 @@ export function MarkdownField({ id, name, label, hint, value, onChange, placehol
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className={stacked ? "grid gap-4" : "grid gap-6 lg:grid-cols-2"}>
       <div>
         <label htmlFor={id} className="block">{label}</label>
         <p id={`${id}-hint`} className="mt-1 text-sm text-muted">{hint}</p>

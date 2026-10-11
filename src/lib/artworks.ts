@@ -4,7 +4,7 @@ import type { StoredArtwork } from "../../convex/artworks";
 import { artworks as staticArtworks } from "@/data/artworks";
 import { api, convexMutation, convexQuery, shouldUseStaticData } from "@/lib/convex";
 import { compareArtworks } from "@/lib/order";
-import type { Artwork, ArtworkImage, Status } from "@/lib/types";
+import type { Artwork, ArtworkImage } from "@/lib/types";
 
 // Pages read artworks only through this module. Data lives in Convex; the
 // static Phase 1 file is only a development fallback (see lib/convex.ts).
@@ -81,39 +81,31 @@ export async function getAllArtworksForAdmin(): Promise<AdminArtwork[]> {
   return all.sort(compareArtworks);
 }
 
-export async function getArtworkForAdmin(id: string): Promise<AdminArtwork | null> {
-  requireConvex();
-  const stored = await convexQuery(api.artworks.getById, { id });
-  return stored ? asAdmin(stored) : null;
-}
-
 const toConvexInput = (input: ArtworkInput) => ({
   ...input,
   images: input.images.map((image) => ({ ...image, storageId: image.storageId as never })),
 });
-
-export async function createArtwork(input: ArtworkInput): Promise<string> {
-  requireConvex();
-  return convexMutation(api.artworks.create, toConvexInput(input));
-}
-
-export async function updateArtwork(id: string, input: ArtworkInput): Promise<void> {
-  requireConvex();
-  await convexMutation(api.artworks.update, { id: id as never, ...toConvexInput(input) });
-}
 
 export async function deleteArtwork(id: string): Promise<void> {
   requireConvex();
   await convexMutation(api.artworks.remove, { id: id as never });
 }
 
-export async function setArtworkStatus(id: string, status: Status): Promise<void> {
+/**
+ * Saves a whole "Publish changes" in one transaction: every artwork in its
+ * new order (id null for new ones) and the shop currency. Returns the ids.
+ */
+export async function applyCollectionChanges(
+  currency: string,
+  artworks: (ArtworkInput & { id: string | null })[],
+): Promise<string[]> {
   requireConvex();
-  await convexMutation(api.artworks.setStatus, { id: id as never, status });
+  return convexMutation(api.artworks.applyChanges, {
+    currency,
+    artworks: artworks.map(({ id, ...input }) => ({
+      id: id as never,
+      ...toConvexInput(input),
+    })),
+  });
 }
 
-/** Saves a new Originals order: the first ID gets sortOrder 1, and so on. */
-export async function reorderArtworks(ids: string[]): Promise<void> {
-  requireConvex();
-  await convexMutation(api.artworks.reorder, { ids: ids as never });
-}

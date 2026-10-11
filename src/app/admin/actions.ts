@@ -4,16 +4,9 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { parseAboutForm, type AboutFormErrors } from "@/lib/about-form";
-import { parseArtworkForm, type ArtworkFormErrors } from "@/lib/artwork-form";
-import {
-  createArtwork,
-  deleteArtwork,
-  getAllArtworksForAdmin,
-  getArtworkForAdmin,
-  reorderArtworks,
-  setArtworkStatus,
-  updateArtwork,
-} from "@/lib/artworks";
+import type { ArtworkFormErrors } from "@/lib/artwork-form";
+import { applyCollectionChanges, deleteArtwork, getAllArtworksForAdmin } from "@/lib/artworks";
+import { parseCollectionChanges, toEditorWork, type EditorWork } from "@/lib/collection-changes";
 import { getAdminSession, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
 import { saveAboutPage } from "@/lib/pages";
 import { rateLimit } from "@/lib/rate-limit";
@@ -78,76 +71,53 @@ export async function logoutAction(): Promise<void> {
 
 // ---- Artworks ----
 
-export type SaveArtworkState = {
-  status: "idle" | "error";
-  errors?: ArtworkFormErrors;
-  failed?: boolean;
-};
+export type PublishState =
+  | { status: "published"; works: EditorWork[]; currency: string }
+  | {
+      status: "error";
+      /** Field errors per piece, by key. */
+      errors?: Record<string, ArtworkFormErrors>;
+      /** Saving failed for a reason the artist can't fix in the form. */
+      failed?: boolean;
+    };
 
-export async function saveArtworkAction(
-  _previous: SaveArtworkState,
-  form: FormData,
-): Promise<SaveArtworkState> {
+/**
+ * Publishes everything the artist changed on the collection page in one go:
+ * order, details, new pieces and the shop currency.
+ */
+export async function publishChangesAction(changes: unknown): Promise<PublishState> {
   return asAdmin(async () => {
-    const id = String(form.get("id") ?? "");
-    const existing = id ? await getArtworkForAdmin(id) : null;
-    if (id && !existing) return { status: "error", failed: true };
-
-    const all = await getAllArtworksForAdmin();
-    // New pieces go first on Originals.
-    const firstSortOrder = Math.min(1, ...all.map((artwork) => artwork.sortOrder)) - 1;
-    const parsed = parseArtworkForm(form, existing, firstSortOrder);
-    if (!parsed.ok) return { status: "error", errors: parsed.errors };
-
-    const slugOwner = all.find((artwork) => artwork.slug === parsed.input.slug);
-    if (slugOwner && slugOwner.id !== id) {
-      return { status: "error", errors: { slug: "slugTaken" } };
+    const saved = await getAllArtworksForAdmin();
+    const parsed = parseCollectionChanges(changes, saved);
+    if (!parsed.ok) {
+      const hasFieldErrors = Object.keys(parsed.errors).length > 0;
+      return { status: "error", errors: parsed.errors, failed: !hasFieldErrors };
     }
-
     try {
-      if (existing) await updateArtwork(existing.id, parsed.input);
-      else await createArtwork(parsed.input);
+      await applyCollectionChanges(parsed.currency, parsed.artworks);
     } catch (error) {
-      console.error("[admin] saving artwork failed", error);
+      console.error("[admin] publishing changes failed", error);
       return { status: "error", failed: true };
     }
-
     refreshStorefront();
-    redirect(`/admin?saved=${encodeURIComponent(parsed.input.slug)}`);
+    const works = (await getAllArtworksForAdmin()).map(toEditorWork);
+    return { status: "published", works, currency: parsed.currency };
   });
 }
 
-export async function deleteArtworkAction(form: FormData): Promise<void> {
-  await asAdmin(async () => {
-    await deleteArtwork(String(form.get("id") ?? ""));
+/** Deletes a saved artwork and its images right away (after confirmation). */
+export async function deleteArtworkAction(id: unknown): Promise<{ ok: boolean }> {
+  return asAdmin(async () => {
+    if (typeof id !== "string" || !id) return { ok: false };
+    try {
+      await deleteArtwork(id);
+    } catch (error) {
+      console.error("[admin] deleting artwork failed", error);
+      return { ok: false };
+    }
     refreshStorefront();
+    return { ok: true };
   });
-  redirect("/admin?deleted=1");
-}
-
-export async function setStatusAction(form: FormData): Promise<void> {
-  await asAdmin(async () => {
-    const status = form.get("status") === "SOLD" ? "SOLD" : "AVAILABLE";
-    await setArtworkStatus(String(form.get("id") ?? ""), status);
-    refreshStorefront();
-  });
-  revalidatePath("/admin");
-}
-
-/** Moves one artwork a step up or down in the Originals order. */
-export async function moveArtworkAction(form: FormData): Promise<void> {
-  await asAdmin(async () => {
-    const id = String(form.get("id") ?? "");
-    const step = form.get("direction") === "up" ? -1 : 1;
-    const ids = (await getAllArtworksForAdmin()).map((artwork) => artwork.id);
-    const from = ids.indexOf(id);
-    const to = from + step;
-    if (from === -1 || to < 0 || to >= ids.length) return;
-    [ids[from], ids[to]] = [ids[to]!, ids[from]!];
-    await reorderArtworks(ids);
-    refreshStorefront();
-  });
-  revalidatePath("/admin");
 }
 
 /** Removes uploads taken out of the form before it was saved. */

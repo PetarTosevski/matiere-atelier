@@ -42,6 +42,10 @@ export type Artwork = {
   createdAt: string;
 };
 
-export type SiteSettings = { showPrices: boolean };
+export type SiteSettings = {
+  showPrices: boolean;
+  /** The shop currency (ISO 4217), shared by every artwork. */
+  currency: string;
+};
 
 export type InquiryType = "CONTACT" | "COMMISSION" | "REQUEST" | "ORDER";

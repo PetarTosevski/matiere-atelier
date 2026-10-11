@@ -17,7 +17,7 @@ export default async function AdminLoginPage() {
   return (
     <main className="site-container py-16">
       <div className="max-w-sm">
-        <h1 className="text-2xl tracking-tight">{t("title")}</h1>
+        <h1 className="heading-display">{t("title")}</h1>
         <div className="mt-8">
           <LoginForm />
         </div>

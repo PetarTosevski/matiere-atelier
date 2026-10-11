@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { AdminArtwork, ArtworkInput } from "@/lib/artworks";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 import { parseAmount } from "@/lib/money";
 import { MAX_SLUG_LENGTH, SLUG_PATTERN, slugify } from "@/lib/slug";
 
@@ -22,11 +23,9 @@ export type ArtworkFormErrors = Partial<
   Record<"title" | "slug" | "description" | "priceMode" | "amount" | "images" | "dimensions", ArtworkFieldError>
 >;
 
-/** The only currency for now; currency selection is listed under Later. */
-export const DEFAULT_CURRENCY = "EUR";
 export const MAX_IMAGES = 20;
 
-const imagesSchema = z
+export const imagesSchema = z
   .array(
     z.object({
       storageId: z.string().min(1).max(100),
@@ -47,36 +46,91 @@ export function parseCentimetres(input: string): number | null {
   return number > 0 && number <= 2000 ? number : null;
 }
 
+/** One artwork as the admin edits it: text fields as typed, images as uploaded. */
+export type ArtworkFields = {
+  title: string;
+  slug: string;
+  description: string;
+  priceMode: string;
+  amount: string;
+  status: string;
+  published: boolean;
+  width: string;
+  height: string;
+  /** Unchecked: validated here. */
+  images: unknown;
+};
+
+export type ParsedArtwork =
+  | { ok: true; input: ArtworkInput }
+  | { ok: false; errors: ArtworkFormErrors };
+
 const text = (form: FormData, key: string) => {
   const value = form.get(key);
   return typeof value === "string" ? value : "";
 };
 
-/**
- * Reads the form into an ArtworkInput. `existing` is the saved artwork when
- * editing; it decides what happens to fields the form may leave out.
- */
+/** Reads a submitted form (images as a JSON string) into ArtworkFields. */
 export function parseArtworkForm(
   form: FormData,
   existing: AdminArtwork | null,
   newSortOrder: number,
-): { ok: true; input: ArtworkInput } | { ok: false; errors: ArtworkFormErrors } {
-  const errors: ArtworkFormErrors = {};
+  currency: string = existing?.currency ?? DEFAULT_CURRENCY,
+): ParsedArtwork {
+  let images: unknown = null;
+  try {
+    images = JSON.parse(text(form, "images") || "[]");
+  } catch {
+    images = null;
+  }
+  return parseArtworkFields(
+    {
+      title: text(form, "title"),
+      slug: text(form, "slug"),
+      description: text(form, "description"),
+      priceMode: text(form, "priceMode"),
+      amount: text(form, "amount"),
+      status: text(form, "status"),
+      published: form.get("published") === "on",
+      width: text(form, "width"),
+      height: text(form, "height"),
+      images,
+    },
+    existing,
+    newSortOrder,
+    currency,
+  );
+}
 
-  const title = text(form, "title").trim();
+/**
+ * Checks one artwork and turns it into an ArtworkInput. `existing` is the
+ * saved artwork when editing; it decides what happens to fields left empty.
+ * `sortOrder` applies to new pieces; saved ones keep theirs unless the caller
+ * overrides it.
+ */
+export function parseArtworkFields(
+  fields: ArtworkFields,
+  existing: AdminArtwork | null,
+  sortOrder: number,
+  currency: string,
+): ParsedArtwork {
+  const errors: ArtworkFormErrors = {};
+  const field = (key: Exclude<keyof ArtworkFields, "published" | "images">) => fields[key];
+
+  const title = field("title").trim();
   if (!title) errors.title = "required";
   else if (title.length > 200) errors.title = "tooLong";
 
-  const typedSlug = text(form, "slug").trim().toLowerCase();
+  const typedSlug = field("slug").trim().toLowerCase();
   const slug = typedSlug || slugify(title);
   if (slug.length > MAX_SLUG_LENGTH) errors.slug = "tooLong";
   else if (!SLUG_PATTERN.test(slug)) errors.slug = title || typedSlug ? "invalidSlug" : "required";
 
   // Browsers submit textarea line breaks as CRLF; store plain LF.
-  const description = text(form, "description").replace(/\r\n?/g, "\n");
+  const description = field("description").replace(/\r\n?/g, "\n");
   if (description.length > 20_000) errors.description = "tooLong";
 
-  const modeValue = text(form, "priceMode");
+  const modeValue = field("priceMode");
   const priceMode = modeValue === "DISPLAY" || modeValue === "AUCTION" ? modeValue : "PRICE";
   // Auction isn't offered yet: it may only stay on a piece that already has it.
   if (priceMode === "AUCTION" && existing?.priceMode !== "AUCTION") {
@@ -84,35 +138,33 @@ export function parseArtworkForm(
   }
 
   // Changing the mode never clears the amount, so switching back restores it.
-  const amountText = text(form, "amount").trim();
+  const amountText = field("amount").trim();
   let priceAmount: number | null = existing?.priceAmount ?? null;
   if (amountText) {
     const parsed = parseAmount(amountText);
     if (parsed === null) errors.amount = "invalidAmount";
     else priceAmount = parsed;
   } else if (priceMode === "PRICE") {
-    errors.amount = "amountRequired";
+    // A draft may wait for its price ("No price set"); a piece on the site may not.
+    if (fields.published) errors.amount = "amountRequired";
+    else priceAmount = null;
   } else if (existing === null) {
     priceAmount = null;
   }
 
   let images: z.infer<typeof imagesSchema> = [];
-  try {
-    const parsed = imagesSchema.safeParse(JSON.parse(text(form, "images") || "[]"));
-    if (parsed.success) images = parsed.data;
-    else errors.images = "invalidImages";
-  } catch {
-    errors.images = "invalidImages";
-  }
+  const parsedImages = imagesSchema.safeParse(fields.images);
+  if (parsedImages.success) images = parsedImages.data;
+  else errors.images = "invalidImages";
 
-  const published = form.get("published") === "on";
+  const published = fields.published;
   if (published && images.length === 0 && !errors.images) errors.images = "imagesRequired";
 
-  const status = text(form, "status") === "SOLD" ? "SOLD" : "AVAILABLE";
+  const status = field("status") === "SOLD" ? "SOLD" : "AVAILABLE";
 
   // Size is optional, but if one side is given both must be valid.
-  const widthText = text(form, "width").trim();
-  const heightText = text(form, "height").trim();
+  const widthText = field("width").trim();
+  const heightText = field("height").trim();
   let dimensions: { width: number; height: number } | null = null;
   if (widthText || heightText) {
     const width = parseCentimetres(widthText);
@@ -131,10 +183,10 @@ export function parseArtworkForm(
       description,
       priceMode,
       priceAmount,
-      currency: existing?.currency ?? DEFAULT_CURRENCY,
+      currency,
       status,
       published,
-      sortOrder: existing?.sortOrder ?? newSortOrder,
+      sortOrder: existing?.sortOrder ?? sortOrder,
       dimensions,
       images: images.map((image) => ({ ...image, alt: image.alt || title })),
     },

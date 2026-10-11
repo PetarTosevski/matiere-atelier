@@ -19,7 +19,7 @@ import messages from "../../messages/en.json";
 const SENTINEL = 987654;
 const TRACES = ["987654", "9876.54", "9,876.54", "9876", "€"];
 
-const settings = vi.hoisted(() => ({ current: { showPrices: false } }));
+const settings = vi.hoisted(() => ({ current: { showPrices: false, currency: "EUR" } }));
 
 vi.mock("@/lib/settings", () => ({
   getSiteSettings: async () => ({ ...settings.current }),
@@ -46,8 +46,8 @@ vi.mock("@/data/artworks", async (importOriginal) => {
   };
 });
 
-const showcase: SiteSettings = { showPrices: false };
-const shop: SiteSettings = { showPrices: true };
+const showcase: SiteSettings = { showPrices: false, currency: "EUR" };
+const shop: SiteSettings = { showPrices: true, currency: "EUR" };
 
 function render(node: ReactNode): string {
   return renderToStaticMarkup(
@@ -100,7 +100,7 @@ const published = artworks.filter((a) => a.published);
 const notPriced = published.filter((a) => a.priceMode !== "PRICE");
 
 beforeEach(() => {
-  settings.current = { showPrices: false };
+  settings.current = { showPrices: false, currency: "EUR" };
 });
 
 describe("components", () => {
@@ -183,7 +183,7 @@ describe("pages", () => {
   it.each(notPriced.map((a) => [a.slug] as const))(
     "artwork page and metadata for %s carry no price with prices on",
     async (slug) => {
-      settings.current = { showPrices: true };
+      settings.current = { showPrices: true, currency: "EUR" };
       expectNoPrice(await renderArtworkPage(slug));
     },
   );
@@ -193,7 +193,7 @@ describe("pages", () => {
   });
 
   it("the page does pass a visible price down (control)", async () => {
-    settings.current = { showPrices: true };
+    settings.current = { showPrices: true, currency: "EUR" };
     const priced = published.find(
       (a) => a.priceMode === "PRICE" && a.status === "AVAILABLE",
     )!;

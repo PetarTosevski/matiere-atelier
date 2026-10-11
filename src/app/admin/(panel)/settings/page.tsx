@@ -20,9 +20,9 @@ export default async function AdminSettingsPage() {
   ]);
 
   return (
-    <div className="max-w-prose">
-      <h1 className="text-2xl tracking-tight md:text-3xl">{t("title")}</h1>
+    <main className="site-container max-w-prose py-10 md:py-14">
+      <h1 className="heading-display">{t("title")}</h1>
       <SettingsForm showPrices={settings.showPrices} />
-    </div>
+    </main>
   );
 }

@@ -68,7 +68,11 @@ export default defineSchema({
   }),
 
   /** A single document holding the site-wide settings. */
-  siteSettings: defineTable({ showPrices: v.boolean() }),
+  siteSettings: defineTable({
+    showPrices: v.boolean(),
+    /** The shop currency; optional so the document saved before it existed stays valid. */
+    currency: v.optional(v.string()),
+  }),
 
   inquiries: defineTable({
     type: inquiryTypeValidator,

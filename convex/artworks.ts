@@ -118,7 +118,9 @@ function assertValid(artwork: WritableArtwork) {
   if (artwork.priceAmount !== null && (!Number.isSafeInteger(artwork.priceAmount) || artwork.priceAmount < 0)) {
     problems.push("priceAmount must be a non-negative integer of minor units");
   }
-  if (artwork.priceMode === "PRICE" && artwork.priceAmount === null) problems.push("PRICE mode needs an amount");
+  if (artwork.published && artwork.priceMode === "PRICE" && artwork.priceAmount === null) {
+    problems.push("a published piece in PRICE mode needs an amount");
+  }
   if (artwork.published && artwork.images.length === 0) problems.push("a published artwork needs at least one image");
   const size = artwork.dimensions;
   if (size && ![size.width, size.height].every((n) => Number.isFinite(n) && n > 0 && n <= 2000)) {
@@ -194,5 +196,58 @@ export const remove = serverMutation({
     await ctx.db.delete(id);
     await deleteFiles(ctx, current.images.map((image) => image.storageId));
     return { slug: current.slug };
+  },
+});
+
+/**
+ * Applies a whole admin "Publish changes" at once: every artwork in its new
+ * order (new ones without an id), and the shop currency. It runs as one
+ * transaction, so a failed check leaves the site exactly as it was.
+ * Returns the artwork ids in order.
+ */
+export const applyChanges = serverMutation({
+  args: {
+    currency: v.string(),
+    artworks: v.array(
+      v.object({ id: v.union(v.id("artworks"), v.null()), ...writableFields }),
+    ),
+  },
+  handler: async (ctx, { currency, artworks }) => {
+    if (!/^[A-Z]{3}$/.test(currency)) throw new ConvexError("currency must be an ISO 4217 code");
+
+    const ids: Id<"artworks">[] = [];
+    const unusedFiles: Id<"_storage">[] = [];
+    for (const { id, ...artwork } of artworks) {
+      // Every price is in the shop currency; amounts are never converted.
+      const next = { ...artwork, currency };
+      assertValid(next);
+      if (id) {
+        const current = await ctx.db.get(id);
+        if (!current) throw new ConvexError("artwork not found");
+        const kept = new Set(next.images.map((image) => image.storageId));
+        unusedFiles.push(...current.images.map((image) => image.storageId).filter((sid) => !kept.has(sid)));
+        await ctx.db.patch(id, next);
+        ids.push(id);
+      } else {
+        ids.push(await ctx.db.insert("artworks", { ...next, createdAt: new Date().toISOString() }));
+      }
+    }
+
+    // Slugs are checked once everything is written, so two pieces can swap.
+    const all = await ctx.db.query("artworks").collect();
+    const seen = new Set<string>();
+    for (const doc of all) {
+      if (seen.has(doc.slug)) throw new ConvexError(`slug "${doc.slug}" is already used`);
+      seen.add(doc.slug);
+      // Pieces missing from the batch (added elsewhere meanwhile) follow the shop currency too.
+      if (doc.currency !== currency) await ctx.db.patch(doc._id, { currency });
+    }
+
+    const settings = await ctx.db.query("siteSettings").first();
+    if (settings) await ctx.db.patch(settings._id, { currency });
+    else await ctx.db.insert("siteSettings", { showPrices: true, currency });
+
+    await deleteFiles(ctx, unusedFiles);
+    return ids as string[];
   },
 });
