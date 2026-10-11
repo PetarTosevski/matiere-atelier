@@ -15,6 +15,8 @@ type Props = {
   currency: string;
   /** The toolbar's "Show prices": off hides prices here like on the site. */
   showPrices: boolean;
+  /** The piece's page on the site as published; null for drafts and new pieces. */
+  liveHref: string | null;
   selected: boolean;
   needsAttention: boolean;
   dragging: boolean;
@@ -38,6 +40,7 @@ export function WorkCard({
   total,
   currency,
   showPrices,
+  liveHref,
   selected,
   needsAttention,
   dragging,
@@ -184,9 +187,25 @@ export function WorkCard({
               {price.label}
             </span>
           )}
-          <span aria-hidden="true" className="button-primary pointer-events-none ml-auto whitespace-nowrap lg:ml-0 xl:ml-auto">
-            {t("viewPiece")}
-          </span>
+          {liveHref ? (
+            // A new tab, so unpublished changes here stay open.
+            <a
+              href={liveHref}
+              target="_blank"
+              rel="noopener"
+              draggable={false}
+              aria-label={t("viewPieceLabel", { title })}
+              className="button-primary ml-auto whitespace-nowrap lg:ml-0 xl:ml-auto"
+            >
+              {t("viewPiece")}
+              <span aria-hidden="true" className="ml-1.5">↗</span>
+            </a>
+          ) : (
+            // Drafts and new pieces have no page yet.
+            <span aria-hidden="true" className="button-primary pointer-events-none ml-auto whitespace-nowrap opacity-40 lg:ml-0 xl:ml-auto">
+              {t("viewPiece")}
+            </span>
+          )}
         </div>
       </div>
     </article>

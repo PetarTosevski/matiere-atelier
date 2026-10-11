@@ -9,6 +9,7 @@ import {
   publishChangesAction,
 } from "@/app/admin/actions";
 import { GRID_CLASS } from "@/components/grid";
+import { routing } from "@/i18n/routing";
 import { OriginalsIntro } from "@/components/OriginalsIntro";
 import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { toChanges, type EditorImage, type EditorWork } from "@/lib/collection-changes";
@@ -43,6 +44,10 @@ type Notice =
   | { kind: "deleted"; title: string }
   | { kind: "deleteFailed"; title: string };
 
+/** The web address of each piece that is on the site now, by key. */
+const liveSlugs = (works: EditorWork[]) =>
+  new Map(works.filter((work) => work.published).map((work) => [work.key, work.slug]));
+
 const snapshot = (settings: SiteSettings, works: EditorWork[]) => JSON.stringify(toChanges(settings, works));
 
 /**
@@ -71,6 +76,7 @@ export function CollectionEditor({ initialWorks, initialSettings }: Props) {
     ...initialSettings,
     snapshot: snapshot(initialSettings, initialWorks),
     modes: new Map(initialWorks.map((work) => [work.key, work.priceMode])),
+    live: liveSlugs(initialWorks),
   });
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, ArtworkFormErrors>>({});
@@ -228,6 +234,7 @@ export function CollectionEditor({ initialWorks, initialSettings }: Props) {
           ...result.settings,
           snapshot: snapshot(result.settings, result.works),
           modes: new Map(result.works.map((work) => [work.key, work.priceMode])),
+          live: liveSlugs(result.works),
         });
         setErrors({});
         // New pieces get their database id as key, so close a panel left open on one.
@@ -482,6 +489,7 @@ export function CollectionEditor({ initialWorks, initialSettings }: Props) {
                 total={works.length}
                 currency={currency}
                 showPrices={showPrices}
+                liveHref={saved.live.has(work.key) ? `/${routing.defaultLocale}/originals/${saved.live.get(work.key)}` : null}
                 selected={work.key === selectedKey}
                 needsAttention={Boolean(errors[work.key])}
                 dragging={work.key === dragKey}

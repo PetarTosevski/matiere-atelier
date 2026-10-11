@@ -369,6 +369,7 @@
       "draft": "Draft, not on the site",
       "needsAttention": "Needs attention: open Edit",
       "viewPiece": "View piece",
+      "viewPieceLabel": "View {title} on the site (opens in a new tab)",
       "addTitle": "Add new works",
       "addHint": "Drop images here or click to choose (JPEG, PNG, WebP).\nThey're added to the end of the collection as drafts.",
       "uploading": "Uploading {name}…",
