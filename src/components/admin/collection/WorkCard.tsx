@@ -13,6 +13,8 @@ type Props = {
   index: number;
   total: number;
   currency: string;
+  /** The toolbar's "Show prices": off hides prices here like on the site. */
+  showPrices: boolean;
   selected: boolean;
   needsAttention: boolean;
   dragging: boolean;
@@ -35,6 +37,7 @@ export function WorkCard({
   index,
   total,
   currency,
+  showPrices,
   selected,
   needsAttention,
   dragging,
@@ -175,9 +178,12 @@ export function WorkCard({
         </div>
 
         <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2.5 xl:flex-row xl:items-center xl:gap-3">
-          <span className={`font-semibold whitespace-nowrap ${price.warn ? "text-warn" : "text-ink"}`}>
-            {price.label}
-          </span>
+          {/* Problems stay visible so they can be fixed before prices are shown again. */}
+          {(showPrices || price.warn) && (
+            <span className={`font-semibold whitespace-nowrap ${price.warn ? "text-warn" : "text-ink"}`}>
+              {price.label}
+            </span>
+          )}
           <span aria-hidden="true" className="button-primary pointer-events-none ml-auto whitespace-nowrap lg:ml-0 xl:ml-auto">
             {t("viewPiece")}
           </span>

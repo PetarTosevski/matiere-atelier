@@ -368,6 +368,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
                 index={index}
                 total={works.length}
                 currency={currency}
+                showPrices={showPrices}
                 selected={work.key === selectedKey}
                 needsAttention={Boolean(errors[work.key])}
                 dragging={work.key === dragKey}
