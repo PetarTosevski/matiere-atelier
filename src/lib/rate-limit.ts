@@ -1,14 +1,28 @@
-// A small in-memory sliding-window rate limiter. It lives in one server
-// process, which fits a single-server deployment; with several instances or
-// serverless hosting, move it to a shared store (see the hosting decision).
+import "server-only";
+import { api, convexMutation, isConvexConfigured } from "@/lib/convex";
+
+// Per-key sliding-window limits for forms and login. Stored in Convex so they
+// hold across server instances and serverless hosts; in development without
+// Convex, an in-memory map stands in.
 
 const hits = new Map<string, number[]>();
 const MAX_KEYS = 10_000;
 
 type Options = { limit: number; windowMs: number; now?: number };
 
-/** Records one attempt for `key`; returns false once the limit is reached. */
-export function rateLimit(
+/** Records one attempt for `key`; resolves false once the limit is reached. */
+export async function rateLimit(key: string, options: Options): Promise<boolean> {
+  if (isConvexConfigured()) {
+    return convexMutation(api.rateLimits.hit, {
+      key,
+      limit: options.limit,
+      windowMs: options.windowMs,
+    });
+  }
+  return rateLimitInMemory(key, options);
+}
+
+export function rateLimitInMemory(
   key: string,
   { limit, windowMs, now = Date.now() }: Options,
 ): boolean {

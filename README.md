@@ -2,7 +2,7 @@
 
 An online storefront for a painter selling her original artworks. It is deliberately simple and artwork-first: large images, quiet interface, no accounts or search.
 
-Built with Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS 4, next-intl 4 and Zod. Tests run on Vitest. Project rules, structure and open decisions live in [CLAUDE.md](CLAUDE.md).
+Built with Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS 4, next-intl 4, Zod and Convex (database and file storage). Tests run on Vitest. Project rules, structure and open decisions live in [CLAUDE.md](CLAUDE.md).
 
 ## What it does today
 
@@ -27,13 +27,22 @@ Requires Node.js 22 or newer (developed on Node 24).
 
 ```bash
 npm install
-cp .env.example .env   # fill in SMTP_PASS to send real email (see below)
+cp .env.example .env   # set CONVEX_SERVER_SECRET (any long random string); SMTP_PASS for real email
+
+# Terminal 1: a local Convex backend (no account needed; data stays on this machine)
+CONVEX_AGENT_MODE=anonymous npx convex dev
+npx convex env set CONVEX_SERVER_SECRET "<same value as in .env>"   # once
+npm run db:seed        # once: imports the placeholder artworks and images
+
+# Terminal 2
 npm run dev            # http://localhost:3000, redirects to /en/originals
 ```
 
 **Email.** Inquiries are sent through the artist's Google Workspace mailbox via Gmail SMTP. Put a Google app password (Google Account > Security > App passwords) in `SMTP_PASS`. Until it is set, development writes each email to `.outbox/` as an `.eml` file you can open in any mail app; a production build refuses to send instead.
 
 Before a real deploy, set `NEXT_PUBLIC_SITE_URL` to the public URL, because it is baked into Open Graph image links at build time.
+
+**Convex.** All data and uploaded images live in Convex. Next.js only talks to it from the server, and every Convex function requires `CONVEX_SERVER_SECRET`, so hidden prices and drafts can't be fetched from the browser. Without Convex configured, development falls back to `src/data`. To move from the local backend to a cloud project: `npx convex login`, `npx convex dev --configure`, set the secret there, then `npm run db:seed`.
 
 ## Commands
 
@@ -44,6 +53,8 @@ npm run start      # serve the production build
 npm run lint       # ESLint
 npm run typecheck  # next typegen && tsc --noEmit
 npm run test       # Vitest: unit tests and price-hiding render tests
+npx convex dev     # Convex: push schema and functions on save
+npm run db:seed    # import src/data/artworks.ts and its images into Convex (-- --reset to start over)
 ```
 
 Run `lint`, `typecheck` and `test` before considering a change done.
@@ -76,14 +87,17 @@ Run `lint`, `typecheck` and `test` before considering a change done.
 - [ ] Upload and edit form: title, slug, images with alt text and reordering, markdown description with preview, price mode, status, published.
 - [ ] Image processing with sharp: auto-rotate, strip metadata, resize, WebP; stored outside `public/` and served from `/media`.
 - [ ] Global "Show prices" switch.
-- [ ] Prisma + SQLite, seed from `src/data/artworks.ts`, inquiries stored as well as emailed.
+- [x] Convex database: schema, secret-guarded functions, seed from `src/data/artworks.ts`, storefront reading from it.
+- [x] Inquiries stored as well as emailed; form rate limits stored in Convex.
+- [ ] Link a Convex cloud project (Free or Starter) and seed it.
 
 ### Decisions
 
 - [x] Wordmark spelling: "Matière" on the site.
 - [x] Email: the artist's Google Workspace mailbox via Gmail SMTP with an app password.
 - [x] Git hosting: private GitHub repository.
-- [ ] Hosting. Blocks Phase 2: SQLite and local uploads need a persistent disk; serverless hosting would need a hosted database, object storage and a shared rate-limit store.
+- [x] Database and file storage: Convex (Free or Starter plan).
+- [ ] Hosting for the Next.js app. Convex removes the database constraint; Vercel Hobby is non-commercial only, so the candidates are Netlify, Cloudflare Workers or a small VPS.
 - [ ] HEIC photo handling for uploads: convert on the server, or reject and ask for JPEG.
 - [ ] Currency on the upload form: EUR only for now, or a currency select.
 - [ ] Whether "edit page layout" means more than reordering artworks (for example editing the About or Commissions text).

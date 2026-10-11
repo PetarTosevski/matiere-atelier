@@ -15,6 +15,7 @@ import {
   type FieldErrorKey,
 } from "@/lib/inquiry";
 import { buildInquiryEmail, type InquiryEmailInput } from "@/lib/inquiry-email";
+import { recordInquiry, markInquiryEmailed } from "@/lib/inquiries";
 import { sendMail } from "@/lib/mail";
 import { isCartEnabled } from "@/lib/pricing";
 import { rateLimit } from "@/lib/rate-limit";
@@ -75,7 +76,7 @@ export async function submitInquiry(
     return { status: "error", error: "invalid", fieldErrors: result.fieldErrors, values };
   }
 
-  if (!rateLimit(`inquiry:${await clientIp()}`, LIMIT)) {
+  if (!(await rateLimit(`inquiry:${await clientIp()}`, LIMIT))) {
     return { status: "error", error: "rateLimited", values };
   }
 
@@ -126,8 +127,12 @@ export async function submitInquiry(
     t(key as never, params as never),
   );
 
+  // Stored first, so an inquiry survives even if the email fails.
+  const stored = await recordInquiry(type.data, result.data);
+
   try {
     await sendMail({ ...message, replyTo: result.data.email });
+    if (stored) await markInquiryEmailed(stored);
   } catch (error) {
     console.error("[inquiry] sending failed", error);
     return { status: "error", error: "sendFailed", values };

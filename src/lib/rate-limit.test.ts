@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { rateLimit, resetRateLimits } from "@/lib/rate-limit";
+import { rateLimitInMemory as rateLimit, resetRateLimits } from "@/lib/rate-limit";
 
 const options = { limit: 3, windowMs: 1000 };
 

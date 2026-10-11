@@ -8,9 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed.mts"
   },
   "dependencies": {
+    "convex": "1.46.0",
     "next": "16.4.0",
     "next-intl": "^4.14.9",
     "nodemailer": "10.0.10",

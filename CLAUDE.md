@@ -15,7 +15,7 @@ The site name lives in one constant (`SITE_NAME = "Matière Atelier"` in `src/li
 Work happens in phases. Finish and verify a phase before starting the next. Do not build anything under "Later" unless asked.
 
 - **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, language switcher. Artwork data comes from a typed file.
-  - Status: built. Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
+  - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, language switcher, cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
 
 ## Tech stack
@@ -26,7 +26,7 @@ Work happens in phases. Finish and verify a phase before starting the next. Do n
 - Zod for validating every form and server action input
 - react-markdown + remark-gfm + rehype-sanitize for artwork descriptions (raw HTML disabled)
 - Nodemailer (SMTP) for form emails
-- Phase 2: Prisma + SQLite, sharp for images, iron-session for the admin session, bcrypt for the password hash
+- Phase 2: Convex (database, file storage and server functions, Free or Starter plan), sharp for images, iron-session for the admin session, bcrypt for the password hash
 
 Ask before adding dependencies not listed here. Check current docs for conventions that change between framework versions (for example, recent Next.js versions rename `middleware.ts` to `proxy.ts`). The docs for the installed Next.js version ship in `node_modules/next/dist/docs/` (see AGENTS.md, which `next dev` maintains).
 
@@ -43,8 +43,8 @@ npm run lint           # eslint (next lint no longer exists)
 npm run typecheck      # next typegen && tsc --noEmit (typegen creates the PageProps/LayoutProps route types)
 npm run start          # serve the production build
 npm run test           # vitest run: unit tests and price-hiding render tests
-npm run db:migrate     # Phase 2: prisma migrate dev
-npm run db:seed        # Phase 2: imports src/data/artworks.ts into the database
+npx convex dev         # runs alongside npm run dev; pushes convex/ functions and schema on save
+npm run db:seed        # imports src/data/artworks.ts and its images into Convex (-- --reset to start over)
 npm run hash-password  # Phase 2: prints a value for ADMIN_PASSWORD_HASH
 ```
 
@@ -89,7 +89,6 @@ src/
       artworks/new/page.tsx       upload
       artworks/[id]/page.tsx      edit
       settings/page.tsx           "Show prices" switch
-    media/[...path]/route.ts      Phase 2. Serves uploaded images
   components/
     InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
     cart/                         cart store (localStorage), provider, notices, cart page view
@@ -100,6 +99,8 @@ src/
     pricing.ts      getPriceView(), isCartEnabled(): the single source of price and stock display rules
     format.ts       formatPrice()
     settings.ts     site settings (showPrices)
+    convex.ts       the only Convex client: server-only, adds the shared secret; static fallback in dev only
+    inquiries.ts    stores inquiries in Convex
     metadata.ts     artwork page metadata (never contains a price)
     markdown.ts     plain-text excerpts of descriptions
     cart.ts         resolveCart(), subtotals(): which remembered pieces can still be bought
@@ -113,13 +114,17 @@ src/
     settings.ts     Phase 1 site settings
 messages/
   en.json
+scripts/
+  seed.mts          npm run db:seed (runs on Node's built-in TypeScript support)
+convex/             Convex schema and functions (database and file storage)
+  schema.ts         tables: artworks, siteSettings, inquiries, rateLimits
+  guard.ts          every function checks CONVEX_SERVER_SECRET (see Phase 2 Database)
+  artworks.ts, settings.ts, inquiries.ts, rateLimits.ts, files.ts
 public/
   placeholders/     generated placeholder paintings, until real photos arrive
-prisma/
-  schema.prisma     Phase 2
 ```
 
-`lib/artworks.ts` exposes the same functions in both phases (`getPublishedArtworks()`, `getArtworkBySlug()`, and so on). Phase 2 swaps the static file for Prisma inside this module without touching pages.
+`lib/artworks.ts` exposes the same functions in both phases (`getPublishedArtworks()`, `getArtworkBySlug()`, and so on). Phase 2 swaps the static file for Convex inside this module without touching pages.
 
 ## Data model
 
@@ -257,27 +262,36 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Accept JPEG, PNG, and WebP up to 20 MB each. Raise the request body limit for the upload action or route to match.
 - iPhone photos are often HEIC, which sharp's prebuilt binaries cannot decode. Ask the developer whether to convert HEIC on the server or reject it with a message asking for JPEG.
 - Processing with sharp: auto-rotate from EXIF, then strip all metadata (phone photos carry GPS location), resize to a maximum 2560 px long edge, save as WebP around quality 85, and record width and height.
-- Store files in `UPLOAD_DIR`, outside `public/` (Next.js only serves `public/` files that existed at build time). Serve them from `/media/[...path]` with long cache headers.
-- Keep storage behind a small interface so local disk can be swapped for S3 or R2 later.
-- Deleting an artwork deletes its image files.
+- Process in Next.js (server action or route handler), then upload the WebP to Convex file storage. Each image record keeps its `storageId`, width, height and alt text; `src` is the Convex storage URL, resolved on the server.
+- `next.config.ts` allows the Convex deployment host in `images.remotePatterns`, so `next/image` resizes and caches them. That keeps Convex file bandwidth (1 GB a month on the Free plan) low.
+- Keep storage behind a small interface (`lib/storage.ts`) so it can move to S3 or R2 later.
+- Deleting an artwork deletes its stored files.
 
-### Database
-- Prisma models: `Artwork`, `ArtworkImage`, `SiteSettings` (single row), `Inquiry`.
-- `npm run db:seed` imports the Phase 1 data from `src/data/artworks.ts`.
-- Inquiries are stored as well as emailed.
-- After any admin write, revalidate the affected storefront pages.
+### Database (Convex)
+- Convex holds the data and the uploaded images, on the Free plan (hard caps: 0.5 GB database, 1 GB files, 1M function calls a month; writes fail at a cap) or Starter (same allowances, overages billed). Hosting of the Next.js app is chosen separately and is no longer constrained by the database.
+- Tables: `artworks` (the Artwork shape above, with images as `{ storageId, width, height, alt }`), `siteSettings` (single document), `inquiries`, `rateLimits`.
+- **Next.js talks to Convex only on the server**, through `ConvexHttpClient` with `CONVEX_URL`, from server components, server actions and route handlers. There is no Convex client in the browser: no `ConvexProvider`, no `useQuery`. Otherwise hidden prices and drafts could reach the browser.
+- **Every Convex function checks a shared secret.** A deployment URL can be called by anyone, so each query, mutation and action takes a `secret` argument and compares it with the `CONVEX_SERVER_SECRET` environment variable set in Convex. Use the wrappers in `convex/guard.ts`; never export an unguarded public function. Admin permissions are still checked in Next.js (session) before calling a write.
+- `lib/artworks.ts` and `lib/settings.ts` keep their signatures and call Convex. Pricing rules stay in `lib/pricing.ts`; Convex returns raw data.
+- Inquiries are stored in Convex as well as emailed. The per-IP limits for forms and login move from memory into the `rateLimits` table, so they work on any host, serverless included.
+- `npm run db:seed` imports `src/data/artworks.ts` and uploads its placeholder images. It is idempotent (matches on slug).
+- Status: built and in use by the storefront (schema, guarded functions, seed, Convex-backed rate limits and stored inquiries). Admin UI and image uploads still to do.
+- Local development runs an anonymous local Convex backend (`CONVEX_AGENT_MODE=anonymous npx convex dev`, data on this machine only). To move to the cloud: `npx convex login`, then `npx convex dev --configure` to create or link a cloud project, `npx convex env set CONVEX_SERVER_SECRET ...`, and `npm run db:seed`.
+- Without Convex configured, `lib/convex.ts` falls back to `src/data` in development and tests only; production throws instead of serving placeholders.
+- Commit `convex/_generated/` (Convex recommends it); it is ignored by ESLint.
+- After any admin write, revalidate the affected storefront pages (`revalidatePath`).
 
 ## Environment
 
-Commit `.env.example`. Never commit `.env`, database files, or `uploads/`.
+Commit `.env.example`. Never commit `.env` or `.env.local`.
 
 ```bash
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-DATABASE_URL="file:./dev.db"
+CONVEX_URL=               # deployment URL; npx convex dev writes it to .env.local
+CONVEX_SERVER_SECRET=     # long random string; also set in Convex: npx convex env set CONVEX_SERVER_SECRET ...
 ADMIN_USERNAME=
 ADMIN_PASSWORD_HASH=      # from npm run hash-password
 SESSION_SECRET=           # at least 32 random characters
-UPLOAD_DIR=./uploads
 SMTP_HOST=
 SMTP_PORT=
 SMTP_USER=
@@ -302,7 +316,7 @@ Ask the developer before building around any of these:
 
 1. Which languages besides English.
 2. Checkout: a payment provider (Stripe Checkout is a good fit) or inquiry-only. Before taking payments, the site needs terms, a privacy policy, shipping info, and a check of EU consumer withdrawal rules, including the online withdrawal function EU shops need from June 2026.
-3. Hosting. SQLite and local uploads need a persistent disk, so serverless hosting would need a hosted database and object storage instead.
+3. Hosting for the Next.js app (to be chosen later). Vercel Hobby is non-commercial only, so it doesn't fit a storefront. Netlify, Cloudflare Workers and a small VPS all work with Convex.
 4. HEIC handling.
 5. Whether "edit page layout" should go beyond reordering artworks.
 
@@ -310,6 +324,7 @@ Decided:
 - Wordmark spelling: "Matière" everywhere on the site (2026-10-10).
 - Email: the artist's Google Workspace mailbox, sent through Gmail SMTP (smtp.gmail.com:465) with an app password in `SMTP_PASS` (2026-10-11). Without SMTP configured, development writes emails to `.outbox/` and production refuses to send.
 - Nodemailer is pinned to an exact version (`--save-exact`), chosen at least two weeks old.
+- Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `main`).
 
 ## Later (do not build yet)
