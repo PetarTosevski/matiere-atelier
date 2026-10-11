@@ -314,7 +314,7 @@ export function CollectionEditor({ initialWorks, initialCurrency, initialShowPri
                 setRateFailed(false);
               }}
               aria-describedby={unconverted || conversion ? "admin-currency-note" : undefined}
-              className="min-h-10 border border-paper bg-white px-2.5 text-sm text-paper"
+              className="min-h-10 cursor-pointer border border-paper bg-transparent px-3 text-sm font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-paper [&>option]:bg-panel [&>option]:font-normal [&>option]:text-ink"
             >
               {SHOP_CURRENCIES.map((code) => (
                 <option key={code} value={code}>{t("currencies", { code })}</option>
