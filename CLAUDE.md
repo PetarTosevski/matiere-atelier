@@ -93,7 +93,8 @@ src/
     admin/                        Not localized, never linked from the site
       layout.tsx                  own <html>; default-locale copy; noindex
       actions.ts                  every admin server action (each checks the session)
-      upload/route.ts             image upload (a route, not an action, so the 20 MB limit stays here)
+      upload/route.ts             image upload step 1: a one-time Convex upload URL for the original (admin only)
+      upload/process/route.ts     step 2: sharp turns the uploaded original into the stored WebP and deletes the original
       login/page.tsx              split layout: featured piece, sign-in form
       forgot/page.tsx, reset/page.tsx  admin password reset by email
       (panel)/layout.tsx          pink "Admin mode" bar with the admin links; checks the session
@@ -327,11 +328,11 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - The switch lives in the collection editor's toolbar (there is no separate Settings page, decided 2026-10-12). It is published with the other changes and writes only `SiteSettings.showPrices` (see the price rules above).
 
 ### Images
-- Accept JPEG, PNG, and WebP up to 20 MB each. Uploads go through the `/admin/upload` route handler, so the server action body limit stays at the default 1 MB for public forms.
+- Accept JPEG, PNG, and WebP up to 20 MB each. The photo never passes through Next.js (Vercel refuses request bodies over 4.5 MB): the browser gets a one-time Convex upload URL from `/admin/upload` (session checked), POSTs the original there, then calls `/admin/upload/process` with its `storageId`. The server checks the size, downloads and processes it, stores the WebP and always deletes the original (it may carry GPS). Shared browser helper: `uploadImage()` in `components/admin/collection/upload.ts`. This upload URL is the only time the browser talks to Convex; it can store one file and read nothing.
 - An upload removed from the form before saving is deleted right away. If the form is abandoned without saving, its uploads stay in storage (a cleanup job can come later).
 - iPhone photos are often HEIC, which sharp's prebuilt binaries cannot decode. Decided: reject HEIC (detected from the file's bytes) with a message asking for JPEG, PNG or WebP. The file picker accepts only those types, so iOS usually converts photos to JPEG on upload anyway.
 - Processing with sharp: auto-rotate from EXIF, then strip all metadata (phone photos carry GPS location), resize to a maximum 2560 px long edge, save as WebP around quality 85, and record width and height.
-- Process in Next.js (server action or route handler), then upload the WebP to Convex file storage. Each image record keeps its `storageId`, width, height and alt text; `src` is the Convex storage URL, resolved on the server.
+- Process in Next.js (`/admin/upload/process`), then upload the WebP to Convex file storage. Each image record keeps its `storageId`, width, height and alt text; `src` is the Convex storage URL, resolved on the server.
 - `next.config.ts` allows the Convex deployment host in `images.remotePatterns`, so `next/image` resizes and caches them. That keeps Convex file bandwidth (1 GB a month on the Free plan) low.
 - Keep storage behind a small interface (`lib/storage.ts`) so it can move to S3 or R2 later.
 - Deleting an artwork deletes its stored files.

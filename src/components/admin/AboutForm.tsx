@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { discardUploadsAction, saveAboutAction, type AboutState } from "@/app/admin/actions";
 import { MarkdownField } from "@/components/admin/MarkdownField";
+import { uploadImage, type UploadProblem } from "@/components/admin/collection/upload";
 import type { AboutFieldError } from "@/lib/about-form";
 import { routing } from "@/i18n/routing";
 import type { AboutPageForAdmin } from "@/lib/pages";
@@ -19,9 +20,6 @@ type Portrait = {
   isNew: boolean;
 };
 
-type UploadProblem = "tooLarge" | "heic" | "unsupported" | "unreadable" | "unauthorized" | "failed";
-
-const MAX_BYTES = 20 * 1024 * 1024;
 const initialState: AboutState = { status: "idle" };
 const inputClass =
   "mt-2 block w-full border border-ink/40 bg-field px-3 py-2.5 aria-[invalid=true]:border-2 aria-[invalid=true]:border-ink";
@@ -70,23 +68,10 @@ export function AboutForm({ about, placeholderBio }: { about: AboutPageForAdmin 
   async function upload(file: File | undefined) {
     if (!file) return;
     setUploadError(null);
-    if (file.size > MAX_BYTES) {
-      setUploadError({ name: file.name, error: "tooLarge" });
-      return;
-    }
     setUploading(file.name);
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const response = await fetch("/admin/upload", { method: "POST", body });
-      const result = (await response.json()) as
-        | { storageId: string; src: string; width: number; height: number }
-        | { error: UploadProblem };
-      if ("error" in result) setUploadError({ name: file.name, error: result.error });
-      else replacePortrait({ ...result, alt: portrait?.alt ?? "", isNew: true });
-    } catch {
-      setUploadError({ name: file.name, error: "failed" });
-    }
+    const result = await uploadImage(file);
+    if (result.ok) replacePortrait({ ...result.image, alt: portrait?.alt ?? "", isNew: true });
+    else setUploadError({ name: file.name, error: result.error });
     setUploading(null);
   }
 

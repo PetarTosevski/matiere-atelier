@@ -2,7 +2,11 @@ import { ConvexError, v } from "convex/values";
 import { serverMutation, serverQuery } from "./guard";
 import { deleteFilesIfPresent } from "./storage";
 
-/** A short-lived URL the Next.js server POSTs a processed image to. */
+/**
+ * A short-lived URL a file can be POSTed to: the processed WebP from the
+ * Next.js server, or an admin's original photo straight from the browser
+ * (Next.js hands that URL out only after checking the admin session).
+ */
 export const generateUploadUrl = serverMutation({
   args: {},
   handler: async (ctx) => ctx.storage.generateUploadUrl(),
@@ -12,6 +16,12 @@ export const generateUploadUrl = serverMutation({
 export const getUrl = serverQuery({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => ctx.storage.getUrl(storageId),
+});
+
+/** Size in bytes of a stored file, or null if there is no such file. */
+export const getSize = serverQuery({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => (await ctx.db.system.get(storageId))?.size ?? null,
 });
 
 /**
