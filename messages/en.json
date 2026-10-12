@@ -505,7 +505,7 @@
     "resetExpired": "This link has expired or was already used.",
     "requestNewLink": "Send a new link",
     "resetDone": "Your password has been changed. Sign in with the new one.",
-    "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} other {Something went wrong. Please try again.}}",
+    "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} wrongCurrent {Your current password is not right.} other {Something went wrong. Please try again.}}",
     "hello": "Hello, <em>{name}</em>",
     "sectionsLabel": "Account sections",
     "collectionTab": "My Collection",

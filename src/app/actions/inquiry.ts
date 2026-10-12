@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { getArtworkBySlug, getArtworksByIds } from "@/lib/artworks";
 import { resolveCart, subtotals } from "@/lib/cart";
+import { getCustomer } from "@/lib/customer-auth";
 import { formatPrice } from "@/lib/format";
 import {
   HONEYPOT_FIELD,
@@ -88,6 +89,7 @@ export async function submitInquiry(
   const artworkUrl = (slug: string) => `${origin}/${locale}/originals/${slug}`;
 
   let email: InquiryEmailInput;
+  let orderItems: { artworkId: string; title: string; slug: string; amount: number; currency: string }[] | undefined;
   const input = { type: type.data, data: result.data } as InquiryEmailInput;
 
   if (input.type === "REQUEST") {
@@ -106,6 +108,13 @@ export async function submitInquiry(
     if (cart.removed.length > 0 || cart.items.length === 0) {
       return { status: "error", error: "cartChanged", values };
     }
+    orderItems = cart.items.map((item) => ({
+      artworkId: item.id,
+      title: item.title,
+      slug: item.slug,
+      amount: item.price.amount,
+      currency: item.price.currency,
+    }));
     email = {
       ...input,
       items: cart.items.map((item) => ({
@@ -128,7 +137,12 @@ export async function submitInquiry(
   );
 
   // Stored first, so an inquiry survives even if the email fails.
-  const stored = await recordInquiry(type.data, result.data);
+  // A signed-in customer's orders show in My Collection.
+  const customer = await getCustomer();
+  const stored = await recordInquiry(type.data, result.data, {
+    customerId: customer?.id,
+    items: orderItems,
+  });
 
   try {
     await sendMail({ ...message, replyTo: result.data.email });

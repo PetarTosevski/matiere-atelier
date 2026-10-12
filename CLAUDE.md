@@ -16,8 +16,9 @@ Work happens in phases. Finish and verify a phase before starting the next. Do n
 
 - **Phase 1 (V1 storefront):** Originals, artwork pages, request page, Commissions, About, Contact, cart, currency switcher. Artwork data comes from a typed file.
   - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, visitor currency switcher (replaced the language switcher 2026-10-12), cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
+- **Customer accounts** (asked for 2026-10-12, design "Art Storefront Screens"): built. Header "Login" button / "My account" menu, `/login` (Sign in | Create account, Forgot password), `/account` (My Collection: orders sent while signed in; Account details; Change password), reset by email. Order tracking beyond "Order sent" needs the admin side (open decision 4). Still to do from the same design: the visual changes (beads issue).
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
-  - Status: built. Sign-in, the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Still to do: link a Convex cloud project, choose hosting.
+  - Status: built. Sign-in (redesigned 2026-10-12: split layout, email, "Keep me signed in", reset by email), the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Still to do: link a Convex cloud project, choose hosting.
 
 ## Tech stack
 
@@ -72,7 +73,8 @@ src/
     fonts.ts                      Karla and Cormorant Garamond via next/font
     actions/
       cart.ts                     resolveCartAction(): checks remembered cart IDs on the server
-      inquiry.ts                  submitInquiry(): validate, honeypot, rate limit, email
+      inquiry.ts                  submitInquiry(): validate, honeypot, rate limit, email; links orders to a signed-in customer
+      account.ts                  customer sign in, create account, reset, sign out, details, change password
     [locale]/
       layout.tsx                  <html>, header, footer (cart provider later)
       page.tsx                    redirects to /[locale]/originals
@@ -85,18 +87,24 @@ src/
       about/page.tsx
       contact/page.tsx
       cart/page.tsx
+      login/page.tsx              customer Sign in | Create account | Forgot password (welcome view once signed in)
+      account/page.tsx            My Collection (?tab=details: Account details, Change password)
+      account/reset/page.tsx      new password from an emailed link
     admin/                        Not localized, never linked from the site
       layout.tsx                  own <html>; default-locale copy; noindex
       actions.ts                  every admin server action (each checks the session)
       upload/route.ts             image upload (a route, not an action, so the 20 MB limit stays here)
-      login/page.tsx
+      login/page.tsx              split layout: featured piece, sign-in form
+      forgot/page.tsx, reset/page.tsx  admin password reset by email
       (panel)/layout.tsx          pink "Admin mode" bar with the admin links; checks the session
       (panel)/page.tsx            the collection editor (see "Collection editor" below)
       (panel)/about/page.tsx      About page editor (portrait and bio)
   components/
     InquiryForm.tsx               the one form for CONTACT, COMMISSION, REQUEST and ORDER
     OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx, grid.ts  storefront Originals and artwork page parts
-    admin/                        login, About form, MarkdownField (toolbar + preview)
+    admin/                        login (AdminAuthShell, LoginForm, reset forms), About form, MarkdownField (toolbar + preview)
+    auth/                         fields shared by admin and customer forms (Show password, Keep me signed in), ForgotPasswordForm, NewPasswordForm
+    account/                      account hint (localStorage), AccountButton (header Login / My account), LoginScreen, AccountForms, SignOutButton
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
     currency/                     visitor currency: store (localStorage), provider, DisplayPrice, CurrencySwitcher
@@ -128,6 +136,11 @@ src/
     money.ts        "1450.50" to integer cents and back, without floats
     slug.ts         slugify()
     pages.ts        About page content (Convex); null until first saved
+    session.ts      iron-session helpers shared by admin and customers ("Keep me signed in", expiry, renewal)
+    password.ts     bcrypt hashing, reset tokens (only a SHA-256 is stored)
+    password-reset.ts  create, check and use reset links (Convex passwordResets)
+    customer-auth.ts   customer session: getCustomer(), sign in/out
+    account-forms.ts   Zod checks for every sign-in, account and password form
     about-form.ts   checks for the About form
     markdown-format.ts  toolbar edits for the description field
     order.ts        compareArtworks(): Originals order, usable in the browser too
@@ -141,7 +154,7 @@ scripts/
   seed.mts          npm run db:seed (runs on Node's built-in TypeScript support)
   hash-password.mts npm run hash-password
 convex/             Convex schema and functions (database and file storage)
-  schema.ts         tables: artworks, aboutPage, siteSettings, inquiries, rateLimits
+  schema.ts         tables: artworks, aboutPage, siteSettings, inquiries, rateLimits, customers, passwordResets, adminCredentials
   storage.ts        deleteFilesIfPresent(): file cleanup that skips already-deleted files
   guard.ts          every function checks CONVEX_SERVER_SECRET (see Phase 2 Database)
   artworks.ts, pages.ts, settings.ts, inquiries.ts, rateLimits.ts, files.ts
@@ -211,9 +224,19 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ## Phase 1: storefront
 
 ### Layout
-- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, theme toggle, "Cart (n)" link, all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
+- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, theme toggle, "Cart (n)" link, "Login" button (or "My account" with a menu once signed in; from 768 px, in the menu below), all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
 - Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), currency switcher, theme toggle.
-- No search and no customer accounts.
+- No search.
+
+### Customer accounts
+- Optional: buying never needs an account (checkout stays an inquiry). Signing in fills in name and email on the inquiry forms, and orders sent while signed in show in My Collection (stored on the inquiry: `customerId` and a snapshot of the pieces and prices).
+- Customers live in Convex (`customers`: email lowercased, bcrypt hash made in Next.js, first and last name, newsletter choice, `sessionVersion`). Accounts need Convex; without it the forms say accounts are unavailable.
+- Session: iron-session cookie `matiere_account` on `path=/`. Only `/login`, `/account` and server actions read it, so storefront pages stay static. The header learns who is signed in from a hint in localStorage (`components/account/account-store.ts`), which the login and account pages keep in line with the session; it is never trusted for anything else.
+- "Keep me signed in": a 30-day cookie that renews when used; otherwise a browser-session cookie whose session also expires after a day (`lib/session.ts`). The admin uses the same rules.
+- Passwords: at least 8 characters, at most 72 bytes (bcrypt's limit; longer is refused, not cut). Changing or resetting a password bumps `sessionVersion`, which signs out every other session.
+- Reset: "Forgot password?" emails a one-time link (30 minutes; only its SHA-256 is stored in `passwordResets`) to the account's address. The answer is the same whether or not the account exists, and sign-in takes as long for unknown emails. Rate limits (Convex): sign-in 10 / 15 min, create 5 / hour, reset 5 / 15 min per IP; password change 5 / 15 min per account.
+- Changing the account email is not built (the page says to get in touch). No email verification yet.
+- Before launch: accounts hold personal data, so the site needs a privacy policy covering them, and a way to delete an account (GDPR). Neither is built.
 
 ### Originals (`/originals`)
 - Intro: a large serif title with one word in the accent color, and a short statement (placeholder until the artist provides text). On desktop the statement sits beside the title.
@@ -263,8 +286,9 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Access
 - The admin area lives at `/admin` and is never linked from the site for visitors (only the artist's own Edit link, below), never added to the sitemap, and not listed in `robots.txt` (listing it would advertise it). Admin responses send `X-Robots-Tag: noindex`.
 - Being unlinked is not security. Every admin page, server action, and route handler checks the session on the server. A middleware/proxy check alone is not enough.
-- Credentials come from env: `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH`. The plaintext password is never stored. `npm run hash-password` prints the hash with each `$` escaped as `\$`, because Next.js expands `$` in `.env` files.
-- Session: iron-session cookie, `httpOnly`, `secure`, `sameSite: "lax"`, 7-day expiry. Include a logout button.
+- Credentials come from env: `ADMIN_USERNAME` (an email address; an older plain username still signs in, but reset links need an email) and `ADMIN_PASSWORD_HASH`. After a reset from the site the hash lives in Convex (`adminCredentials`) and wins over the env one; `adminCredentials:clear` (with the secret) goes back to the env hash. The plaintext password is never stored. `npm run hash-password` prints the hash with each `$` escaped as `\$`, because Next.js expands `$` in `.env` files.
+- Session: iron-session cookie, `httpOnly`, `secure`, `sameSite: "lax"`. "Keep me signed in" (on by default) gives 30 days, renewed by admin actions; otherwise it ends with the browser (and after a day at most). Include a logout button.
+- Login screen (design "Art Storefront Screens", 2026-10-12): the first piece on Originals on one side, the form on the other (Email, Password with Show, Keep me signed in, Forgot password?). "Forgot password?" emails a reset link to `ADMIN_USERNAME` (`/admin/forgot`, `/admin/reset`); a reset ends every admin session. No public link to the admin (decided again 2026-10-12: the Edit link below covers it).
 - Login is rate limited (5 attempts per 15 minutes per IP, counted in Convex). To unlock after a lockout, call the `rateLimits:reset` Convex function with the secret and the key `login:<ip>`.
 - **Edit link on the storefront** (2026-10-12): admin pages mark the browser as the artist's in localStorage (cleared on Log out). That browser then shows a small accent "Edit" link in the bottom-left corner of the storefront: on an artwork or request page it opens `/admin?edit=<slug>` with that piece's edit panel open, on About it opens the About editor, elsewhere the collection. It is only a hint: pages stay static, visitors get nothing in the HTML, and `/admin` still checks the session (an expired session lands on the login page).
 - The session cookie is limited to `path=/admin`, so it is never sent with storefront requests. `secure` is on in production only, because browsers drop secure cookies on plain-http localhost.
@@ -312,7 +336,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Database (Convex)
 - Convex holds the data and the uploaded images, on the Free plan (hard caps: 0.5 GB database, 1 GB files, 1M function calls a month; writes fail at a cap) or Starter (same allowances, overages billed). Hosting of the Next.js app is chosen separately and is no longer constrained by the database.
-- Tables: `artworks` (the Artwork shape above, with images as `{ storageId, width, height, alt }`), `aboutPage` (single document: bio and portrait), `siteSettings` (single document), `inquiries`, `rateLimits`.
+- Tables: `artworks` (the Artwork shape above, with images as `{ storageId, width, height, alt }`), `aboutPage` (single document: bio and portrait), `siteSettings` (single document), `inquiries`, `rateLimits`, `customers`, `passwordResets`, `adminCredentials` (single document, only after an admin password reset).
 - Textarea input (descriptions, bio) is stored with plain LF line breaks; browsers submit CRLF, which the form parsers normalize.
 - **Next.js talks to Convex only on the server**, through `ConvexHttpClient` with `CONVEX_URL`, from server components, server actions and route handlers. There is no Convex client in the browser: no `ConvexProvider`, no `useQuery`. Otherwise hidden prices and drafts could reach the browser.
 - **Every Convex function checks a shared secret.** A deployment URL can be called by anyone, so each query, mutation and action takes a `secret` argument and compares it with the `CONVEX_SERVER_SECRET` environment variable set in Convex. Use the wrappers in `convex/guard.ts`; never export an unguarded public function. Admin permissions are still checked in Next.js (session) before calling a write.
@@ -333,7 +357,7 @@ Commit `.env.example`. Never commit `.env` or `.env.local`.
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 CONVEX_URL=               # deployment URL; npx convex dev writes it to .env.local
 CONVEX_SERVER_SECRET=     # long random string; also set in Convex: npx convex env set CONVEX_SERVER_SECRET ...
-ADMIN_USERNAME=
+ADMIN_USERNAME=           # the admin's email address (sign-in name, and where reset links go)
 ADMIN_PASSWORD_HASH=      # from npm run hash-password
 SESSION_SECRET=           # at least 32 random characters
 SMTP_HOST=
@@ -381,7 +405,7 @@ Decided:
 
 ## Later (do not build yet)
 
-Auction, per-piece currencies, translated artwork content, prints, customer accounts, search.
+Auction, per-piece currencies, translated artwork content, prints, search. (Customer accounts moved out of this list on 2026-10-12.)
 
 ## Working rules
 

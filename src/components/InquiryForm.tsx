@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useActionState, useEffect, useId, useRef } from "react";
+import { useActionState, useEffect, useId, useRef, useSyncExternalStore } from "react";
+import { accountStore } from "@/components/account/account-store";
 import { submitInquiry, type InquiryState } from "@/app/actions/inquiry";
 import { HONEYPOT_FIELD, inquiryFields, type InquiryField } from "@/lib/inquiry";
 import type { InquiryType } from "@/lib/types";
@@ -34,6 +35,9 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
   const [state, formAction, pending] = useActionState(submitInquiry, initialState);
   const summaryRef = useRef<HTMLDivElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  // A signed-in collector gets their name and email filled in.
+  const account = useSyncExternalStore(accountStore.subscribe, accountStore.getSnapshot, accountStore.getServerSnapshot);
+  const prefill: Partial<Record<InquiryField, string>> = account ? { name: account.name, email: account.email } : {};
 
   useEffect(() => {
     if (state.status === "success") {
@@ -62,7 +66,8 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
   const optional = OPTIONAL[type] ?? [];
 
   return (
-    <form action={formAction} noValidate className="max-w-xl space-y-6">
+    // key: the prefill arrives after hydration, and default values only apply on mount.
+    <form key={account?.email ?? "guest"} action={formAction} noValidate className="max-w-xl space-y-6">
       <input type="hidden" name="type" value={type} />
       <input type="hidden" name="locale" value={locale} />
       {Object.entries(hidden).flatMap(([name, value]) =>
@@ -90,7 +95,7 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
         const common = {
           id: fieldId,
           name: field,
-          defaultValue: values[field] ?? "",
+          defaultValue: values[field] ?? prefill[field] ?? "",
           required: !isOptional,
           "aria-invalid": error ? true : undefined,
           "aria-describedby": describedBy,

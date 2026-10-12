@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { AccountButton, AccountMenuLinks } from "@/components/account/AccountButton";
 import { CartLink } from "@/components/CartLink";
 import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
 import { MobileMenu } from "@/components/MobileMenu";
@@ -29,6 +30,9 @@ export async function Header() {
             <ThemeToggle siteTheme={settings.theme} />
           </div>
           {showCart && <CartLink />}
+          <div className="hidden md:block">
+            <AccountButton />
+          </div>
           <MobileMenu openLabel={t("openMenu")} closeLabel={t("closeMenu")}>
             <nav aria-label={t("mainNavLabel")}>
               <NavLinks orientation="vertical" />
@@ -37,6 +41,7 @@ export async function Header() {
               <CurrencySwitcher />
               <ThemeToggle siteTheme={settings.theme} />
             </div>
+            <AccountMenuLinks />
           </MobileMenu>
         </div>
       </div>

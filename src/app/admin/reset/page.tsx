@@ -9,7 +9,7 @@ import { checkResetToken } from "@/lib/password-reset";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Admin.reset" });
-  return { title: t("resetTitle") };
+  return { title: t("resetTitle"), referrer: "no-referrer" };
 }
 
 /** Opened from the reset email. The token is checked again when the form is sent. */
