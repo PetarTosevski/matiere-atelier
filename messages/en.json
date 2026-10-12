@@ -183,11 +183,15 @@
     },
     "login": {
       "title": "Sign in",
-      "username": "Username",
-      "password": "Password",
+      "eyebrow": "Studio admin",
+      "heading": "Sign <em>in</em>",
+      "lede": "Manage your collection, prices and display order.",
       "submit": "Sign in",
       "submitting": "Signing in…",
-      "errors": "{error, select, invalid {The username or password is not right.} rateLimited {Too many attempts. Please wait 15 minutes and try again.} notConfigured {Sign-in is not set up yet. Set ADMIN_USERNAME, ADMIN_PASSWORD_HASH and SESSION_SECRET in .env.} other {Something went wrong. Please try again.}}"
+      "ownerOnly": "This area is for the site owner only.",
+      "backToShop": "← Back to the shop",
+      "resetDone": "Your password has been changed. Sign in with the new one.",
+      "errors": "{error, select, invalid {The email or password is not right.} rateLimited {Too many attempts. Please wait 15 minutes and try again.} notConfigured {Sign-in is not set up yet. Set ADMIN_USERNAME (an email address), ADMIN_PASSWORD_HASH and SESSION_SECRET in .env.} other {Something went wrong. Please try again.}}"
     },
     "list": {
       "title": "Artworks",
@@ -397,6 +401,25 @@
         "confirmYes": "Yes, delete",
         "cancel": "Cancel"
       }
+    },
+    "reset": {
+      "forgotTitle": "Reset your password",
+      "forgotHeading": "Reset your <em>password</em>",
+      "forgotLede": "Enter your email and we’ll send you a link to choose a new password.",
+      "send": "Send reset link",
+      "sending": "Sending…",
+      "sent": "If <strong>{email}</strong> is the admin email, a reset link is on its way. It expires in 30 minutes.",
+      "resetTitle": "Choose a new password",
+      "resetHeading": "Choose a new <em>password</em>",
+      "save": "Save new password",
+      "saving": "Saving…",
+      "expired": "This link has expired or was already used.",
+      "requestNew": "Send a new link",
+      "errors": "{error, select, invalidEmail {That doesn’t look like an email address.} rateLimited {Too many attempts. Please wait 15 minutes and try again.} notConfigured {Password reset needs the database (Convex). Reset with npm run hash-password instead.} sendFailed {The email could not be sent. Please try again later.} invalid {Please check the highlighted fields.} expired {This link has expired or was already used.} other {Something went wrong. Please try again.}}",
+      "email": {
+        "subject": "Reset the admin password · {siteName}",
+        "body": "Someone asked to reset the admin password.\n\nChoose a new password here (the link works once, for 30 minutes):\n{link}\n\nIf this wasn’t you, ignore this email; the password stays the same."
+      }
     }
   },
   "CurrencySwitcher": {
@@ -413,5 +436,97 @@
     "piece": "Edit this piece",
     "about": "Edit this page",
     "collection": "Edit collection"
+  },
+  "Auth": {
+    "email": "Email",
+    "password": "Password",
+    "newPassword": "New password",
+    "confirmPassword": "Type the new password again",
+    "currentPassword": "Current password",
+    "show": "Show",
+    "hide": "Hide",
+    "showLabel": "Show password",
+    "hideLabel": "Hide password",
+    "passwordHint": "At least 8 characters.",
+    "remember": "Keep me signed in",
+    "forgot": "Forgot password?",
+    "backToSignIn": "← Back to sign in",
+    "errors": {
+      "required": "Please fill this in.",
+      "invalidEmail": "That doesn’t look like an email address.",
+      "tooLong": "That’s too long.",
+      "tooShort": "Use at least 8 characters.",
+      "mismatch": "The two passwords don’t match."
+    }
+  },
+  "AccountLink": {
+    "login": "Login",
+    "account": "My account",
+    "collection": "My Collection",
+    "details": "Account details",
+    "signOut": "Sign out"
+  },
+  "Account": {
+    "loginMetaTitle": "Sign in",
+    "accountMetaTitle": "My account",
+    "resetMetaTitle": "Choose a new password",
+    "eyebrow": "Collector account",
+    "sideTitle": "Keep your collection <em>in one place</em>",
+    "perks": {
+      "one": "Every piece you’ve ordered, in one place",
+      "two": "Your name and email filled in when you send an order or a message",
+      "three": "Hear first when new work is released, if you like"
+    },
+    "guestNote": "No account needed to buy: you can always check out as a guest.",
+    "tabsLabel": "Account",
+    "signInTab": "Sign in",
+    "createTab": "Create account",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "newsletter": "Email me when new work is released",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "create": "Create account",
+    "creating": "Creating account…",
+    "welcomeBack": "Welcome <em>back</em>",
+    "welcomeNew": "Welcome, <em>{name}</em>",
+    "signedInAs": "You’re signed in as {email}.",
+    "readyBody": "Your account is ready. Orders you send while signed in will appear in My Collection.",
+    "viewCollection": "View My Collection",
+    "continueBrowsing": "Continue browsing",
+    "forgotHeading": "Reset your <em>password</em>",
+    "forgotLede": "Enter your email and we’ll send you a link to choose a new one.",
+    "sendLink": "Send reset link",
+    "sending": "Sending…",
+    "linkSent": "If an account exists for <strong>{email}</strong>, a reset link is on its way. It expires in 30 minutes.",
+    "resetHeading": "Choose a new <em>password</em>",
+    "saveNewPassword": "Save new password",
+    "saving": "Saving…",
+    "resetExpired": "This link has expired or was already used.",
+    "requestNewLink": "Send a new link",
+    "resetDone": "Your password has been changed. Sign in with the new one.",
+    "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} other {Something went wrong. Please try again.}}",
+    "hello": "Hello, <em>{name}</em>",
+    "sectionsLabel": "Account sections",
+    "collectionTab": "My Collection",
+    "detailsTab": "Account details",
+    "ordersEmpty": "Nothing here yet. Pieces you order while signed in will appear here.",
+    "browseOriginals": "Browse the originals",
+    "orderSent": "Order sent {date}",
+    "orderStatus": "Order sent",
+    "orderNote": "The artist replies by email to arrange payment and shipping.",
+    "pieceGone": "No longer on the site",
+    "questions": "Questions about an order? <contact>Contact the studio</contact>.",
+    "emailLabel": "Email",
+    "emailNote": "To change the email on your account, get in touch.",
+    "saveChanges": "Save changes",
+    "saved": "Saved",
+    "changePassword": "Change password",
+    "passwordChanged": "Password changed.",
+    "signOut": "Sign out",
+    "email": {
+      "subject": "Reset your password · {siteName}",
+      "body": "Someone asked to reset the password for your {siteName} account.\n\nChoose a new password here (the link works once, for 30 minutes):\n{link}\n\nIf this wasn’t you, ignore this email; your password stays the same."
+    }
   }
 }

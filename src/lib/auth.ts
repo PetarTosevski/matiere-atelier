@@ -1,46 +1,51 @@
 import "server-only";
-import bcrypt from "bcryptjs";
-import { getIronSession, type SessionOptions } from "iron-session";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { api, convexMutation, convexQuery, isConvexConfigured } from "@/lib/convex";
+import { checkPassword, hashPassword } from "@/lib/password";
+import { isLive, readSession, renewSession, saveSession, type SessionTiming } from "@/lib/session";
 
-// Admin sign-in. Credentials come from env (ADMIN_USERNAME and a bcrypt
-// ADMIN_PASSWORD_HASH); the plaintext password is never stored. Every admin
-// page, server action and route handler checks the session itself.
+// Admin sign-in. The admin signs in with ADMIN_USERNAME (an email address).
+// The password hash comes from ADMIN_PASSWORD_HASH until the password is
+// reset from the site; after that it lives in Convex (adminCredentials). The
+// plaintext password is never stored. Every admin page, server action and
+// route handler checks the session itself.
 
-type AdminSession = { username?: string };
+type AdminSession = SessionTiming & { username?: string; version?: number };
 
-const SEVEN_DAYS = 60 * 60 * 24 * 7;
+const COOKIE = {
+  cookieName: "matiere_admin",
+  // Only sent to admin URLs, never with storefront requests.
+  path: "/admin",
+};
 
-function sessionOptions(): SessionOptions {
-  const password = process.env.SESSION_SECRET;
-  if (!password || password.length < 32) {
-    throw new Error("SESSION_SECRET must be at least 32 characters");
+export function adminEmail(): string | null {
+  return process.env.ADMIN_USERNAME?.trim().toLowerCase() || null;
+}
+
+/** The current password hash and session version (0 while the env hash is used). */
+async function credentials(): Promise<{ passwordHash: string; sessionVersion: number } | null> {
+  if (isConvexConfigured()) {
+    const stored = await convexQuery(api.adminCredentials.get, {});
+    if (stored) return stored;
   }
-  return {
-    password,
-    cookieName: "matiere_admin",
-    ttl: SEVEN_DAYS,
-    cookieOptions: {
-      httpOnly: true,
-      // Browsers drop secure cookies on plain-http localhost.
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: SEVEN_DAYS,
-      // Only sent to admin URLs, never with storefront requests.
-      path: "/admin",
-    },
-  };
+  const hash = process.env.ADMIN_PASSWORD_HASH;
+  return hash ? { passwordHash: hash, sessionVersion: 0 } : null;
+}
+
+export function isAdminConfigured(): boolean {
+  return Boolean(adminEmail() && process.env.ADMIN_PASSWORD_HASH);
 }
 
 export async function getAdminSession() {
-  return getIronSession<AdminSession>(await cookies(), sessionOptions());
+  return readSession<AdminSession>(COOKIE);
 }
 
 export async function isAdmin(): Promise<boolean> {
   const session = await getAdminSession();
-  const expected = process.env.ADMIN_USERNAME;
-  return Boolean(expected && session.username === expected);
+  const expected = adminEmail();
+  if (!expected || session.username !== expected || !isLive(session)) return false;
+  // A password reset bumps the version, which signs out every older session.
+  return session.version === (await credentials())?.sessionVersion;
 }
 
 /** For admin pages: sends visitors without a session to the login page. */
@@ -54,16 +59,33 @@ export class UnauthorizedError extends Error {
   }
 }
 
-/** For admin server actions and route handlers. */
+/** For admin server actions and route handlers. Renews a remembered session. */
 export async function requireAdmin(): Promise<void> {
   if (!(await isAdmin())) throw new UnauthorizedError();
+  await renewSession(await getAdminSession(), COOKIE);
 }
 
-export async function verifyCredentials(username: string, password: string): Promise<boolean> {
-  const expectedUser = process.env.ADMIN_USERNAME;
-  const hash = process.env.ADMIN_PASSWORD_HASH;
-  if (!expectedUser || !hash) return false;
-  // Always run the comparison, so a wrong username takes as long as a wrong password.
-  const passwordMatches = await bcrypt.compare(password, hash);
-  return passwordMatches && username === expectedUser;
+export async function verifyCredentials(email: string, password: string): Promise<boolean> {
+  const expected = adminEmail();
+  const current = await credentials();
+  if (!expected || !current) return false;
+  // Always run the comparison, so a wrong email takes as long as a wrong password.
+  const passwordMatches = await checkPassword(password, current.passwordHash);
+  return passwordMatches && email.trim().toLowerCase() === expected;
+}
+
+export async function signInAdmin(remember: boolean): Promise<void> {
+  const session = await getAdminSession();
+  session.username = adminEmail()!;
+  session.version = (await credentials())?.sessionVersion ?? 0;
+  await saveSession(session, COOKIE, remember);
+}
+
+export async function signOutAdmin(): Promise<void> {
+  (await getAdminSession()).destroy();
+}
+
+/** Stores a new admin password in Convex; every existing session ends. */
+export async function setAdminPassword(password: string): Promise<void> {
+  await convexMutation(api.adminCredentials.setPassword, { passwordHash: await hashPassword(password) });
 }

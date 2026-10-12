@@ -7,7 +7,25 @@ import { parseAboutForm, type AboutFormErrors } from "@/lib/about-form";
 import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { applyCollectionChanges, deleteArtwork, getAllArtworksForAdmin } from "@/lib/artworks";
 import { parseCollectionChanges, toEditorWork, type EditorWork } from "@/lib/collection-changes";
-import { getAdminSession, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
+import { getTranslations } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import type { ForgotPasswordState } from "@/components/auth/ForgotPasswordForm";
+import type { NewPasswordState } from "@/components/auth/NewPasswordForm";
+import { parseAccountForm } from "@/lib/account-forms";
+import {
+  adminEmail,
+  isAdminConfigured,
+  requireAdmin,
+  setAdminPassword,
+  signInAdmin,
+  signOutAdmin,
+  UnauthorizedError,
+  verifyCredentials,
+} from "@/lib/auth";
+import { isConvexConfigured } from "@/lib/convex";
+import { sendMail } from "@/lib/mail";
+import { consumeResetToken, createResetToken } from "@/lib/password-reset";
+import { getSiteUrl, SITE_NAME } from "@/lib/site";
 import { isShopCurrency } from "@/lib/currency";
 import { getExchangeRate, type ExchangeRate } from "@/lib/exchange-rates";
 import { saveAboutPage } from "@/lib/pages";
@@ -43,32 +61,68 @@ function refreshStorefront() {
 
 export type LoginState = {
   error: "invalid" | "rateLimited" | "notConfigured" | null;
-  /** Echoed back so a typo in the password doesn't clear the username. */
-  username?: string;
+  /** Echoed back so a typo in the password doesn't clear the email. */
+  email?: string;
 };
 
 export async function loginAction(_previous: LoginState, form: FormData): Promise<LoginState> {
-  if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD_HASH) {
-    return { error: "notConfigured" };
-  }
-  const username = String(form.get("username") ?? "").slice(0, 200);
-  const password = String(form.get("password") ?? "");
+  if (!isAdminConfigured()) return { error: "notConfigured" };
+  const email = String(form.get("email") ?? "").slice(0, 254);
+  const password = String(form.get("password") ?? "").slice(0, 1000);
+  const remember = form.get("remember") === "on";
 
   if (!(await rateLimit(`login:${await clientIp()}`, { limit: 5, windowMs: 15 * 60 * 1000 }))) {
-    return { error: "rateLimited", username };
+    return { error: "rateLimited", email };
   }
-  if (!(await verifyCredentials(username, password))) return { error: "invalid", username };
+  if (!(await verifyCredentials(email, password))) return { error: "invalid", email };
 
-  const session = await getAdminSession();
-  session.username = username;
-  await session.save();
+  await signInAdmin(remember);
   redirect("/admin");
 }
 
 export async function logoutAction(): Promise<void> {
-  const session = await getAdminSession();
-  session.destroy();
+  await signOutAdmin();
   redirect("/admin/login");
+}
+
+// ---- Forgotten password ----
+
+
+/** Emails a reset link when the address is the admin's. The answer is the same either way. */
+export async function forgotPasswordAction(
+  _previous: ForgotPasswordState,
+  form: FormData,
+): Promise<ForgotPasswordState> {
+  const parsed = parseAccountForm("forgotPassword", form);
+  const email = parsed.values.email ?? "";
+  if (!parsed.success) return { status: "error", error: "invalidEmail", email };
+  if (!isConvexConfigured()) return { status: "error", error: "notConfigured", email };
+  if (!(await rateLimit(`reset:${await clientIp()}`, { limit: 5, windowMs: 15 * 60 * 1000 }))) {
+    return { status: "error", error: "rateLimited", email };
+  }
+
+  if (parsed.data.email === adminEmail()) {
+    const token = await createResetToken("admin");
+    const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Admin.reset.email" });
+    const link = `${getSiteUrl().origin}/admin/reset?token=${token}`;
+    try {
+      await sendMail({ to: parsed.data.email, subject: t("subject", { siteName: SITE_NAME }), text: t("body", { link }) });
+    } catch (error) {
+      console.error("[admin] reset email failed", error);
+      return { status: "error", error: "sendFailed", email };
+    }
+  }
+  return { status: "sent", email: parsed.data.email };
+}
+
+export async function resetPasswordAction(_previous: NewPasswordState, form: FormData): Promise<NewPasswordState> {
+  const parsed = parseAccountForm("resetPassword", form);
+  if (!parsed.success) return { error: "invalid", fieldErrors: parsed.fieldErrors };
+  if ((await consumeResetToken(parsed.data.token)) !== "admin") return { error: "expired" };
+  await setAdminPassword(parsed.data.password);
+  // Every session ended with the reset; sign in again with the new password.
+  await signOutAdmin();
+  redirect("/admin/login?reset=done");
 }
 
 // ---- Artworks ----

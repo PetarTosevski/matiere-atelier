@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { AdminAuthShell, AuthHeading } from "@/components/admin/AdminAuthShell";
 import { LoginForm } from "@/components/admin/LoginForm";
+import { FormSuccess } from "@/components/auth/fields";
 import { routing } from "@/i18n/routing";
 import { isAdmin } from "@/lib/auth";
 
@@ -10,18 +12,21 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({ searchParams }: PageProps<"/admin/login">) {
   if (await isAdmin()) redirect("/admin");
   const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Admin.login" });
+  const { reset } = await searchParams;
 
   return (
-    <main className="site-container py-16">
-      <div className="max-w-sm">
-        <h1 className="heading-display">{t("title")}</h1>
-        <div className="mt-8">
-          <LoginForm />
-        </div>
-      </div>
-    </main>
+    <AdminAuthShell>
+      <AuthHeading
+        eyebrow={t("eyebrow")}
+        heading={t.rich("heading", { em: (chunks) => <em>{chunks}</em> })}
+        lede={t("lede")}
+      />
+      {reset === "done" && <FormSuccess>{t("resetDone")}</FormSuccess>}
+      <LoginForm />
+      <p className="text-sm text-muted">{t("ownerOnly")}</p>
+    </AdminAuthShell>
   );
 }

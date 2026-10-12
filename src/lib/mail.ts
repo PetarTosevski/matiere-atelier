@@ -3,7 +3,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
 
-// Sends inquiry emails to the artist (MAIL_TO) through SMTP. In development,
+// Sends inquiry emails to the artist (MAIL_TO), and password reset links to
+// account holders, through SMTP. In development,
 // when SMTP isn't configured, messages are written to .outbox/ as .eml files
 // instead, so nothing real is sent while building.
 
@@ -11,7 +12,9 @@ export type OutgoingMail = {
   subject: string;
   text: string;
   /** The visitor's address, so replying from the inbox reaches them. */
-  replyTo: string;
+  replyTo?: string;
+  /** Defaults to the artist's inbox (MAIL_TO); password reset links go to the account's email. */
+  to?: string;
 };
 
 export class MailNotConfiguredError extends Error {
@@ -49,7 +52,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
     smtp ??= nodemailer.createTransport(config.transport);
     await smtp.sendMail({
       from: config.from,
-      to: config.to,
+      to: mail.to ?? config.to,
       replyTo: mail.replyTo,
       subject: mail.subject,
       text: mail.text,
@@ -65,7 +68,7 @@ async function writeToOutbox(mail: OutgoingMail) {
   const outbox = nodemailer.createTransport({ streamTransport: true, buffer: true });
   const info = await outbox.sendMail({
     from: process.env.MAIL_FROM || "website@localhost",
-    to: process.env.MAIL_TO || "artist@localhost",
+    to: mail.to ?? (process.env.MAIL_TO || "artist@localhost"),
     replyTo: mail.replyTo,
     subject: mail.subject,
     text: mail.text,

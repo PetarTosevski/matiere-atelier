@@ -26,6 +26,16 @@ export const storedImageValidator = v.object({
   alt: v.string(),
 });
 
+/** One piece of an order, as it was when the order was sent. */
+export const orderItemValidator = v.object({
+  artworkId: v.string(),
+  title: v.string(),
+  slug: v.string(),
+  /** Integer minor units (cents). */
+  amount: v.number(),
+  currency: v.string(),
+});
+
 /** Width and height in centimetres (decimals allowed). */
 export const dimensionsValidator = v.object({ width: v.number(), height: v.number() });
 
@@ -84,6 +94,45 @@ export default defineSchema({
     details: v.record(v.string(), v.union(v.string(), v.array(v.string()))),
     /** Whether the email to the artist went out. */
     emailed: v.boolean(),
+    /** The signed-in customer who sent it, if any. */
+    customerId: v.optional(v.id("customers")),
+    /** ORDER only: the pieces as they were when the order was sent. */
+    items: v.optional(v.array(orderItemValidator)),
+  }).index("by_customer", ["customerId"]),
+
+  /** Collector accounts. Passwords are bcrypt hashes made in Next.js. */
+  customers: defineTable({
+    /** Lowercased. */
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    passwordHash: v.string(),
+    newsletter: v.boolean(),
+    /** Bumped when the password changes, which signs out other sessions. */
+    sessionVersion: v.number(),
+    /** ISO 8601. */
+    createdAt: v.string(),
+  }).index("by_email", ["email"]),
+
+  /**
+   * One-time password reset links. Only a SHA-256 of the token is stored.
+   * subject: "admin" or "customer:<id>".
+   */
+  passwordResets: defineTable({
+    tokenHash: v.string(),
+    subject: v.string(),
+    expiresAt: v.number(),
+  })
+    .index("by_token", ["tokenHash"])
+    .index("by_subject", ["subject"]),
+
+  /**
+   * A single document: the admin password once it has been reset from the
+   * site. Until then ADMIN_PASSWORD_HASH in the environment is used.
+   */
+  adminCredentials: defineTable({
+    passwordHash: v.string(),
+    sessionVersion: v.number(),
   }),
 
   /** Recent attempt timestamps per key, for forms and login. */
