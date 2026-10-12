@@ -162,6 +162,20 @@
     font-size: 1.5em;
     font-weight: 500;
   }
+
+  /* Tailwind's reset leaves quotes as plain text; set them apart. */
+  & blockquote {
+    border-left: 2px solid var(--color-control);
+    padding-left: 1em;
+    font-family: var(--font-serif);
+    font-size: 1.2em;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  & blockquote > * + * {
+    margin-top: 0.75em;
+  }
 }
 
 /* The light theme fills the primary button (Warm Linen design). */
