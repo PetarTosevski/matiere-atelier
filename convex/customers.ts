@@ -70,3 +70,45 @@ export const setPassword = serverMutation({
     return sessionVersion;
   },
 });
+
+/**
+ * The admin's own customer account (email = ADMIN_USERNAME), made on first
+ * admin sign-in. Its password hash is never used: the admin password is.
+ */
+export const ensure = serverMutation({
+  args: { email: v.string(), firstName: v.string(), passwordHash: v.string() },
+  handler: async (ctx, { email, firstName, passwordHash }) => {
+    let doc = await ctx.db.query("customers").withIndex("by_email", (q) => q.eq("email", email)).unique();
+    if (!doc) {
+      const id = await ctx.db.insert("customers", {
+        email,
+        firstName,
+        lastName: "",
+        passwordHash,
+        newsletter: false,
+        sessionVersion: 1,
+        createdAt: new Date().toISOString(),
+      });
+      doc = (await ctx.db.get(id))!;
+    }
+    return {
+      id: doc._id,
+      email: doc.email,
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      sessionVersion: doc.sessionVersion,
+    };
+  },
+});
+
+/** Signs out every session of an account (after the admin password changes). Returns the new version. */
+export const endSessions = serverMutation({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const doc = await ctx.db.query("customers").withIndex("by_email", (q) => q.eq("email", email)).unique();
+    if (!doc) return null;
+    const sessionVersion = doc.sessionVersion + 1;
+    await ctx.db.patch(doc._id, { sessionVersion });
+    return sessionVersion;
+  },
+});

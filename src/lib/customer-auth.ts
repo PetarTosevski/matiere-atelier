@@ -65,6 +65,10 @@ export async function updateCustomerSessionVersion(version: number): Promise<voi
   await saveSession(current, COOKIE, current.remember ?? false);
 }
 
+export async function isCustomerSessionRemembered(): Promise<boolean> {
+  return (await session()).remember ?? false;
+}
+
 export async function renewCustomerSession(): Promise<void> {
   await renewSession(await session(), COOKIE);
 }

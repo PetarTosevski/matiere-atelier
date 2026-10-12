@@ -7,25 +7,22 @@ import { parseAboutForm, type AboutFormErrors } from "@/lib/about-form";
 import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import { applyCollectionChanges, deleteArtwork, getAllArtworksForAdmin } from "@/lib/artworks";
 import { parseCollectionChanges, toEditorWork, type EditorWork } from "@/lib/collection-changes";
-import { getTranslations } from "next-intl/server";
-import { routing } from "@/i18n/routing";
 import type { ForgotPasswordState } from "@/components/auth/ForgotPasswordForm";
 import type { NewPasswordState } from "@/components/auth/NewPasswordForm";
 import { parseAccountForm } from "@/lib/account-forms";
 import {
-  adminEmail,
-  isAdminConfigured,
-  requireAdmin,
-  setAdminPassword,
-  signInAdmin,
-  signOutAdmin,
-  UnauthorizedError,
-  verifyCredentials,
-} from "@/lib/auth";
+  changeAdminPassword,
+  isAdminEmail,
+  sendAdminResetEmail,
+  signInAdminCustomer,
+  signInAsAdmin,
+  signOutEverywhere,
+  type AccountSummary,
+} from "@/lib/admin-account";
+import { getAdminSession, isAdminConfigured, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
+import { getCustomer } from "@/lib/customer-auth";
 import { isConvexConfigured } from "@/lib/convex";
-import { sendMail } from "@/lib/mail";
-import { consumeResetToken, createResetToken } from "@/lib/password-reset";
-import { getSiteUrl, SITE_NAME } from "@/lib/site";
+import { consumeResetToken } from "@/lib/password-reset";
 import { isShopCurrency } from "@/lib/currency";
 import { getExchangeRate, type ExchangeRate } from "@/lib/exchange-rates";
 import { saveAboutPage } from "@/lib/pages";
@@ -76,13 +73,33 @@ export async function loginAction(_previous: LoginState, form: FormData): Promis
   }
   if (!(await verifyCredentials(email, password))) return { error: "invalid", email };
 
-  await signInAdmin(remember);
+  await signInAsAdmin(remember);
   redirect("/admin");
 }
 
 export async function logoutAction(): Promise<void> {
-  await signOutAdmin();
+  // The admin is also signed in as a user; log out of both.
+  await signOutEverywhere();
   redirect("/admin/login");
+}
+
+/**
+ * Called by every admin page: makes sure the admin's customer account is the
+ * one signed in on the storefront (replacing another customer, or a session
+ * from before accounts were linked) and returns it for the header.
+ */
+export async function syncAdminAccountAction(): Promise<AccountSummary | null> {
+  return asAdmin(async () => {
+    const customer = await getCustomer();
+    if (customer && isAdminEmail(customer.email)) {
+      return {
+        firstName: customer.firstName,
+        name: [customer.firstName, customer.lastName].filter(Boolean).join(" "),
+        email: customer.email,
+      };
+    }
+    return signInAdminCustomer((await getAdminSession()).remember ?? false);
+  });
 }
 
 // ---- Forgotten password ----
@@ -101,12 +118,9 @@ export async function forgotPasswordAction(
     return { status: "error", error: "rateLimited", email };
   }
 
-  if (parsed.data.email === adminEmail()) {
-    const token = await createResetToken("admin");
-    const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Admin.reset.email" });
-    const link = `${getSiteUrl().origin}/admin/reset?token=${token}`;
+  if (isAdminEmail(parsed.data.email)) {
     try {
-      await sendMail({ to: parsed.data.email, subject: t("subject", { siteName: SITE_NAME }), text: t("body", { link }) });
+      await sendAdminResetEmail();
     } catch (error) {
       console.error("[admin] reset email failed", error);
       return { status: "error", error: "sendFailed", email };
@@ -119,9 +133,9 @@ export async function resetPasswordAction(_previous: NewPasswordState, form: For
   const parsed = parseAccountForm("resetPassword", form);
   if (!parsed.success) return { error: "invalid", fieldErrors: parsed.fieldErrors };
   if ((await consumeResetToken(parsed.data.token)) !== "admin") return { error: "expired" };
-  await setAdminPassword(parsed.data.password);
+  await changeAdminPassword(parsed.data.password);
   // Every session ended with the reset; sign in again with the new password.
-  await signOutAdmin();
+  await signOutEverywhere();
   redirect("/admin/login?reset=done");
 }
 

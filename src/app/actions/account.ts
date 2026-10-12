@@ -13,11 +13,14 @@ import { api, convexMutation, convexQuery } from "@/lib/convex";
 import {
   areAccountsAvailable,
   getCustomer,
+  isCustomerSessionRemembered,
   renewCustomerSession,
   signInCustomer,
   signOutCustomer,
   updateCustomerSessionVersion,
 } from "@/lib/customer-auth";
+import { changeAdminPassword, isAdminEmail, sendAdminResetEmail, signInAsAdmin, signOutEverywhere } from "@/lib/admin-account";
+import { verifyCredentials } from "@/lib/auth";
 import { sendMail } from "@/lib/mail";
 import { burnPasswordCheck, checkPassword, hashPassword } from "@/lib/password";
 import { consumeResetToken, createResetToken } from "@/lib/password-reset";
@@ -68,6 +71,20 @@ export async function signInAction(_previous: SignInState, form: FormData): Prom
   }
 
   const { email, password, remember } = parsed.data;
+
+  // The admin's email signs in with the admin password, into both the admin and the account.
+  if (isAdminEmail(email)) {
+    if (!(await rateLimit(`login:${await clientIp()}`, { limit: 5, windowMs: FIFTEEN_MINUTES }))) {
+      return { status: "error", error: "rateLimited", values: parsed.values };
+    }
+    if (!(await verifyCredentials(email, password))) {
+      return { status: "error", error: "wrongPassword", values: parsed.values };
+    }
+    const account = await signInAsAdmin(remember);
+    if (!account) return { status: "error", error: "notConfigured" };
+    return { status: "signedIn", ...account, created: false };
+  }
+
   const account = await convexQuery(api.customers.getByEmail, { email });
   if (!account) {
     // Take as long as a real check, so timing doesn't reveal which emails have accounts.
@@ -97,6 +114,8 @@ export async function createAccountAction(_previous: SignInState, form: FormData
   }
 
   const { email, firstName, password, newsletter } = parsed.data;
+  // The admin's account exists already (it signs in with the admin password).
+  if (isAdminEmail(email)) return { status: "error", error: "emailTaken", fieldErrors: {}, values: parsed.values };
   const id = await convexMutation(api.customers.create, {
     email,
     firstName,
@@ -121,8 +140,18 @@ export async function forgotPasswordAction(
     return { status: "error", error: "rateLimited", email };
   }
 
-  const account = await convexQuery(api.customers.getByEmail, { email: parsed.data.email });
   // The answer is the same whether or not the account exists.
+  if (isAdminEmail(parsed.data.email)) {
+    // The admin's password is the admin password: send the admin reset link.
+    try {
+      await sendAdminResetEmail();
+    } catch (error) {
+      console.error("[account] admin reset email failed", error);
+      return { status: "error", error: "sendFailed", email };
+    }
+    return { status: "sent", email: parsed.data.email };
+  }
+  const account = await convexQuery(api.customers.getByEmail, { email: parsed.data.email });
   if (account) {
     const locale = localeOf(form);
     const token = await createResetToken(`customer:${account._id}`);
@@ -158,7 +187,8 @@ export async function resetPasswordAction(_previous: NewPasswordState, form: For
 }
 
 export async function signOutAction(form: FormData): Promise<void> {
-  await signOutCustomer();
+  // One sign-out for everything, so the admin doesn't stay signed in unseen.
+  await signOutEverywhere();
   redirect(`/${localeOf(form)}/originals`);
 }
 
@@ -180,6 +210,16 @@ export async function changePasswordAction(_previous: FormState, form: FormData)
   if (!parsed.success) return { status: "error", error: "invalid", fieldErrors: parsed.fieldErrors };
   if (!(await rateLimit(`account-password:${customer.id}`, { limit: 5, windowMs: FIFTEEN_MINUTES }))) {
     return { status: "error", error: "rateLimited" };
+  }
+
+  if (isAdminEmail(customer.email)) {
+    // The admin's account uses the admin password.
+    if (!(await verifyCredentials(customer.email, parsed.data.current))) return { status: "error", error: "wrongCurrent" };
+    const remember = await isCustomerSessionRemembered();
+    await changeAdminPassword(parsed.data.password);
+    // That ended every session, this one included; keep this browser signed in.
+    await signInAsAdmin(remember);
+    return { status: "saved" };
   }
 
   const hash = await convexQuery(api.customers.getPasswordHash, { id: customer.id });

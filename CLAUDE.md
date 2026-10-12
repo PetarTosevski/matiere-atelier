@@ -140,6 +140,7 @@ src/
     password.ts     bcrypt hashing, reset tokens (only a SHA-256 is stored)
     password-reset.ts  create, check and use reset links (Convex passwordResets)
     customer-auth.ts   customer session: getCustomer(), sign in/out
+    admin-account.ts   the admin is also a user: one sign-in and sign-out for both, admin password for the admin's account
     account-forms.ts   Zod checks for every sign-in, account and password form
     about-form.ts   checks for the About form
     markdown-format.ts  toolbar edits for the description field
@@ -235,6 +236,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - "Keep me signed in": a 30-day cookie that renews when used; otherwise a browser-session cookie whose session also expires after a day (`lib/session.ts`). The admin uses the same rules.
 - Passwords: at least 8 characters, at most 72 bytes (bcrypt's limit; longer is refused, not cut). Changing or resetting a password bumps `sessionVersion`, which signs out every other session.
 - Reset: "Forgot password?" emails a one-time link (30 minutes; only its SHA-256 is stored in `passwordResets`) to the account's address. The answer is the same whether or not the account exists, and sign-in takes as long for unknown emails. Rate limits (Convex): sign-in 10 / 15 min, create 5 / hour, reset 5 / 15 min per IP; password change 5 / 15 min per account.
+- **The admin is also a user** (2026-10-12): signing in as the admin also signs in the admin's own customer account (email = `ADMIN_USERNAME`, made on first sign-in, first name taken from the email and editable). The admin's email on `/login` signs into both with the admin password; "Create account" refuses it; "Forgot password?" sends the admin reset link; Change password changes the admin password. Signing out anywhere (header, account page, admin bar) ends both sessions. Every admin page calls `syncAdminAccountAction`, so the header never shows another customer or "Login" while the admin is signed in. Rules in `lib/admin-account.ts`.
 - Changing the account email is not built (the page says to get in touch). No email verification yet.
 - Before launch: accounts hold personal data, so the site needs a privacy policy covering them, and a way to delete an account (GDPR). Neither is built.
 
