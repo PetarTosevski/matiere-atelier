@@ -101,6 +101,7 @@ src/
     cart/                         cart store (localStorage), provider, notices, cart page view
     currency/                     visitor currency: store (localStorage), provider, DisplayPrice, CurrencySwitcher
     theme/                        theme store (localStorage), ThemeScript (applies it before paint), ThemeToggle
+    admin-hint/                   the artist's Edit link on the storefront: hint store (localStorage), RememberAdmin, LogoutForm, AdminEditLink
   lib/
     types.ts        the data model below
     site.ts         SITE_NAME, INSTAGRAM_URL
@@ -130,6 +131,7 @@ src/
     about-form.ts   checks for the About form
     markdown-format.ts  toolbar edits for the description field
     order.ts        compareArtworks(): Originals order, usable in the browser too
+    admin-hint.ts   adminEditTarget(): where the storefront's Edit link goes from each page
   data/
     artworks.ts     Phase 1 artwork data
     settings.ts     Phase 1 site settings
@@ -259,11 +261,12 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ## Phase 2: admin and database
 
 ### Access
-- The admin area lives at `/admin` and is never linked from the site, never added to the sitemap, and not listed in `robots.txt` (listing it would advertise it). Admin responses send `X-Robots-Tag: noindex`.
+- The admin area lives at `/admin` and is never linked from the site for visitors (only the artist's own Edit link, below), never added to the sitemap, and not listed in `robots.txt` (listing it would advertise it). Admin responses send `X-Robots-Tag: noindex`.
 - Being unlinked is not security. Every admin page, server action, and route handler checks the session on the server. A middleware/proxy check alone is not enough.
 - Credentials come from env: `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH`. The plaintext password is never stored. `npm run hash-password` prints the hash with each `$` escaped as `\$`, because Next.js expands `$` in `.env` files.
 - Session: iron-session cookie, `httpOnly`, `secure`, `sameSite: "lax"`, 7-day expiry. Include a logout button.
 - Login is rate limited (5 attempts per 15 minutes per IP, counted in Convex). To unlock after a lockout, call the `rateLimits:reset` Convex function with the secret and the key `login:<ip>`.
+- **Edit link on the storefront** (2026-10-12): admin pages mark the browser as the artist's in localStorage (cleared on Log out). That browser then shows a small accent "Edit" link in the bottom-left corner of the storefront: on an artwork or request page it opens `/admin?edit=<slug>` with that piece's edit panel open, on About it opens the About editor, elsewhere the collection. It is only a hint: pages stay static, visitors get nothing in the HTML, and `/admin` still checks the session (an expired session lands on the login page).
 - The session cookie is limited to `path=/admin`, so it is never sent with storefront requests. `secure` is on in production only, because browsers drop secure cookies on plain-http localhost.
 
 ### Collection editor (`/admin`)

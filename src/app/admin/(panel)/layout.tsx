@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { logoutAction } from "@/app/admin/actions";
+import { LogoutForm } from "@/components/admin-hint/LogoutForm";
+import { RememberAdmin } from "@/components/admin-hint/RememberAdmin";
 import { routing } from "@/i18n/routing";
 import { requireAdminPage } from "@/lib/auth";
 
@@ -14,6 +15,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
 
   return (
     <>
+      <RememberAdmin />
       <div className="bg-accent text-on-accent">
         <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 sm:px-8">
           <strong className="label-caps">{t("mode")}</strong>
@@ -22,13 +24,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
               <li><a href="/admin" className="inline-flex min-h-10 items-center underline-offset-4 hover:text-on-accent hover:underline">{t("artworks")}</a></li>
               <li><a href="/admin/about" className="inline-flex min-h-10 items-center underline-offset-4 hover:text-on-accent hover:underline">{t("about")}</a></li>
               <li><a href={`/${routing.defaultLocale}/originals`} className="inline-flex min-h-10 items-center underline-offset-4 hover:text-on-accent hover:underline">{t("viewSite")}</a></li>
-              <li>
-                <form action={logoutAction}>
-                  <button type="submit" className="inline-flex min-h-10 items-center underline-offset-4 hover:underline">
-                    {t("logout")}
-                  </button>
-                </form>
-              </li>
+              <li><LogoutForm label={t("logout")} /></li>
             </ul>
           </nav>
         </div>

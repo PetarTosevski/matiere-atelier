@@ -19,14 +19,17 @@ export async function generateMetadata(): Promise<Metadata> {
  * session is checked here and in every action it calls, so passing the full
  * data (drafts and stored prices included) to the browser is fine.
  */
-export default async function AdminCollectionPage() {
+export default async function AdminCollectionPage({ searchParams }: PageProps<"/admin">) {
   await requireAdminPage();
-  const [artworks, settings] = await Promise.all([getAllArtworksForAdmin(), getSiteSettings()]);
+  const [artworks, settings, { edit }] = await Promise.all([getAllArtworksForAdmin(), getSiteSettings(), searchParams]);
+  // ?edit=<slug> comes from the storefront's "Edit this piece" link.
+  const editing = typeof edit === "string" ? artworks.find((artwork) => artwork.slug === edit) : undefined;
 
   return (
     <CollectionEditor
       initialWorks={artworks.map(toEditorWork)}
       initialSettings={settings}
+      initialSelectedKey={editing?.id ?? null}
     />
   );
 }

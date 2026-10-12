@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { fontVariables } from "@/app/fonts";
+import { AdminEditLink } from "@/components/admin-hint/AdminEditLink";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CurrencyProvider } from "@/components/currency/CurrencyProvider";
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
             {children}
           </main>
           <Footer />
+          <AdminEditLink />
           </CartProvider>
           </CurrencyProvider>
         </NextIntlClientProvider>

@@ -25,6 +25,8 @@ import { WorkCard } from "./WorkCard";
 type Props = {
   initialWorks: EditorWork[];
   initialSettings: SiteSettings;
+  /** The piece whose edit panel opens first (from the storefront's Edit link). */
+  initialSelectedKey?: string | null;
 };
 
 /** The last price conversion, kept so it can be undone before publishing. */
@@ -55,7 +57,7 @@ const snapshot = (settings: SiteSettings, works: EditorWork[]) => JSON.stringify
  * reordering, editing and uploading on top. Everything stays in this
  * component until "Publish changes" sends it to the server in one go.
  */
-export function CollectionEditor({ initialWorks, initialSettings }: Props) {
+export function CollectionEditor({ initialWorks, initialSettings, initialSelectedKey = null }: Props) {
   const t = useTranslations("Admin.collection");
   const tForm = useTranslations("Admin.form");
   const tNav = useTranslations("Nav");
@@ -78,7 +80,7 @@ export function CollectionEditor({ initialWorks, initialSettings }: Props) {
     modes: new Map(initialWorks.map((work) => [work.key, work.priceMode])),
     live: liveSlugs(initialWorks),
   });
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(initialSelectedKey);
   const [errors, setErrors] = useState<Record<string, ArtworkFormErrors>>({});
   const [notice, setNotice] = useState<Notice | null>(null);
   const [uploading, setUploading] = useState<string | null>(null);
