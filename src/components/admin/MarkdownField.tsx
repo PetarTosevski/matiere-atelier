@@ -3,7 +3,13 @@
 import { useTranslations } from "next-intl";
 import { useLayoutEffect, useRef, type KeyboardEvent } from "react";
 import { Markdown } from "@/components/Markdown";
-import { applyMarkdownFormat, type MarkdownFormat } from "@/lib/markdown-format";
+import {
+  applyMarkdownFormat,
+  continueList,
+  indentListItem,
+  type Edit,
+  type MarkdownFormat,
+} from "@/lib/markdown-format";
 
 const TOOLBAR: { format: MarkdownFormat; icon: string; shortcut?: "b" | "i" | "k" }[] = [
   { format: "bold", icon: "B", shortcut: "b" },
@@ -72,11 +78,32 @@ export function MarkdownField({
       kind,
       t("toolbar.placeholder"),
     );
+    apply(edit);
+  }
+
+  function apply(edit: Edit) {
     pendingSelection.current = [edit.selectionStart, edit.selectionEnd];
     onChange(edit.value);
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    const textarea = event.currentTarget;
+    const plain = !event.ctrlKey && !event.metaKey && !event.altKey;
+    if (plain && !event.nativeEvent.isComposing) {
+      // In a list: Enter continues it, Tab nests. Elsewhere Tab still moves
+      // to the next field, so keyboard users are never trapped.
+      const edit =
+        event.key === "Enter" && !event.shiftKey
+          ? continueList(value, textarea.selectionStart, textarea.selectionEnd)
+          : event.key === "Tab"
+            ? indentListItem(value, textarea.selectionStart, textarea.selectionEnd, event.shiftKey ? "out" : "in")
+            : null;
+      if (edit) {
+        event.preventDefault();
+        apply(edit);
+      }
+      return;
+    }
     if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
     const match = TOOLBAR.find((item) => item.shortcut === event.key.toLowerCase());
     if (!match) return;

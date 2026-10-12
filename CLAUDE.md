@@ -316,7 +316,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - **Title** (required) and **slug** (generated from title, editable).
 - **Images:** one or more, drag to reorder, first is the cover. Alt text per image, defaulting to the title.
 - **Size:** width and height in centimetres (both or neither; dot or comma decimals).
-- **Description:** markdown textarea with a formatting toolbar (bold, italic, heading, bulleted and numbered lists, quote, link; Ctrl/Cmd+B, I and K) and a live preview. The toolbar edits live in `lib/markdown-format.ts`.
+- **Description:** markdown textarea with a formatting toolbar (bold, italic, heading, bulleted and numbered lists, quote, link; Ctrl/Cmd+B, I and K) and a live preview. In a list, Enter starts the next item (an empty item ends the list, or steps out of a sub-list), Tab nests the item under the one above and Shift+Tab moves it back; outside a list Tab moves focus as usual. The toolbar edits live in `lib/markdown-format.ts`.
 - **Pricing:** Price, Auction, Display.
   - Price: amount in the shop currency. Amounts are typed in major units (1450 or 1450.50) and converted to cents with string arithmetic; ambiguous input such as 1,450 is rejected. Required once the piece is shown on the site.
   - Auction: visible but disabled, labeled "Auction (WIP)".
