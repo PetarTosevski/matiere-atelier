@@ -53,7 +53,7 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
       </section>
       <section className="flex flex-[1_1_28rem] justify-center bg-panel px-6 py-8 sm:px-11 sm:py-12">
         <div className="w-full max-w-[26rem]">
-          <LoginScreen initialView={view} resetDone={query.reset === "done"} signedIn={signedIn} />
+          <LoginScreen initialView={view} resetDone={query.reset === "done"} deleted={query.deleted === "done"} signedIn={signedIn} />
         </div>
       </section>
     </div>

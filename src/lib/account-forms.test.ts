@@ -40,4 +40,11 @@ describe("parseAccountForm", () => {
     const result = parseAccountForm("signIn", form({ email: "a@b.co", password: "" }));
     expect(result.values).toEqual({ email: "a@b.co" });
   });
+
+  it("asks for the password before deleting an account", () => {
+    expect(parseAccountForm("deleteAccount", form({ password: "" })).success).toBe(false);
+    const result = parseAccountForm("deleteAccount", form({ password: "any old one" }));
+    expect(result.success && result.data.password).toBe("any old one");
+    expect(result.values).toEqual({});
+  });
 });

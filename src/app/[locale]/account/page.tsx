@@ -7,6 +7,7 @@ import { SignOutButton } from "@/components/account/SignOutButton";
 import { toLocale } from "@/i18n/locale";
 import { Link, redirect } from "@/i18n/navigation";
 import { getArtworksByIds } from "@/lib/artworks";
+import { isAdminEmail } from "@/lib/admin-account";
 import { getCustomer } from "@/lib/customer-auth";
 import { formatPrice } from "@/lib/format";
 import { getCustomerOrders } from "@/lib/inquiries";
@@ -57,6 +58,7 @@ export default async function AccountPage({ params, searchParams }: PageProps<"/
           firstName={customer.firstName}
           lastName={customer.lastName}
           newsletter={customer.newsletter}
+          canDelete={!isAdminEmail(customer.email)}
         />
       ) : (
         <Collection customerId={customer.id} locale={locale} />

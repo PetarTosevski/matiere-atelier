@@ -38,7 +38,8 @@ export type AccountErrorKey =
   | "notConfigured"
   | "sendFailed"
   | "expired"
-  | "wrongCurrent";
+  | "wrongCurrent"
+  | "adminAccount";
 
 export type SignInState =
   | { status: "idle" }
@@ -232,4 +233,25 @@ export async function changePasswordAction(_previous: FormState, form: FormData)
   });
   if (version !== null) await updateCustomerSessionVersion(version);
   return { status: "saved" };
+}
+
+/** Deletes the signed-in customer's account, after checking their password. */
+export async function deleteAccountAction(_previous: FormState, form: FormData): Promise<FormState> {
+  const customer = await getCustomer();
+  if (!customer) redirect(`/${localeOf(form)}/login`);
+  // The admin's account goes with the admin; it can't be deleted from here.
+  if (isAdminEmail(customer.email)) return { status: "error", error: "adminAccount" };
+  const parsed = parseAccountForm("deleteAccount", form);
+  if (!parsed.success) return { status: "error", error: "invalid", fieldErrors: parsed.fieldErrors };
+  if (!(await rateLimit(`account-password:${customer.id}`, { limit: 5, windowMs: FIFTEEN_MINUTES }))) {
+    return { status: "error", error: "rateLimited" };
+  }
+
+  const hash = await convexQuery(api.customers.getPasswordHash, { id: customer.id });
+  if (!hash || !(await checkPassword(parsed.data.password, hash))) {
+    return { status: "error", error: "wrongCurrent" };
+  }
+  await convexMutation(api.customers.remove, { id: customer.id });
+  await signOutCustomer();
+  redirect(`/${localeOf(form)}/login?deleted=done`);
 }

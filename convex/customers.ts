@@ -112,3 +112,28 @@ export const endSessions = serverMutation({
     return sessionVersion;
   },
 });
+
+/**
+ * Deletes an account (the customer's own choice, GDPR). Its reset links go
+ * too. Orders and messages it sent stay with the artist as correspondence,
+ * but are no longer linked to anyone's account. Returns false if already gone.
+ */
+export const remove = serverMutation({
+  args: { id: v.id("customers") },
+  handler: async (ctx, { id }) => {
+    const doc = await ctx.db.get(id);
+    if (!doc) return false;
+    const resets = await ctx.db
+      .query("passwordResets")
+      .withIndex("by_subject", (q) => q.eq("subject", `customer:${id}`))
+      .collect();
+    for (const reset of resets) await ctx.db.delete(reset._id);
+    const inquiries = await ctx.db
+      .query("inquiries")
+      .withIndex("by_customer", (q) => q.eq("customerId", id))
+      .collect();
+    for (const inquiry of inquiries) await ctx.db.patch(inquiry._id, { customerId: undefined });
+    await ctx.db.delete(id);
+    return true;
+  },
+});

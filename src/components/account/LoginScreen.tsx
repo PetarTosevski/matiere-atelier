@@ -16,10 +16,13 @@ const idle: SignInState = { status: "idle" };
 export function LoginScreen({
   initialView,
   resetDone,
+  deleted,
   signedIn,
 }: {
   initialView: LoginView;
   resetDone: boolean;
+  /** Just deleted their account. */
+  deleted: boolean;
   /** Who is signed in, when the page found a session. */
   signedIn: AccountHint | null;
 }) {
@@ -126,6 +129,7 @@ export function LoginScreen({
       </div>
       <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${view}`} className="space-y-6">
         {resetDone && !isCreate && <FormSuccess>{t("resetDone")}</FormSuccess>}
+        {deleted && <FormSuccess>{t("deleted")}</FormSuccess>}
         <FormAlert>{state.status === "error" && t("errors", { error: state.error })}</FormAlert>
         {/* key: switching tabs starts each form fresh. */}
         <form key={view} action={isCreate ? createFormAction : signInFormAction} noValidate className="space-y-5">

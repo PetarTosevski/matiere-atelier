@@ -42,6 +42,7 @@ export const accountSchemas = {
   changePassword: z
     .object({ current: currentPassword, password: newPassword, confirm: z.string() })
     .refine((value) => value.password === value.confirm, { error: "mismatch", path: ["confirm"] }),
+  deleteAccount: z.object({ password: currentPassword }),
 };
 
 export type AccountForm = keyof typeof accountSchemas;
@@ -56,6 +57,7 @@ const ECHOED: Record<AccountForm, string[]> = {
   resetPassword: [],
   details: ["firstName", "lastName"],
   changePassword: [],
+  deleteAccount: [],
 };
 
 const FIELDS: Record<AccountForm, string[]> = {
@@ -65,6 +67,7 @@ const FIELDS: Record<AccountForm, string[]> = {
   resetPassword: ["token", "password", "confirm"],
   details: ["firstName", "lastName", "newsletter"],
   changePassword: ["current", "password", "confirm"],
+  deleteAccount: ["password"],
 };
 
 export type ParsedAccountForm<F extends AccountForm> =

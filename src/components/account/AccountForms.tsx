@@ -2,16 +2,23 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState } from "react";
-import { changePasswordAction, updateDetailsAction, type FormState } from "@/app/actions/account";
+import { changePasswordAction, deleteAccountAction, updateDetailsAction, type FormState } from "@/app/actions/account";
 import { Checkbox, FormAlert, FormSuccess, PasswordField, TextField } from "@/components/auth/fields";
 import { accountStore } from "./account-store";
 
-type Props = { email: string; firstName: string; lastName: string; newsletter: boolean };
+type Props = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  newsletter: boolean;
+  /** The admin's account can't be deleted here. */
+  canDelete: boolean;
+};
 
 const idle: FormState = { status: "idle" };
 
 /** Account details and Change password. */
-export function AccountForms({ email, firstName, lastName, newsletter }: Props) {
+export function AccountForms({ email, firstName, lastName, newsletter, canDelete }: Props) {
   const t = useTranslations("Account");
   const tAuth = useTranslations("Auth");
   const locale = useLocale();
@@ -32,8 +39,15 @@ export function AccountForms({ email, firstName, lastName, newsletter }: Props) 
     return changePasswordAction(previous, form);
   }, idle);
 
+  const [removal, removeAction, deleting] = useActionState(async (previous: FormState, form: FormData) => {
+    form.set("locale", locale);
+    // On success the action redirects; the login page then clears the header hint.
+    return deleteAccountAction(previous, form);
+  }, idle);
+
   const detailErrors = details.status === "error" ? (details.fieldErrors ?? {}) : {};
   const passwordErrors = password.status === "error" ? (password.fieldErrors ?? {}) : {};
+  const removalErrors = removal.status === "error" ? (removal.fieldErrors ?? {}) : {};
 
   return (
     <div className="flex flex-col gap-8 pt-9">
@@ -72,6 +86,21 @@ export function AccountForms({ email, firstName, lastName, newsletter }: Props) 
           {password.status === "saved" && <FormSuccess>{t("passwordChanged")}</FormSuccess>}
         </div>
       </form>
+
+      {canDelete && (
+        <form action={removeAction} noValidate className="flex max-w-[47.5rem] flex-col gap-5.5 bg-panel px-6 py-8 sm:px-10 sm:py-9">
+          <h2 className="font-serif text-3xl">{t("deleteAccount")}</h2>
+          <p className="text-muted">{t("deleteExplainer")}</p>
+          <FormAlert>{removal.status === "error" && t("errors", { error: removal.error })}</FormAlert>
+          <input type="email" name="username" autoComplete="username" value={email} readOnly hidden />
+          <PasswordField label={t("deletePassword")} name="password" autoComplete="current-password" error={removalErrors.password} />
+          <div>
+            <button type="submit" disabled={deleting} className="button-quiet">
+              {deleting ? t("deleting") : t("deleteAccount")}
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
