@@ -156,6 +156,28 @@
     padding-left: 1.25em;
   }
 
+  /* Sub-lists read as a level down: hollow bullets, then squares; a., b., c., then i., ii. */
+  & ul ul {
+    list-style-type: circle;
+  }
+
+  & ul ul ul {
+    list-style-type: square;
+  }
+
+  & ol ol {
+    list-style-type: lower-alpha;
+  }
+
+  & ol ol ol {
+    list-style-type: lower-roman;
+  }
+
+  & li > ul,
+  & li > ol {
+    margin-top: 0.25em;
+  }
+
   & h2,
   & h3 {
     font-family: var(--font-serif);
