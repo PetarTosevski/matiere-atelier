@@ -88,18 +88,18 @@ export function ArtworkCard({
         )}
       </div>
 
-      <div className="flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-5.5 lg:pt-5.5 xl:flex-col xl:items-stretch xl:gap-4">
+      <div className="flex flex-col gap-4 border-t border-line pt-5 lg:flex-row lg:items-start lg:gap-6 lg:pt-6 xl:flex-col xl:items-stretch xl:gap-4">
         <div className="flex flex-1 items-start gap-4">
           <span
             aria-hidden="true"
-            className="font-serif text-[2.25rem] leading-[0.9] text-accent italic lg:text-[2.625rem] xl:text-[2.25rem]"
+            className="font-serif text-[2.25rem] leading-[0.9] text-accent italic lg:text-[2.75rem] xl:text-[2.25rem]"
           >
             {String(number).padStart(2, "0")}
           </span>
           <div className="flex min-w-0 flex-col gap-1 lg:gap-1.5">
             <h2
               id={titleId}
-              className="font-serif text-2xl font-medium underline-offset-4 group-hover:underline lg:text-[1.6875rem] xl:text-2xl"
+              className="font-serif text-2xl font-medium underline-offset-4 group-hover:underline lg:text-[1.75rem] xl:text-2xl"
             >
               {title}
             </h2>
