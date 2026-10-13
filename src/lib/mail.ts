@@ -18,12 +18,26 @@ export type OutgoingMail = {
   /** Defaults to the artist's inbox (MAIL_TO); password reset links go to the account's email. */
   to?: string;
   /**
-   * "noreply" for automated emails to visitors (verification, resets,
-   * confirmations): sent from MAIL_FROM_NOREPLY when set, else MAIL_FROM.
-   * Gmail sends it only if that address is a "Send mail as" alias of SMTP_USER.
+   * Who it comes from, when not MAIL_FROM: "noreply" for account emails
+   * (verification, password resets) from MAIL_FROM_NOREPLY, "inquiries" for
+   * the visitor's inquiry confirmation from MAIL_FROM_INQUIRIES. Each falls
+   * back to MAIL_FROM. Gmail sends from an address only if it is a "Send mail
+   * as" alias of SMTP_USER.
    */
-  sender?: "noreply";
+  sender?: Sender;
 };
+
+type Sender = "noreply" | "inquiries";
+
+const SENDER_ENV: Record<Sender, string> = {
+  noreply: "MAIL_FROM_NOREPLY",
+  inquiries: "MAIL_FROM_INQUIRIES",
+};
+
+/** The From address for `sender`, or undefined to use MAIL_FROM. */
+function senderAddress(sender: Sender | undefined): string | undefined {
+  return (sender && process.env[SENDER_ENV[sender]]) || undefined;
+}
 
 export class MailNotConfiguredError extends Error {
   constructor() {
@@ -49,7 +63,6 @@ function smtpConfig() {
       auth: { user: SMTP_USER, pass: SMTP_PASS },
     },
     from: MAIL_FROM || SMTP_USER,
-    noreplyFrom: process.env.MAIL_FROM_NOREPLY || MAIL_FROM || SMTP_USER,
     to: MAIL_TO,
   };
 }
@@ -60,7 +73,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
   if (config) {
     smtp ??= nodemailer.createTransport(config.transport);
     await smtp.sendMail({
-      from: mail.sender === "noreply" ? config.noreplyFrom : config.from,
+      from: senderAddress(mail.sender) ?? config.from,
       to: mail.to ?? config.to,
       replyTo: mail.replyTo,
       subject: mail.subject,
@@ -77,8 +90,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
 async function writeToOutbox(mail: OutgoingMail) {
   const outbox = nodemailer.createTransport({ streamTransport: true, buffer: true });
   const info = await outbox.sendMail({
-    from:
-      (mail.sender === "noreply" && process.env.MAIL_FROM_NOREPLY) || process.env.MAIL_FROM || "website@localhost",
+    from: senderAddress(mail.sender) ?? (process.env.MAIL_FROM || "website@localhost"),
     to: mail.to ?? (process.env.MAIL_TO || "artist@localhost"),
     replyTo: mail.replyTo,
     subject: mail.subject,

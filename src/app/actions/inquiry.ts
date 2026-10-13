@@ -22,7 +22,7 @@ import { sendMail } from "@/lib/mail";
 import { isCartEnabled } from "@/lib/pricing";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSiteSettings } from "@/lib/settings";
-import { getSiteUrl, SITE_NAME, STUDIO_EMAIL } from "@/lib/site";
+import { getSiteUrl, INQUIRIES_EMAIL, SITE_NAME } from "@/lib/site";
 
 export type InquiryErrorKey =
   | "invalid"
@@ -163,7 +163,7 @@ export async function submitInquiry(
   return { status: "success" };
 }
 
-/** The "we got your message" email to the visitor, in their locale. Replies go to the studio. */
+/** The "we got your message" email to the visitor, in their locale, from and replied to inquiries@. */
 async function sendConfirmation(
   email: InquiryEmailInput,
   origin: string,
@@ -184,5 +184,5 @@ async function sendConfirmation(
   };
   const t = await getTranslations({ locale, namespace: "ConfirmationEmail" });
   const message = buildConfirmationEmail(input, (key, params) => t(key as never, params as never));
-  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL, sender: "noreply" });
+  await sendMail({ ...message, to: email.data.email, replyTo: INQUIRIES_EMAIL, sender: "inquiries" });
 }

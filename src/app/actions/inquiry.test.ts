@@ -2,7 +2,7 @@ import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { artworks } from "@/data/artworks";
 import { resetRateLimits } from "@/lib/rate-limit";
-import { STUDIO_EMAIL } from "@/lib/site";
+import { INQUIRIES_EMAIL } from "@/lib/site";
 import messages from "../../../messages/en.json";
 import { submitInquiry, type InquiryState } from "./inquiry";
 
@@ -69,7 +69,8 @@ describe("submitInquiry", () => {
     const confirmation = mocks.sendMail.mock.calls[1]![0];
     expect(confirmation).toMatchObject({
       to: "ana@example.com",
-      replyTo: STUDIO_EMAIL,
+      replyTo: INQUIRIES_EMAIL,
+      sender: "inquiries",
       subject: "Your message to Matière Atelier",
     });
     expect(confirmation.html).toContain("/email/brush-stroke.png");

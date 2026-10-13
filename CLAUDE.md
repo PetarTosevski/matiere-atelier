@@ -247,7 +247,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Passwords: at least 8 characters, at most 72 bytes (bcrypt's limit; longer is refused, not cut). Changing or resetting a password bumps `sessionVersion`, which signs out every other session.
 - Reset: "Forgot password?" emails a one-time link (30 minutes; only its SHA-256 is stored in `passwordResets`) to the account's address. The answer is the same whether or not the account exists, and sign-in takes as long for unknown emails. Rate limits (Convex): sign-in 10 / 15 min, create 5 / hour, reset 5 / 15 min per IP; password change 5 / 15 min per account.
 - **The admin is also a user** (2026-10-12): signing in as the admin also signs in the admin's own customer account (email = `ADMIN_USERNAME`, made on first sign-in, first name taken from the email and editable). The admin's email on `/login` signs into both with the admin password; "Create account" refuses it; "Forgot password?" sends the admin reset link; Change password changes the admin password. Signing out anywhere (header, account page, admin bar) ends both sessions. Every admin page calls `syncAdminAccountAction`, so the header never shows another customer or "Login" while the admin is signed in. Rules in `lib/admin-account.ts`.
-- Email verification (2026-10-13): "Create account" doesn't sign in. It emails a one-time link (24 hours, from the noreply sender; subject `verify:<id>` in `passwordResets`) and shows "Check your inbox". The link opens `/account/verify`, whose button confirms the address (`customers.emailVerified`), signs in and shows the welcome. Signing in to an unconfirmed account with the right password sends a fresh link instead. Creating an account again for an unconfirmed email replaces it, so a stranger can't hold someone's address. A password reset (or change) also confirms, since it proves the inbox. Accounts made before this have no `emailVerified` and must confirm once; the admin's account is always confirmed.
+- Email verification (2026-10-13): "Create account" doesn't sign in. It emails a one-time link (24 hours, from noreply@; subject `verify:<id>` in `passwordResets`) and shows "Check your inbox". The link opens `/account/verify`, whose button confirms the address (`customers.emailVerified`), signs in and shows the welcome. Signing in to an unconfirmed account with the right password sends a fresh link instead. Creating an account again for an unconfirmed email replaces it, so a stranger can't hold someone's address. A password reset (or change) also confirms, since it proves the inbox. Accounts made before this have no `emailVerified` and must confirm once; the admin's account is always confirmed.
 - Changing the account email is not built (the page says to get in touch).
 - Deleting an account (Account details, "Delete account", password to confirm; 2026-10-12): removes the customer and their reset links and signs out. Orders and messages they sent stay in `inquiries` (the artist has them by email anyway) but lose their `customerId`. The admin's own account can't be deleted there.
 - Before launch: accounts hold personal data, so the site needs a privacy policy covering them (not written yet; needs the artist's details).
@@ -279,12 +279,12 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Commissions, About, Contact
 - Commissions: intro copy (placeholder until the artist provides text) and a form with name, email, description of the desired piece, approximate size, and an optional budget. Sends a `COMMISSION` inquiry.
 - About: portrait and bio placeholders.
-- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. The other Workspace aliases (inquiries, orders, commissions, privacy, noreply, newsletter, shop) are not used yet.
+- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. Inquiries go to `MAIL_TO` (set to inquiries@ in production) and the visitor's confirmation comes from inquiries@ (`MAIL_FROM_INQUIRIES`, reply-to `INQUIRIES_EMAIL`); noreply@ (`MAIL_FROM_NOREPLY`) sends only account emails: verification and password resets (2026-10-13). The other Workspace aliases (orders, commissions, privacy, newsletter, shop) are not used yet.
 
 ### Forms
 - One shared `InquiryForm` component, configured by `InquiryType`.
 - Server action validates with Zod, includes a honeypot field and a simple per-IP rate limit, then emails `MAIL_TO` with reply-to set to the sender.
-- Then the visitor gets a confirmation email (2026-10-13, `lib/confirmation-email.ts`): "Thank you" over a dry-brush stroke in the light theme's olive, a line per inquiry type (orders: nothing has been charged), the piece or pieces with prices for Request and Order, and a link back to the site. HTML with a plain-text version; the stroke is a PNG served from the site (`/email/brush-stroke.png`), so it shows once images load. Reply-to is `STUDIO_EMAIL`. It never repeats what the visitor typed (name, message), so the form can't be used to mail someone else chosen words. It is sent only after the artist's email succeeds, and a failed confirmation doesn't fail the inquiry.
+- Then the visitor gets a confirmation email (2026-10-13, `lib/confirmation-email.ts`): "Thank you" over a dry-brush stroke in the light theme's olive, a line per inquiry type (orders: nothing has been charged), the piece or pieces with prices for Request and Order, and a link back to the site. HTML with a plain-text version; the stroke is a PNG served from the site (`/email/brush-stroke.png`), so it shows once images load. It comes from inquiries@ (`MAIL_FROM_INQUIRIES`, falling back to `MAIL_FROM`) with reply-to `INQUIRIES_EMAIL`. It never repeats what the visitor typed (name, message), so the form can't be used to mail someone else chosen words. It is sent only after the artist's email succeeds, and a failed confirmation doesn't fail the inquiry.
 - Clear success and error states written in plain language.
 
 ### Cart
@@ -386,7 +386,8 @@ SMTP_PORT=
 SMTP_USER=
 SMTP_PASS=
 MAIL_FROM=
-MAIL_FROM_NOREPLY=        # optional sender for automated emails (verification, resets, confirmations), e.g. "Matière <noreply@...>"; must be a Gmail "Send mail as" alias; falls back to MAIL_FROM
+MAIL_FROM_NOREPLY=        # optional: sender of account emails (verification, password resets), e.g. "Matière <noreply@...>"; a Gmail "Send mail as" alias; falls back to MAIL_FROM
+MAIL_FROM_INQUIRIES=      # optional: sender of the visitor's inquiry confirmation, e.g. "Matière <inquiries@...>"; same rules
 MAIL_TO=                  # the artist's inbox for inquiries
 ```
 
