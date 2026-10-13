@@ -16,8 +16,10 @@ export default async function AdminPanelLayout({ children }: { children: React.R
   return (
     <>
       <RememberAdmin />
-      <div className="bg-admin text-on-admin">
-        <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 sm:px-8">
+      {/* Sticky, so the admin links stay in reach. From 768 px it is exactly
+          h-14 tall: the collection toolbar sticks right under it (md:top-14). */}
+      <div className="sticky top-0 z-40 bg-admin text-on-admin">
+        <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2 sm:px-8 md:h-14 md:flex-nowrap md:py-0">
           <strong className="label-caps">{t("mode")}</strong>
           <nav aria-label={t("label")}>
             <ul className="flex flex-wrap items-center gap-x-5 text-sm">

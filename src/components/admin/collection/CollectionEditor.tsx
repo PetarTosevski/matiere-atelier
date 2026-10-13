@@ -313,7 +313,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
 
   return (
     <>
-      <div className="z-40 border-t border-on-admin/15 bg-admin text-on-admin md:sticky md:top-0">
+      <div className="z-30 border-t border-on-admin/15 bg-admin text-on-admin md:sticky md:top-14">
         <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-2.5 sm:px-8">
           <p className="text-sm">{t("hint")}</p>
           <div className="flex flex-wrap items-center gap-3">
