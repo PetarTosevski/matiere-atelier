@@ -39,13 +39,14 @@ Installed: Next.js 16, React 19, next-intl 4, Tailwind CSS 4 (tokens in `src/app
 Create these scripts during setup and keep this list current:
 
 ```bash
-npm run dev            # local dev server
+npm run dev            # local Convex backend and Next dev server together (convex dev --start "next dev")
+npm run dev:next       # Next dev server alone (when convex dev already runs in another terminal)
 npm run build          # production build
 npm run lint           # eslint (next lint no longer exists)
 npm run typecheck      # next typegen && tsc --noEmit (typegen creates the PageProps/LayoutProps route types)
 npm run start          # serve the production build
 npm run test           # vitest run: unit tests and price-hiding render tests
-npx convex dev         # runs alongside npm run dev; pushes convex/ functions and schema on save
+npx convex dev         # Convex alone (npm run dev already runs it); pushes convex/ functions and schema on save
 npm run db:seed        # imports src/data/artworks.ts and its images into Convex (-- --reset to start over)
 npm run hash-password  # prints an ADMIN_PASSWORD_HASH line for .env (password typed hidden)
 npm run brand-images   # redraws the icons and the default share image (after a palette or name change)
