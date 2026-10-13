@@ -439,6 +439,7 @@ Auction, per-piece currencies, translated artwork content, prints, search. (Cust
 - Never pass a whole `Artwork` to a client component. Its props are serialized into the page, so a hidden price would leak. Pass only the fields it displays.
 - Run `lint`, `typecheck` and `test` before finishing.
 - Commit after every change (standing rule from the developer, 2026-10-11): each finished change gets its own commit right away, without asking first. Pushing still needs the developer's go-ahead.
+- No `Co-Authored-By` lines in commit messages (developer, 2026-10-13): Vercel Hobby may block deployments of commits with a co-author it can't match to the account.
 - Update this file when commands, structure, or decisions change.
 
 
