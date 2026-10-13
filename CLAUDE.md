@@ -18,7 +18,7 @@ Work happens in phases. Finish and verify a phase before starting the next. Do n
   - Status: built (the real email test and a final click-through are still to do). Layout, Originals grid, artwork page with full-screen viewer, visitor currency switcher (replaced the language switcher 2026-10-12), cart (IDs in localStorage, server-checked on load, order inquiry at checkout), shared inquiry form behind Contact, Commissions, Request and Checkout. About and the Commissions intro use placeholder copy until the artist provides her own. Remaining before Phase 2: a final review and click-through.
 - **Customer accounts** (asked for 2026-10-12, design "Art Storefront Screens"): built. Header "Login" button / "My account" menu, `/login` (Sign in | Create account, Forgot password), `/account` (My Collection: orders sent while signed in; Account details; Change password), reset by email. Order tracking beyond "Order sent" needs the admin side (open decision 4). Still to do from the same design: the visual changes (beads issue).
 - **Phase 2 (Admin + database):** link-only admin area, upload and edit artworks, price modes, global "Show prices" switch.
-  - Status: built. Sign-in (redesigned 2026-10-12: split layout, email, "Keep me signed in", reset by email), the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Convex cloud project `matiere-atelier` created 2026-10-12 (production `earnest-tapir-200`, seeded; a cloud dev deployment `quick-cricket-186` exists but local development still uses the anonymous local backend). Still to do: choose hosting.
+  - Status: built. Sign-in (redesigned 2026-10-12: split layout, email, "Keep me signed in", reset by email), the collection editor at `/admin` (the Originals page with drag/arrow reordering, an edit side panel, an upload tile, the shop currency switcher, the "Show prices" switch and a batched "Publish changes"), About page editor, Convex database. Convex cloud project `matiere-atelier` created 2026-10-12 (production `earnest-tapir-200`, seeded; a cloud dev deployment `quick-cricket-186` exists but local development still uses the anonymous local backend). Hosting: Vercel Hobby for now (2026-10-13); still to do: the first deploy.
 
 ## Tech stack
 
@@ -391,7 +391,7 @@ Ask the developer before building around any of these:
 
 1. Which languages besides English.
 2. Checkout: a payment provider (Stripe Checkout is a good fit) or inquiry-only. Before taking payments, the site needs terms, a privacy policy, shipping info, and a check of EU consumer withdrawal rules, including the online withdrawal function EU shops need from June 2026.
-3. Hosting for the Next.js app (to be chosen later). Vercel Hobby is non-commercial only, so it doesn't fit a storefront. Netlify, Cloudflare Workers and a small VPS all work with Convex.
+3. When to move off Vercel Hobby (see Decided). Hobby is non-commercial only; move to Vercel Pro, Netlify, Cloudflare Workers or a small VPS before the site sells.
 4. Whether the admin gets a page to read stored inquiries (they are in Convex already).
 5. Slug changes: whether old artwork URLs should redirect to the new one (not built).
 6. Whether other page text (such as the Commissions intro) should become editable like About.
@@ -405,6 +405,7 @@ Decided:
 - Light mode: visitors switch for themselves; the admin sets the default for everyone (2026-10-12).
 - Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
+- Hosting: Vercel Hobby for now, until the artist starts selling (2026-10-13). Hobby's terms are non-commercial only, so the site moves to a paid plan or another host before taking real orders.
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `master`, renamed from `main` on 2026-10-12).
 
 ## Later (do not build yet)
