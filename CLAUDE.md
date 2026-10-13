@@ -422,6 +422,7 @@ Decided:
 - Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Hosting: Vercel Hobby for now, until the artist starts selling (2026-10-13). Hobby's terms are non-commercial only, so the site moves to a paid plan or another host before taking real orders.
+- Deploys: every push to `master` deploys to production. Commits must be authored with the email on the developer's GitHub and Vercel accounts; Vercel Hobby blocks deployments whose commit author it can't match (the WSL default `petar@DESKTOP-…localdomain` was blocked, fixed 2026-10-13).
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `master`, renamed from `main` on 2026-10-12).
 
 ## Later (do not build yet)
