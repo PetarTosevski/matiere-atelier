@@ -52,6 +52,7 @@ async function asAdmin<T>(fn: () => Promise<T>): Promise<T> {
 /** Storefront pages are static: refresh them after any change. */
 function refreshStorefront() {
   revalidatePath("/", "layout");
+  revalidatePath("/sitemap.xml");
 }
 
 // ---- Sign in ----

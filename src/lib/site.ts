@@ -10,3 +10,11 @@ export const INSTAGRAM_URL = "https://www.instagram.com/";
 
 /** The studio's public email address (a Google Workspace alias of the artist's inbox). */
 export const STUDIO_EMAIL = "studio@matiereatelier.info";
+
+/**
+ * Search engines are kept out until launch: set ALLOW_INDEXING=true in the
+ * production environment and redeploy to open the site to them.
+ */
+export function isIndexingAllowed(): boolean {
+  return process.env.ALLOW_INDEXING === "true";
+}

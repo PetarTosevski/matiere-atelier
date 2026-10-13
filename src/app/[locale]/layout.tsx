@@ -15,7 +15,7 @@ import { getExchangeRates } from "@/lib/exchange-rates";
 import { baseOpenGraph } from "@/lib/metadata";
 import { isCartEnabled } from "@/lib/pricing";
 import { getSiteSettings } from "@/lib/settings";
-import { getSiteUrl, SITE_NAME } from "@/lib/site";
+import { getSiteUrl, isIndexingAllowed, SITE_NAME } from "@/lib/site";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -35,6 +35,8 @@ export async function generateMetadata({
     },
     description: t("description"),
     openGraph: baseOpenGraph(locale),
+    // Until launch, ask search engines not to index (robots.txt also blocks them).
+    robots: isIndexingAllowed() ? undefined : { index: false, follow: false },
   };
 }
 
