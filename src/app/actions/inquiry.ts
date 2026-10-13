@@ -146,7 +146,8 @@ export async function submitInquiry(
   });
 
   try {
-    await sendMail({ ...message, replyTo: result.data.email });
+    // From inquiries@ to the artist's inbox; replying goes to the visitor.
+    await sendMail({ ...message, replyTo: result.data.email, sender: "inquiries" });
     if (stored) await markInquiryEmailed(stored);
   } catch (error) {
     console.error("[inquiry] sending failed", error);

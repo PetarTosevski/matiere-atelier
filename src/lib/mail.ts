@@ -19,8 +19,9 @@ export type OutgoingMail = {
   to?: string;
   /**
    * Who it comes from, when not MAIL_FROM: "noreply" for account emails
-   * (verification, password resets) from MAIL_FROM_NOREPLY, "inquiries" for
-   * the visitor's inquiry confirmation from MAIL_FROM_INQUIRIES. Each falls
+   * (verification, password resets, account deleted) from MAIL_FROM_NOREPLY,
+   * "inquiries" for inquiries (to the artist, and the visitor's confirmation)
+   * from MAIL_FROM_INQUIRIES. Each falls
    * back to MAIL_FROM. Gmail sends from an address only if it is a "Send mail
    * as" alias of SMTP_USER.
    */

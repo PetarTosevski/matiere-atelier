@@ -548,6 +548,10 @@
     "deleting": "Deleting…",
     "deleted": "Your account has been deleted.",
     "signOut": "Sign out",
+    "deletedEmail": {
+      "subject": "Your account has been deleted · {siteName}",
+      "body": "Your {siteName} account has been deleted, as you asked. Your sign-in and details are gone.\n\nOrders and messages you sent stay with the artist, as they would by email, but are no longer linked to an account.\n\nIf you didn’t do this, write to {email}."
+    },
     "verifyEmail": {
       "subject": "Confirm your email · {siteName}",
       "body": "Welcome to {siteName}.\n\nConfirm your email address to finish creating your account (the link works once, for 24 hours):\n{link}\n\nIf you didn’t create an account, ignore this email; the account won’t be usable without it."

@@ -249,7 +249,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - **The admin is also a user** (2026-10-12): signing in as the admin also signs in the admin's own customer account (email = `ADMIN_USERNAME`, made on first sign-in, first name taken from the email and editable). The admin's email on `/login` signs into both with the admin password; "Create account" refuses it; "Forgot password?" sends the admin reset link; Change password changes the admin password. Signing out anywhere (header, account page, admin bar) ends both sessions. Every admin page calls `syncAdminAccountAction`, so the header never shows another customer or "Login" while the admin is signed in. Rules in `lib/admin-account.ts`.
 - Email verification (2026-10-13): "Create account" doesn't sign in. It emails a one-time link (24 hours, from noreply@; subject `verify:<id>` in `passwordResets`) and shows "Check your inbox". The link opens `/account/verify`, whose button confirms the address (`customers.emailVerified`), signs in and shows the welcome. Signing in to an unconfirmed account with the right password sends a fresh link instead. Creating an account again for an unconfirmed email replaces it, so a stranger can't hold someone's address. A password reset (or change) also confirms, since it proves the inbox. Accounts made before this have no `emailVerified` and must confirm once; the admin's account is always confirmed.
 - Changing the account email is not built (the page says to get in touch).
-- Deleting an account (Account details, "Delete account", password to confirm; 2026-10-12): removes the customer and their reset links and signs out. Orders and messages they sent stay in `inquiries` (the artist has them by email anyway) but lose their `customerId`. The admin's own account can't be deleted there.
+- Deleting an account (Account details, "Delete account", password to confirm; 2026-10-12): removes the customer and their reset links, signs out, and emails a confirmation from noreply@ (a failed email doesn't undo the deletion). Orders and messages they sent stay in `inquiries` (the artist has them by email anyway) but lose their `customerId`. The admin's own account can't be deleted there.
 - Before launch: accounts hold personal data, so the site needs a privacy policy covering them (not written yet; needs the artist's details).
 
 ### Originals (`/originals`)
@@ -279,7 +279,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Commissions, About, Contact
 - Commissions: intro copy (placeholder until the artist provides text) and a form with name, email, description of the desired piece, approximate size, and an optional budget. Sends a `COMMISSION` inquiry.
 - About: portrait and bio placeholders.
-- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. Inquiries go to `MAIL_TO` (set to inquiries@ in production) and the visitor's confirmation comes from inquiries@ (`MAIL_FROM_INQUIRIES`, reply-to `INQUIRIES_EMAIL`); noreply@ (`MAIL_FROM_NOREPLY`) sends only account emails: verification and password resets (2026-10-13). The other Workspace aliases (orders, commissions, privacy, newsletter, shop) are not used yet.
+- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. Who sends what (2026-10-13): inquiries reach the artist (`MAIL_TO`) from inquiries@ (`MAIL_FROM_INQUIRIES`), reply-to the visitor, with a subject per type ("Commission inquiry from Ana"); the visitor's confirmation also comes from inquiries@ (reply-to `INQUIRIES_EMAIL`); noreply@ (`MAIL_FROM_NOREPLY`) sends only account emails: verification, password resets and "account deleted". The artist's replies go out from studio@ by Gmail settings (studio@ as the default Send-as address, "Always reply from default address"), not code. The other Workspace aliases (orders, commissions, privacy, newsletter, shop) are not used yet.
 
 ### Forms
 - One shared `InquiryForm` component, configured by `InquiryType`.
@@ -386,8 +386,8 @@ SMTP_PORT=
 SMTP_USER=
 SMTP_PASS=
 MAIL_FROM=
-MAIL_FROM_NOREPLY=        # optional: sender of account emails (verification, password resets), e.g. "Matière <noreply@...>"; a Gmail "Send mail as" alias; falls back to MAIL_FROM
-MAIL_FROM_INQUIRIES=      # optional: sender of the visitor's inquiry confirmation, e.g. "Matière <inquiries@...>"; same rules
+MAIL_FROM_NOREPLY=        # optional: sender of account emails (verification, password resets, account deleted), e.g. "Matière <noreply@...>"; a Gmail "Send mail as" alias; falls back to MAIL_FROM
+MAIL_FROM_INQUIRIES=      # optional: sender of inquiries to the artist and the visitor's confirmation, e.g. "Matière <inquiries@...>"; same rules
 MAIL_TO=                  # the artist's inbox for inquiries
 ```
 

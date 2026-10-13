@@ -1,7 +1,7 @@
 import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import messages from "../../../messages/en.json";
-import { createAccountAction, signInAction, verifyEmailAction, type SignInState } from "./account";
+import { createAccountAction, deleteAccountAction, signInAction, verifyEmailAction, type SignInState } from "./account";
 
 // Email verification: new accounts get a link instead of a session, unconfirmed
 // accounts can't sign in, and the link confirms and signs in.
@@ -14,18 +14,25 @@ const mocks = vi.hoisted(() => ({
   createResetToken: vi.fn(),
   consumeResetToken: vi.fn(),
   checkPassword: vi.fn(),
+  getCustomer: vi.fn(),
 }));
 
 vi.mock("@/lib/convex", () => ({
   api: {
-    customers: { getByEmail: "getByEmail", create: "create", markVerified: "markVerified" },
+    customers: {
+      getByEmail: "getByEmail",
+      create: "create",
+      markVerified: "markVerified",
+      getPasswordHash: "getPasswordHash",
+      remove: "remove",
+    },
   },
   convexQuery: mocks.convexQuery,
   convexMutation: mocks.convexMutation,
 }));
 vi.mock("@/lib/customer-auth", () => ({
   areAccountsAvailable: () => true,
-  getCustomer: async () => null,
+  getCustomer: mocks.getCustomer,
   isCustomerSessionRemembered: async () => false,
   renewCustomerSession: async () => {},
   signInCustomer: mocks.signInCustomer,
@@ -76,6 +83,7 @@ beforeEach(() => {
   mocks.createResetToken.mockResolvedValue("tok");
   mocks.sendMail.mockResolvedValue(undefined);
   mocks.checkPassword.mockResolvedValue(true);
+  mocks.getCustomer.mockResolvedValue(null);
 });
 
 describe("createAccountAction", () => {
@@ -148,5 +156,21 @@ describe("verifyEmailAction", () => {
       expect(await verifyEmailAction({}, form({ locale: "en", token: "tok" }))).toEqual({ error: "expired" });
     }
     expect(mocks.signInCustomer).not.toHaveBeenCalled();
+  });
+});
+
+describe("deleteAccountAction", () => {
+  it("deletes the account and confirms it from noreply", async () => {
+    mocks.getCustomer.mockResolvedValue({ id: "c1", email: "ana@example.com", firstName: "Ana", lastName: "", newsletter: false });
+    mocks.convexQuery.mockResolvedValue("hash");
+    await expect(deleteAccountAction({ status: "idle" }, form({ locale: "en", password: "pw" }))).rejects.toThrow(
+      "redirect:/en/login?deleted=done",
+    );
+    expect(mocks.convexMutation).toHaveBeenCalledWith("remove", { id: "c1" });
+    expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
+      to: "ana@example.com",
+      subject: "Your account has been deleted · Matière Atelier",
+      sender: "noreply",
+    });
   });
 });

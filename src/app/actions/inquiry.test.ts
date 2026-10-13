@@ -60,6 +60,7 @@ describe("submitInquiry", () => {
     expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
       replyTo: "ana@example.com",
       subject: "Message from Ana",
+      sender: "inquiries",
     });
     expect(mocks.sendMail.mock.calls[0]![0].to).toBeUndefined();
   });

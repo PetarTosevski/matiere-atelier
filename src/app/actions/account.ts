@@ -308,5 +308,18 @@ export async function deleteAccountAction(_previous: FormState, form: FormData):
   }
   await convexMutation(api.customers.remove, { id: customer.id });
   await signOutCustomer();
+  // The account is gone either way; a failed confirmation only gets logged.
+  try {
+    const t = await getTranslations({ locale: localeOf(form), namespace: "Account.deletedEmail" });
+    await sendMail({
+      to: customer.email,
+      subject: t("subject", { siteName: SITE_NAME }),
+      text: t("body", { siteName: SITE_NAME, email: STUDIO_EMAIL }),
+      replyTo: STUDIO_EMAIL,
+      sender: "noreply",
+    });
+  } catch (error) {
+    console.error("[account] deletion confirmation failed", error);
+  }
   redirect(`/${localeOf(form)}/login?deleted=done`);
 }
