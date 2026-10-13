@@ -1,7 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
-import { hasLocale } from "next-intl";
+import { hasLocale, type Locale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { getArtworkBySlug, getArtworksByIds } from "@/lib/artworks";
@@ -15,13 +15,14 @@ import {
   validateInquiry,
   type FieldErrorKey,
 } from "@/lib/inquiry";
+import { buildConfirmationEmail, type ConfirmationEmailInput } from "@/lib/confirmation-email";
 import { buildInquiryEmail, type InquiryEmailInput } from "@/lib/inquiry-email";
 import { recordInquiry, markInquiryEmailed } from "@/lib/inquiries";
 import { sendMail } from "@/lib/mail";
 import { isCartEnabled } from "@/lib/pricing";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSiteSettings } from "@/lib/settings";
-import { getSiteUrl } from "@/lib/site";
+import { getSiteUrl, SITE_NAME, STUDIO_EMAIL } from "@/lib/site";
 
 export type InquiryErrorKey =
   | "invalid"
@@ -152,5 +153,36 @@ export async function submitInquiry(
     return { status: "error", error: "sendFailed", values };
   }
 
+  // The artist has it, so the inquiry succeeded even if this one fails.
+  try {
+    await sendConfirmation(email, origin, locale);
+  } catch (error) {
+    console.error("[inquiry] confirmation to the visitor failed", error);
+  }
+
   return { status: "success" };
+}
+
+/** The "we got your message" email to the visitor, in their locale. Replies go to the studio. */
+async function sendConfirmation(
+  email: InquiryEmailInput,
+  origin: string,
+  locale: Locale,
+) {
+  const input: ConfirmationEmailInput = {
+    type: email.type,
+    origin,
+    locale,
+    siteName: SITE_NAME,
+    pieces:
+      email.type === "REQUEST"
+        ? [{ title: email.artwork.title, url: email.artwork.url }]
+        : email.type === "ORDER"
+          ? email.items
+          : [],
+    totals: email.type === "ORDER" ? email.totals : undefined,
+  };
+  const t = await getTranslations({ locale, namespace: "ConfirmationEmail" });
+  const message = buildConfirmationEmail(input, (key, params) => t(key as never, params as never));
+  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL });
 }

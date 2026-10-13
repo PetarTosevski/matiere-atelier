@@ -2,6 +2,7 @@ import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { artworks } from "@/data/artworks";
 import { resetRateLimits } from "@/lib/rate-limit";
+import { STUDIO_EMAIL } from "@/lib/site";
 import messages from "../../../messages/en.json";
 import { submitInquiry, type InquiryState } from "./inquiry";
 
@@ -54,11 +55,35 @@ describe("submitInquiry", () => {
   it("sends a valid contact message with reply-to set to the visitor", async () => {
     const state = await submitInquiry(idle, form(contact));
     expect(state).toEqual({ status: "success" });
-    expect(mocks.sendMail).toHaveBeenCalledOnce();
+    // The artist first, then the visitor's confirmation.
+    expect(mocks.sendMail).toHaveBeenCalledTimes(2);
     expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
       replyTo: "ana@example.com",
       subject: "Message from Ana",
     });
+    expect(mocks.sendMail.mock.calls[0]![0].to).toBeUndefined();
+  });
+
+  it("confirms to the visitor without repeating what they typed", async () => {
+    await submitInquiry(idle, form({ ...contact, name: "Visit spam.example", message: "Buy now" }));
+    const confirmation = mocks.sendMail.mock.calls[1]![0];
+    expect(confirmation).toMatchObject({
+      to: "ana@example.com",
+      replyTo: STUDIO_EMAIL,
+      subject: "Your message to Matière Atelier",
+    });
+    expect(confirmation.html).toContain("/email/brush-stroke.png");
+    for (const part of [confirmation.text, confirmation.html]) {
+      expect(part).not.toContain("spam.example");
+      expect(part).not.toContain("Buy now");
+    }
+  });
+
+  it("still succeeds when only the confirmation fails", async () => {
+    mocks.sendMail.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error("bounced"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const state = await submitInquiry(idle, form(contact));
+    expect(state).toEqual({ status: "success" });
   });
 
   it("pretends to succeed but sends nothing when the honeypot is filled", async () => {
@@ -130,6 +155,11 @@ describe("submitInquiry", () => {
     expect(mail.text).toContain("Low Tide, €1,450");
     expect(mail.text).toContain("Quiet Orchard, €640.50");
     expect(mail.text).toContain("Total: €2,090.50");
+    const confirmation = mocks.sendMail.mock.calls[1]![0];
+    expect(confirmation.subject).toBe("Your order request to Matière Atelier");
+    expect(confirmation.text).toContain("Nothing has been charged");
+    expect(confirmation.text).toContain("Low Tide, €1,450");
+    expect(confirmation.text).toContain("Total: €2,090.50");
   });
 
   it("refuses an order that includes a sold or unpriced piece", async () => {
@@ -161,5 +191,7 @@ describe("submitInquiry", () => {
       error: "sendFailed",
       values: { message: "Hello" },
     });
+    // No confirmation for an inquiry the artist never got.
+    expect(mocks.sendMail).toHaveBeenCalledOnce();
   });
 });

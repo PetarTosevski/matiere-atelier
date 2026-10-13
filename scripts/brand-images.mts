@@ -2,11 +2,14 @@
 // Draws the site icon (browser tab), the Apple touch icon and the default
 // share image (links to pages that aren't an artwork) in the site's fonts and
 // dark palette, and writes them as static files: the icons in src/app, the
-// share image in public/ (named in the [locale] layout's metadata). Run it again
-// after changing the palette in src/app/tokens.css or the site name.
-import { readFileSync, writeFileSync } from "node:fs";
+// share image in public/ (named in the [locale] layout's metadata), and the
+// brush stroke under the heading of the visitor's confirmation email
+// (public/email/). Run it again after changing the palette in
+// src/app/tokens.css or the site name.
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createElement as h, type ReactNode } from "react";
 import { ImageResponse } from "next/og.js";
+import sharp from "sharp";
 import { SITE_NAME } from "../src/lib/site.ts";
 
 const messages = JSON.parse(readFileSync("messages/en.json", "utf8"));
@@ -114,3 +117,32 @@ await render(
     ),
   ),
 );
+
+// Confirmation email brush stroke: one dry-brush swash in the light theme's
+// olive (emails are light, like most inboxes). Streaky noise cuts the bristle
+// gaps, a second noise roughens the edges, and the paint thins out at the end.
+// Drawn at twice the size the email shows it (BRUSH_STROKE in lib/confirmation-email.ts).
+const OLIVE = "#4f5d2f";
+const brush = `<svg xmlns="http://www.w3.org/2000/svg" width="560" height="72" viewBox="0 0 560 72">
+  <defs>
+    <linearGradient id="dryEnd" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="0.7" stop-color="#fff"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0.35"/>
+    </linearGradient>
+    <mask id="tail"><rect width="560" height="72" fill="url(#dryEnd)"/></mask>
+    <filter id="dry" x="-5%" y="-30%" width="110%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.003 0.28" numOctaves="3" seed="7" result="streaks"/>
+      <feColorMatrix in="streaks" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -6 4.2" result="bristles"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="3" result="edge"/>
+      <feDisplacementMap in="SourceGraphic" in2="edge" scale="6" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+      <feComposite in="rough" in2="bristles" operator="in"/>
+    </filter>
+  </defs>
+  <g mask="url(#tail)">
+    <path filter="url(#dry)" fill="${OLIVE}" d="M10 46 C 40 26, 120 16, 260 15 C 380 14, 470 14, 552 12 C 548 26, 536 40, 500 46 C 420 56, 320 54, 220 57 C 140 59, 70 62, 22 60 C 12 58, 8 52, 10 46 Z"/>
+  </g>
+</svg>`;
+mkdirSync("public/email", { recursive: true });
+await sharp(Buffer.from(brush)).png({ compressionLevel: 9 }).toFile("public/email/brush-stroke.png");
+console.info("wrote public/email/brush-stroke.png (560×72)");

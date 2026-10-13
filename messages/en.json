@@ -172,6 +172,16 @@
     "notGiven": "Not given",
     "replyHint": "Reply to this email to answer {name} directly."
   },
+  "ConfirmationEmail": {
+    "subject": "{type, select, ORDER {Your order request to {siteName}} other {Your message to {siteName}}}",
+    "heading": "Thank you",
+    "body": "{type, select, COMMISSION {Your commission inquiry reached the studio. The artist will reply by email to talk about the piece you have in mind.} REQUEST {Your inquiry reached the studio. The artist will reply by email about this piece.} ORDER {Your order request reached the studio. Nothing has been charged: the artist will reply by email to arrange payment and shipping.} other {Your message reached the studio. The artist will reply by email.}}",
+    "pieces": "{count, plural, one {The piece} other {The pieces}}",
+    "total": "Total",
+    "replyNote": "To add anything, reply to this email.",
+    "visit": "Visit the studio",
+    "footer": "You got this email because this address was entered on a form at {site}. If that wasn’t you, you can ignore it."
+  },
   "Admin": {
     "metaTitle": "Admin",
     "nav": {

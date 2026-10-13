@@ -49,7 +49,7 @@ npm run test           # vitest run: unit tests and price-hiding render tests
 npx convex dev         # Convex alone (npm run dev already runs it); pushes convex/ functions and schema on save
 npm run db:seed        # imports src/data/artworks.ts and its images into Convex (-- --reset to start over)
 npm run hash-password  # prints an ADMIN_PASSWORD_HASH line for .env (password typed hidden)
-npm run brand-images   # redraws the icons and the default share image (after a palette or name change)
+npm run brand-images   # redraws the icons, the default share image and the email brush stroke (after a palette or name change)
 ```
 
 Run `lint`, `typecheck` and `test` before calling any task done.
@@ -129,6 +129,7 @@ src/
     cart.ts         resolveCart(), subtotals(): which remembered pieces can still be bought
     inquiry.ts      Zod schemas and field lists for every inquiry form
     inquiry-email.ts  builds the plain-text email the artist receives
+    confirmation-email.ts  builds the visitor's "we got your message" email (HTML + text, brush stroke)
     rate-limit.ts   in-memory per-IP limiter (single server; see hosting decision)
     mail.ts         Nodemailer SMTP; in dev without SMTP, writes .eml files to .outbox/
     auth.ts         admin session (iron-session) and credential check (bcrypt)
@@ -168,6 +169,7 @@ convex/             Convex schema and functions (database and file storage)
 public/
   placeholders/     generated placeholder paintings, until real photos arrive
   share-image.png   default Open Graph image (defaultShareImage() in lib/metadata.ts); artwork pages use their cover
+  email/brush-stroke.png  the olive brush stroke under the confirmation email's heading (npm run brand-images)
 ```
 
 `lib/artworks.ts` exposes the same functions in both phases (`getPublishedArtworks()`, `getArtworkBySlug()`, and so on). Phase 2 swaps the static file for Convex inside this module without touching pages.
@@ -280,6 +282,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Forms
 - One shared `InquiryForm` component, configured by `InquiryType`.
 - Server action validates with Zod, includes a honeypot field and a simple per-IP rate limit, then emails `MAIL_TO` with reply-to set to the sender.
+- Then the visitor gets a confirmation email (2026-10-13, `lib/confirmation-email.ts`): "Thank you" over a dry-brush stroke in the light theme's olive, a line per inquiry type (orders: nothing has been charged), the piece or pieces with prices for Request and Order, and a link back to the site. HTML with a plain-text version; the stroke is a PNG served from the site (`/email/brush-stroke.png`), so it shows once images load. Reply-to is `STUDIO_EMAIL`. It never repeats what the visitor typed (name, message), so the form can't be used to mail someone else chosen words. It is sent only after the artist's email succeeds, and a failed confirmation doesn't fail the inquiry.
 - Clear success and error states written in plain language.
 
 ### Cart

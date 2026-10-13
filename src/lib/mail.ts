@@ -3,14 +3,16 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
 
-// Sends inquiry emails to the artist (MAIL_TO), and password reset links to
-// account holders, through SMTP. In development,
+// Sends inquiry emails to the artist (MAIL_TO), confirmations to visitors, and
+// password reset links to account holders, through SMTP. In development,
 // when SMTP isn't configured, messages are written to .outbox/ as .eml files
 // instead, so nothing real is sent while building.
 
 export type OutgoingMail = {
   subject: string;
   text: string;
+  /** An HTML version; `text` stays as the plain-text alternative. */
+  html?: string;
   /** The visitor's address, so replying from the inbox reaches them. */
   replyTo?: string;
   /** Defaults to the artist's inbox (MAIL_TO); password reset links go to the account's email. */
@@ -56,6 +58,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
       replyTo: mail.replyTo,
       subject: mail.subject,
       text: mail.text,
+      html: mail.html,
     });
     return;
   }
@@ -72,6 +75,7 @@ async function writeToOutbox(mail: OutgoingMail) {
     replyTo: mail.replyTo,
     subject: mail.subject,
     text: mail.text,
+    html: mail.html,
   });
 
   await mkdir(OUTBOX_DIR, { recursive: true });
