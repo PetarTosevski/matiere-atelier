@@ -13,12 +13,12 @@ const messages = JSON.parse(readFileSync("messages/en.json", "utf8"));
 const description: string = messages.Metadata.description;
 
 // From src/app/tokens.css (the dark theme, the default every visitor sees).
-const PAPER = "#141414";
-const PANEL = "#1d1c1b";
-const INK = "#efe8e4";
-const MUTED = "#b8b0ab";
-const ACCENT = "#e3a6a1";
-const LINE = "#34312f";
+const PAPER = "#15130f";
+const PANEL = "#1e1b16";
+const INK = "#efe9df";
+const MUTED = "#b9b1a4";
+const ACCENT = "#a9b87e";
+const LINE = "#36322a";
 
 /** The TTF of one Google Font weight (Satori, behind ImageResponse, can't read woff2). */
 async function googleFont(family: string, spec: string): Promise<ArrayBuffer> {

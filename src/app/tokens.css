@@ -1,23 +1,26 @@
 /*
- * Design tokens: the "Two-up Spreads" look (dark gallery wall, one warm
- * accent) and its light "Warm Linen" theme. Changing the palette or type is a
+ * Design tokens: the "Two-up Spreads" look (warm dark gallery wall, one sage
+ * accent; palette from "Art Storefront Screens", 2026-10-13) and its light
+ * "Warm Linen" theme. Changing the palette or type is a
  * change to this file only. Tailwind's default palette is cleared so
  * components can only use these.
  */
 @theme {
   --color-*: initial;
-  --color-paper: #141414; /* page background, like a dark gallery wall */
-  --color-panel: #1d1c1b; /* the panel each piece hangs on */
-  --color-ink: #efe8e4; /* text (16:1 on paper) */
-  --color-muted: #b8b0ab; /* secondary text (9:1 on paper, 8.3:1 on panel) */
-  --color-faint: #a39e96; /* footer text (7:1 on paper) */
-  --color-accent: #e3a6a1; /* numbers, cart, buttons, one word of a heading (9:1 on paper) */
-  --color-line: #34312f; /* hairline dividers */
-  --color-control: #6e6863; /* borders of admin controls (3:1 on panel, 3.3:1 on paper) */
+  --color-paper: #15130f; /* page background, a warm dark gallery wall */
+  --color-panel: #1e1b16; /* the panel each piece hangs on */
+  --color-ink: #efe9df; /* text (15:1 on paper) */
+  --color-muted: #b9b1a4; /* secondary text (8.7:1 on paper, 8.1:1 on panel) */
+  --color-faint: #a49c8f; /* footer text (6.8:1 on paper) */
+  --color-accent: #a9b87e; /* sage: numbers, cart, buttons, one word of a heading (8.7:1 on paper) */
+  --color-line: #36322a; /* hairline dividers */
+  --color-control: #716a5e; /* borders of admin controls (3.2:1 on panel, 3.5:1 on paper) */
   --color-warn: #e8c27a; /* admin only: "No price set", "Needs attention" (10:1 on panel) */
-  --color-field: #1d1c1b; /* form field background */
-  --color-on-accent: #141414; /* text and icons on an accent background */
-  --color-well: #181717; /* admin: the "Add new works" drop area */
+  --color-field: #1e1b16; /* form field background */
+  --color-on-accent: #15130f; /* text and icons on an accent background */
+  --color-well: #1a1813; /* admin: the "Add new works" drop area */
+  --color-admin: #4f5d2f; /* admin bar and toolbar: olive in both themes */
+  --color-on-admin: #f4f0e6; /* text and controls on the admin bar (6.3:1) */
 
   --font-sans: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;

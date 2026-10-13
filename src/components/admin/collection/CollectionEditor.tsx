@@ -313,7 +313,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
 
   return (
     <>
-      <div className="z-40 border-t border-on-accent/15 bg-accent text-on-accent md:sticky md:top-0">
+      <div className="z-40 border-t border-on-admin/15 bg-admin text-on-admin md:sticky md:top-0">
         <div className="mx-auto flex max-w-[82.5rem] flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-2.5 sm:px-8">
           <p className="text-sm">{t("hint")}</p>
           <div className="flex flex-wrap items-center gap-3">
@@ -327,7 +327,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
                 setRateFailed(false);
               }}
               aria-describedby={unconverted || conversion ? "admin-currency-note" : undefined}
-              className="min-h-10 cursor-pointer border border-on-accent bg-transparent px-3 text-sm font-semibold text-on-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-accent [&>option]:bg-panel [&>option]:font-normal [&>option]:text-ink"
+              className="min-h-10 cursor-pointer border border-on-admin bg-transparent px-3 text-sm font-semibold text-on-admin focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-admin [&>option]:bg-panel [&>option]:font-normal [&>option]:text-ink"
             >
               {SHOP_CURRENCIES.map((code) => (
                 <option key={code} value={code}>{t("currencies", { code })}</option>
@@ -339,16 +339,16 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
               aria-checked={showPrices}
               aria-describedby="admin-show-prices-hint"
               onClick={() => setShowPrices((on) => !on)}
-              className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-accent"
+              className="inline-flex min-h-10 items-center gap-2.5 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-admin"
             >
               {t("showPrices")}
               <span
                 aria-hidden="true"
-                className={`relative h-6 w-11 rounded-full border border-on-accent ${showPrices ? "bg-on-accent" : ""}`}
+                className={`relative h-6 w-11 rounded-full border border-on-admin ${showPrices ? "bg-on-admin" : ""}`}
               >
                 <span
                   className={`absolute top-0.5 left-0.5 size-4.5 rounded-full motion-safe:transition-transform ${
-                    showPrices ? "translate-x-5 bg-accent" : "bg-on-accent"
+                    showPrices ? "translate-x-5 bg-admin" : "bg-on-admin"
                   }`}
                 />
               </span>
@@ -356,12 +356,12 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
             </button>
             <fieldset className="flex items-center gap-2.5" aria-describedby="admin-theme-hint">
               <legend className="float-left mr-2.5 text-sm font-semibold">{t("theme")}</legend>
-              <span className="flex border border-on-accent">
+              <span className="flex border border-on-admin">
                 {(["dark", "light"] as const).map((option) => (
                   <label
                     key={option}
-                    className={`inline-flex min-h-10 cursor-pointer items-center px-3 text-sm focus-within:outline-2 focus-within:outline-on-accent ${
-                      theme === option ? "bg-on-accent font-semibold text-accent" : ""
+                    className={`inline-flex min-h-10 cursor-pointer items-center px-3 text-sm focus-within:outline-2 focus-within:outline-on-admin ${
+                      theme === option ? "bg-on-admin font-semibold text-admin" : ""
                     }`}
                   >
                     <input
@@ -377,7 +377,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
                 ))}
               </span>
             </fieldset>
-            <label className="relative inline-flex min-h-10 cursor-pointer items-center border border-on-accent px-3.5 text-sm font-semibold focus-within:outline-2 focus-within:outline-on-accent">
+            <label className="relative inline-flex min-h-10 cursor-pointer items-center border border-on-admin px-3.5 text-sm font-semibold focus-within:outline-2 focus-within:outline-on-admin">
               {t("upload")}
               <input
                 type="file"
@@ -401,7 +401,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
               type="button"
               onClick={publish}
               disabled={!dirty || publishing || uploading !== null}
-              className="min-h-10 bg-on-accent px-4.5 text-sm font-semibold text-accent disabled:opacity-60"
+              className="min-h-10 bg-on-admin px-4.5 text-sm font-semibold text-admin disabled:opacity-60"
             >
               {publishing ? t("publishing") : t("publish")}
             </button>
@@ -413,7 +413,7 @@ export function CollectionEditor({ initialWorks, initialSettings, initialSelecte
                 type="button"
                 onClick={convertPrices}
                 disabled={converting}
-                className="min-h-10 border border-on-accent px-3.5 font-semibold disabled:opacity-60"
+                className="min-h-10 border border-on-admin px-3.5 font-semibold disabled:opacity-60"
               >
                 {converting ? t("converting") : t("convert", { from: amountsCurrency, to: currency })}
               </button>
