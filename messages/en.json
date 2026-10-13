@@ -439,9 +439,7 @@
     "approx": "about"
   },
   "ThemeToggle": {
-    "light": "Light mode",
-    "dark": "Dark mode",
-    "label": "{theme, select, light {Light mode, switch to dark} other {Dark mode, switch to light}}"
+    "label": "Dark mode"
   },
   "AdminEditLink": {
     "piece": "Edit this piece",
