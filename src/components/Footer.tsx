@@ -3,7 +3,7 @@ import { CurrencySwitcher } from "@/components/currency/CurrencySwitcher";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Link } from "@/i18n/navigation";
 import { getSiteSettings } from "@/lib/settings";
-import { INSTAGRAM_URL, SITE_NAME } from "@/lib/site";
+import { INSTAGRAM_URL, SITE_NAME, STUDIO_EMAIL } from "@/lib/site";
 
 export async function Footer() {
   const [t, settings] = await Promise.all([getTranslations("Footer"), getSiteSettings()]);
@@ -24,6 +24,11 @@ export async function Footer() {
               <Link href="/contact" className="inline-flex min-h-11 items-center">
                 {t("contact")}
               </Link>
+            </li>
+            <li>
+              <a href={`mailto:${STUDIO_EMAIL}`} className="inline-flex min-h-11 items-center">
+                {STUDIO_EMAIL}
+              </a>
             </li>
           </ul>
           <div className="flex flex-wrap items-center gap-x-8">

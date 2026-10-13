@@ -7,3 +7,6 @@ export function getSiteUrl(): URL {
 
 /** Placeholder until the artist's account is confirmed. */
 export const INSTAGRAM_URL = "https://www.instagram.com/";
+
+/** The studio's public email address (a Google Workspace alias of the artist's inbox). */
+export const STUDIO_EMAIL = "studio@matiereatelier.info";

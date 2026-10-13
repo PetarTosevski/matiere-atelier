@@ -80,7 +80,8 @@
   "Contact": {
     "metaTitle": "Contact",
     "title": "Contact",
-    "intro": "Questions about a piece, shipping or anything else? Send a message and the artist will reply by email."
+    "intro": "Questions about a piece, shipping or anything else? Send a message and the artist will reply by email.",
+    "email": "Prefer email? Write to <email>{address}</email>."
   },
   "Cart": {
     "metaTitle": "Cart",
