@@ -113,7 +113,7 @@ src/
     admin-hint/                   the artist's Edit link on the storefront: hint store (localStorage), RememberAdmin, LogoutForm, AdminEditLink
   lib/
     types.ts        the data model below
-    site.ts         SITE_NAME, INSTAGRAM_URL
+    site.ts         SITE_NAME, INSTAGRAM_URL, STUDIO_EMAIL
     artworks.ts     data access. Pages read artworks ONLY through this module
     pricing.ts      getPriceView(), isCartEnabled(): the single source of price and stock display rules
     format.ts       formatPrice()
@@ -227,7 +227,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Layout
 - Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, theme toggle, "Cart (n)" link, "Login" button (or "My account" with a menu once signed in; from 768 px, in the menu below), all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
-- Footer: copyright line, Instagram and Contact links (Instagram URL from config, placeholder for now), currency switcher, theme toggle.
+- Footer: copyright line, Instagram and Contact links and the studio email (`STUDIO_EMAIL`, a mailto link; Instagram URL from config, placeholder for now), currency switcher, theme toggle.
 - No search.
 
 ### Customer accounts
@@ -264,7 +264,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Commissions, About, Contact
 - Commissions: intro copy (placeholder until the artist provides text) and a form with name, email, description of the desired piece, approximate size, and an optional budget. Sends a `COMMISSION` inquiry.
 - About: portrait and bio placeholders.
-- Contact: name, email, message. Sends a `CONTACT` inquiry.
+- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. The other Workspace aliases (inquiries, orders, commissions, privacy, noreply, newsletter, shop) are not used yet.
 
 ### Forms
 - One shared `InquiryForm` component, configured by `InquiryType`.
