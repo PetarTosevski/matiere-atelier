@@ -110,13 +110,20 @@ export default defineSchema({
     newsletter: v.boolean(),
     /** Bumped when the password changes, which signs out other sessions. */
     sessionVersion: v.number(),
+    /**
+     * Set once the owner opened a link sent to the address (verification or
+     * password reset). Accounts can't sign in before. Missing on accounts made
+     * before verification existed (2026-10-13): they count as unconfirmed.
+     */
+    emailVerified: v.optional(v.boolean()),
     /** ISO 8601. */
     createdAt: v.string(),
   }).index("by_email", ["email"]),
 
   /**
-   * One-time password reset links. Only a SHA-256 of the token is stored.
-   * subject: "admin" or "customer:<id>".
+   * One-time links sent by email: password resets and email verification.
+   * Only a SHA-256 of the token is stored. subject: "admin", "customer:<id>"
+   * (reset) or "verify:<id>" (confirm a new account's email).
    */
   passwordResets: defineTable({
     tokenHash: v.string(),

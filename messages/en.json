@@ -514,6 +514,16 @@
     "resetExpired": "This link has expired or was already used.",
     "requestNewLink": "Send a new link",
     "resetDone": "Your password has been changed. Sign in with the new one.",
+    "checkInboxHeading": "Check your <em>inbox</em>",
+    "verifySent": "We sent a link to <strong>{email}</strong>. Open it to confirm your address and finish creating your account. It works for 24 hours.",
+    "verifyResent": "Your email address isn’t confirmed yet. We sent a new link to <strong>{email}</strong>: open it to finish signing in. It works for 24 hours.",
+    "verifySpam": "Nothing there after a few minutes? Check your spam folder, or sign in again to get a new link.",
+    "verifyMetaTitle": "Confirm your email",
+    "verifyHeading": "Confirm your <em>email</em>",
+    "verifyLede": "One click and your account is ready.",
+    "confirmEmail": "Confirm email",
+    "confirming": "Confirming…",
+    "verifyExpired": "This link has expired or was already used. Sign in with your email and password to get a new one.",
     "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} wrongCurrent {Your current password is not right.} adminAccount {This is the studio’s own account, so it can’t be deleted here.} other {Something went wrong. Please try again.}}",
     "hello": "Hello, <em>{name}</em>",
     "sectionsLabel": "Account sections",
@@ -538,6 +548,10 @@
     "deleting": "Deleting…",
     "deleted": "Your account has been deleted.",
     "signOut": "Sign out",
+    "verifyEmail": {
+      "subject": "Confirm your email · {siteName}",
+      "body": "Welcome to {siteName}.\n\nConfirm your email address to finish creating your account (the link works once, for 24 hours):\n{link}\n\nIf you didn’t create an account, ignore this email; the account won’t be usable without it."
+    },
     "email": {
       "subject": "Reset your password · {siteName}",
       "body": "Someone asked to reset the password for your {siteName} account.\n\nChoose a new password here (the link works once, for 30 minutes):\n{link}\n\nIf this wasn’t you, ignore this email; your password stays the same."

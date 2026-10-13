@@ -70,5 +70,5 @@ export async function sendAdminResetEmail(): Promise<void> {
   const token = await createResetToken("admin");
   const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Admin.reset.email" });
   const link = `${getSiteUrl().origin}/admin/reset?token=${token}`;
-  await sendMail({ to: email, subject: t("subject", { siteName: SITE_NAME }), text: t("body", { link }) });
+  await sendMail({ to: email, subject: t("subject", { siteName: SITE_NAME }), text: t("body", { link }), sender: "noreply" });
 }

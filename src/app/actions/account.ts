@@ -22,10 +22,10 @@ import {
 import { changeAdminPassword, isAdminEmail, sendAdminResetEmail, signInAsAdmin, signOutEverywhere } from "@/lib/admin-account";
 import { verifyCredentials } from "@/lib/auth";
 import { sendMail } from "@/lib/mail";
-import { burnPasswordCheck, checkPassword, hashPassword } from "@/lib/password";
+import { burnPasswordCheck, checkPassword, hashPassword, VERIFY_LINK_MS } from "@/lib/password";
 import { consumeResetToken, createResetToken } from "@/lib/password-reset";
 import { rateLimit } from "@/lib/rate-limit";
-import { getSiteUrl, SITE_NAME } from "@/lib/site";
+import { getSiteUrl, SITE_NAME, STUDIO_EMAIL } from "@/lib/site";
 
 // Collector account actions. Every input is checked with Zod
 // (lib/account-forms.ts); passwords are only ever compared as bcrypt hashes.
@@ -44,7 +44,11 @@ export type AccountErrorKey =
 export type SignInState =
   | { status: "idle" }
   | { status: "error"; error: AccountErrorKey; fieldErrors?: AccountFieldErrors; values?: Record<string, string> }
-  | { status: "signedIn"; firstName: string; name: string; email: string; created: boolean };
+  | { status: "signedIn"; firstName: string; name: string; email: string; created: boolean }
+  /** A confirmation link went to `email`: after creating an account, or signing in before confirming. */
+  | { status: "verifySent"; email: string; resent: boolean };
+
+export type VerifyEmailState = { error?: AccountErrorKey };
 
 export type FormState =
   | { status: "idle" }
@@ -58,8 +62,8 @@ async function clientIp(): Promise<string> {
   return list.get("x-forwarded-for")?.split(",")[0]?.trim() || list.get("x-real-ip") || "unknown";
 }
 
-function localeOf(form: FormData) {
-  const value = form.get("locale");
+function localeOf(source: FormData | string) {
+  const value = typeof source === "string" ? source : source.get("locale");
   return hasLocale(routing.locales, value) ? value : routing.defaultLocale;
 }
 
@@ -95,6 +99,16 @@ export async function signInAction(_previous: SignInState, form: FormData): Prom
   if (!(await checkPassword(password, account.passwordHash))) {
     return { status: "error", error: "wrongPassword", values: parsed.values };
   }
+  // The right password, but the address was never confirmed: send a fresh link.
+  if (!account.emailVerified) {
+    try {
+      await sendVerificationEmail(account._id, account.email, localeOf(form));
+    } catch (error) {
+      console.error("[account] verification email failed", error);
+      return { status: "error", error: "sendFailed", values: parsed.values };
+    }
+    return { status: "verifySent", email: account.email, resent: true };
+  }
 
   await signInCustomer(account._id, account.sessionVersion, remember);
   return {
@@ -125,8 +139,44 @@ export async function createAccountAction(_previous: SignInState, form: FormData
   });
   if (!id) return { status: "error", error: "emailTaken", fieldErrors: {}, values: parsed.values };
 
-  await signInCustomer(id, 1, true);
-  return { status: "signedIn", firstName, name: firstName, email, created: true };
+  // The account can't sign in until its owner opens the link.
+  try {
+    await sendVerificationEmail(id, email, localeOf(form));
+  } catch (error) {
+    console.error("[account] verification email failed", error);
+    return { status: "error", error: "sendFailed", values: parsed.values };
+  }
+  return { status: "verifySent", email, resent: false };
+}
+
+/** Emails a one-time link (24 hours) that confirms the address. */
+async function sendVerificationEmail(id: Id<"customers">, email: string, locale: string) {
+  const token = await createResetToken(`verify:${id}`, VERIFY_LINK_MS);
+  const t = await getTranslations({ locale: localeOf(locale), namespace: "Account.verifyEmail" });
+  const link = `${getSiteUrl().origin}/${localeOf(locale)}/account/verify?token=${token}`;
+  await sendMail({
+    to: email,
+    subject: t("subject", { siteName: SITE_NAME }),
+    text: t("body", { siteName: SITE_NAME, link }),
+    replyTo: STUDIO_EMAIL,
+    sender: "noreply",
+  });
+}
+
+/** From the link in the verification email: confirms the address and signs in. */
+export async function verifyEmailAction(_previous: VerifyEmailState, form: FormData): Promise<VerifyEmailState> {
+  if (!areAccountsAvailable()) return { error: "notConfigured" };
+  const parsed = parseAccountForm("verifyEmail", form);
+  if (!parsed.success) return { error: "expired" };
+
+  const subject = await consumeResetToken(parsed.data.token);
+  if (!subject?.startsWith("verify:")) return { error: "expired" };
+  const id = subject.slice("verify:".length) as Id<"customers">;
+  const account = await convexMutation(api.customers.markVerified, { id });
+  if (!account) return { error: "expired" };
+
+  await signInCustomer(id, account.sessionVersion, true);
+  redirect(`/${localeOf(form)}/login?verified=done`);
 }
 
 export async function forgotPasswordAction(
@@ -159,7 +209,12 @@ export async function forgotPasswordAction(
     const t = await getTranslations({ locale, namespace: "Account.email" });
     const link = `${getSiteUrl().origin}/${locale}/account/reset?token=${token}`;
     try {
-      await sendMail({ to: account.email, subject: t("subject", { siteName: SITE_NAME }), text: t("body", { siteName: SITE_NAME, link }) });
+      await sendMail({
+        to: account.email,
+        subject: t("subject", { siteName: SITE_NAME }),
+        text: t("body", { siteName: SITE_NAME, link }),
+        sender: "noreply",
+      });
     } catch (error) {
       console.error("[account] reset email failed", error);
       return { status: "error", error: "sendFailed", email };

@@ -2,12 +2,13 @@ import "server-only";
 import { api, convexMutation, convexQuery } from "@/lib/convex";
 import { hashResetToken, newResetToken, RESET_LINK_MS } from "@/lib/password";
 
-// One-time reset links. subject is "admin" or "customer:<id>".
+// One-time links sent by email. subject is "admin" or "customer:<id>" for
+// password resets, "verify:<id>" to confirm a new account's email.
 
 /** Makes a link for `subject` (replacing any earlier one); returns the token for the email. */
-export async function createResetToken(subject: string): Promise<string> {
+export async function createResetToken(subject: string, lifetimeMs = RESET_LINK_MS): Promise<string> {
   const { token, tokenHash } = newResetToken();
-  await convexMutation(api.passwordResets.create, { tokenHash, subject, expiresAt: Date.now() + RESET_LINK_MS });
+  await convexMutation(api.passwordResets.create, { tokenHash, subject, expiresAt: Date.now() + lifetimeMs });
   return token;
 }
 

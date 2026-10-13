@@ -21,6 +21,8 @@ export async function burnPasswordCheck(password: string): Promise<void> {
 }
 
 export const RESET_LINK_MS = 30 * 60 * 1000;
+/** Email verification links last longer: the first email can sit unread for a while. */
+export const VERIFY_LINK_MS = 24 * 60 * 60 * 1000;
 
 /** A new reset token: the token goes in the email, only its hash is stored. */
 export function newResetToken(): { token: string; tokenHash: string } {

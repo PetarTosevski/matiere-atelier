@@ -17,6 +17,12 @@ export type OutgoingMail = {
   replyTo?: string;
   /** Defaults to the artist's inbox (MAIL_TO); password reset links go to the account's email. */
   to?: string;
+  /**
+   * "noreply" for automated emails to visitors (verification, resets,
+   * confirmations): sent from MAIL_FROM_NOREPLY when set, else MAIL_FROM.
+   * Gmail sends it only if that address is a "Send mail as" alias of SMTP_USER.
+   */
+  sender?: "noreply";
 };
 
 export class MailNotConfiguredError extends Error {
@@ -43,6 +49,7 @@ function smtpConfig() {
       auth: { user: SMTP_USER, pass: SMTP_PASS },
     },
     from: MAIL_FROM || SMTP_USER,
+    noreplyFrom: process.env.MAIL_FROM_NOREPLY || MAIL_FROM || SMTP_USER,
     to: MAIL_TO,
   };
 }
@@ -53,7 +60,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
   if (config) {
     smtp ??= nodemailer.createTransport(config.transport);
     await smtp.sendMail({
-      from: config.from,
+      from: mail.sender === "noreply" ? config.noreplyFrom : config.from,
       to: mail.to ?? config.to,
       replyTo: mail.replyTo,
       subject: mail.subject,
@@ -70,7 +77,8 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
 async function writeToOutbox(mail: OutgoingMail) {
   const outbox = nodemailer.createTransport({ streamTransport: true, buffer: true });
   const info = await outbox.sendMail({
-    from: process.env.MAIL_FROM || "website@localhost",
+    from:
+      (mail.sender === "noreply" && process.env.MAIL_FROM_NOREPLY) || process.env.MAIL_FROM || "website@localhost",
     to: mail.to ?? (process.env.MAIL_TO || "artist@localhost"),
     replyTo: mail.replyTo,
     subject: mail.subject,

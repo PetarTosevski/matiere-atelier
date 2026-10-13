@@ -184,5 +184,5 @@ async function sendConfirmation(
   };
   const t = await getTranslations({ locale, namespace: "ConfirmationEmail" });
   const message = buildConfirmationEmail(input, (key, params) => t(key as never, params as never));
-  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL });
+  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL, sender: "noreply" });
 }

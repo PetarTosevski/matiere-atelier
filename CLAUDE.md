@@ -94,6 +94,7 @@ src/
       login/page.tsx              customer Sign in | Create account | Forgot password (welcome view once signed in)
       account/page.tsx            My Collection (?tab=details: Account details, Change password)
       account/reset/page.tsx      new password from an emailed link
+      account/verify/page.tsx     confirm a new account's email (a button, so mail scanners can't use the link up)
     admin/                        Not localized, never linked from the site
       layout.tsx                  own <html>; default-locale copy; noindex
       actions.ts                  every admin server action (each checks the session)
@@ -109,7 +110,7 @@ src/
     OriginalsGrid.tsx, ArtworkBody.tsx, OriginalsIntro.tsx, grid.ts  storefront Originals and artwork page parts
     admin/                        login (AdminAuthShell, LoginForm, reset forms), About form, MarkdownField (toolbar + preview)
     auth/                         fields shared by admin and customer forms (Show password, Keep me signed in), ForgotPasswordForm, NewPasswordForm
-    account/                      account hint (localStorage), AccountButton (header Login / My account), LoginScreen, AccountForms, SignOutButton
+    account/                      account hint (localStorage), AccountButton (header Login / My account), LoginScreen, AccountForms, VerifyEmailForm, SignOutButton
     admin/collection/             CollectionEditor (state, toolbar, publish), WorkCard, EditPanel, ImagesField, upload helper
     cart/                         cart store (localStorage), provider, notices, cart page view
     currency/                     visitor currency: store (localStorage), provider, DisplayPrice, CurrencySwitcher
@@ -246,7 +247,8 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Passwords: at least 8 characters, at most 72 bytes (bcrypt's limit; longer is refused, not cut). Changing or resetting a password bumps `sessionVersion`, which signs out every other session.
 - Reset: "Forgot password?" emails a one-time link (30 minutes; only its SHA-256 is stored in `passwordResets`) to the account's address. The answer is the same whether or not the account exists, and sign-in takes as long for unknown emails. Rate limits (Convex): sign-in 10 / 15 min, create 5 / hour, reset 5 / 15 min per IP; password change 5 / 15 min per account.
 - **The admin is also a user** (2026-10-12): signing in as the admin also signs in the admin's own customer account (email = `ADMIN_USERNAME`, made on first sign-in, first name taken from the email and editable). The admin's email on `/login` signs into both with the admin password; "Create account" refuses it; "Forgot password?" sends the admin reset link; Change password changes the admin password. Signing out anywhere (header, account page, admin bar) ends both sessions. Every admin page calls `syncAdminAccountAction`, so the header never shows another customer or "Login" while the admin is signed in. Rules in `lib/admin-account.ts`.
-- Changing the account email is not built (the page says to get in touch). No email verification yet.
+- Email verification (2026-10-13): "Create account" doesn't sign in. It emails a one-time link (24 hours, from the noreply sender; subject `verify:<id>` in `passwordResets`) and shows "Check your inbox". The link opens `/account/verify`, whose button confirms the address (`customers.emailVerified`), signs in and shows the welcome. Signing in to an unconfirmed account with the right password sends a fresh link instead. Creating an account again for an unconfirmed email replaces it, so a stranger can't hold someone's address. A password reset (or change) also confirms, since it proves the inbox. Accounts made before this have no `emailVerified` and must confirm once; the admin's account is always confirmed.
+- Changing the account email is not built (the page says to get in touch).
 - Deleting an account (Account details, "Delete account", password to confirm; 2026-10-12): removes the customer and their reset links and signs out. Orders and messages they sent stay in `inquiries` (the artist has them by email anyway) but lose their `customerId`. The admin's own account can't be deleted there.
 - Before launch: accounts hold personal data, so the site needs a privacy policy covering them (not written yet; needs the artist's details).
 
@@ -384,6 +386,7 @@ SMTP_PORT=
 SMTP_USER=
 SMTP_PASS=
 MAIL_FROM=
+MAIL_FROM_NOREPLY=        # optional sender for automated emails (verification, resets, confirmations), e.g. "Matière <noreply@...>"; must be a Gmail "Send mail as" alias; falls back to MAIL_FROM
 MAIL_TO=                  # the artist's inbox for inquiries
 ```
 

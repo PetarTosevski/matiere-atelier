@@ -47,4 +47,9 @@ describe("parseAccountForm", () => {
     expect(result.success && result.data.password).toBe("any old one");
     expect(result.values).toEqual({});
   });
+
+  it("needs a token to confirm an email", () => {
+    expect(parseAccountForm("verifyEmail", form({ token: "abc" })).success).toBe(true);
+    expect(parseAccountForm("verifyEmail", form({ token: " " })).success).toBe(false);
+  });
 });

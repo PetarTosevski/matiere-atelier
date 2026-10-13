@@ -17,12 +17,15 @@ export function LoginScreen({
   initialView,
   resetDone,
   deleted,
+  verified,
   signedIn,
 }: {
   initialView: LoginView;
   resetDone: boolean;
   /** Just deleted their account. */
   deleted: boolean;
+  /** Just confirmed their email from the link (and is signed in now). */
+  verified: boolean;
   /** Who is signed in, when the page found a session. */
   signedIn: AccountHint | null;
 }) {
@@ -34,15 +37,20 @@ export function LoginScreen({
   const [signIn, signInFormAction, signingIn] = useActionState(signInAction, idle);
   const [create, createFormAction, creating] = useActionState(createAccountAction, idle);
   const doneRef = useRef<HTMLHeadingElement>(null);
+  const inboxRef = useRef<HTMLHeadingElement>(null);
+  // The "check your inbox" notice last dismissed with "Back to sign in".
+  const [dismissed, setDismissed] = useState<SignInState | null>(null);
 
   const done =
     signIn.status === "signedIn"
       ? signIn
       : create.status === "signedIn"
         ? create
-        : signedIn && { ...signedIn, created: false };
+        : signedIn && { ...signedIn, created: verified };
 
-  const justSignedIn = signIn.status === "signedIn" || create.status === "signedIn";
+  const justSignedIn = signIn.status === "signedIn" || create.status === "signedIn" || verified;
+  const sentState = create.status === "verifySent" ? create : signIn.status === "verifySent" ? signIn : null;
+  const sent = sentState !== dismissed && sentState?.status === "verifySent" ? sentState : null;
   const firstName = done?.firstName;
   const name = done?.name;
   const email = done?.email;
@@ -56,6 +64,10 @@ export function LoginScreen({
   useEffect(() => {
     if (justSignedIn) doneRef.current?.focus();
   }, [justSignedIn]);
+
+  useEffect(() => {
+    if (sent) inboxRef.current?.focus();
+  }, [sent]);
 
   if (done) {
     return (
@@ -75,6 +87,33 @@ export function LoginScreen({
           <Link href="/account" className="button-primary">{t("viewCollection")}</Link>
           <Link href="/originals" className="button-quiet">{t("continueBrowsing")}</Link>
         </div>
+      </div>
+    );
+  }
+
+  if (sent) {
+    return (
+      <div role="status" className="space-y-6">
+        <h1 ref={inboxRef} tabIndex={-1} className="heading-display focus:outline-none">
+          {t.rich("checkInboxHeading", { em: (chunks) => <em>{chunks}</em> })}
+        </h1>
+        <p>
+          {t.rich(sent.resent ? "verifyResent" : "verifySent", {
+            email: sent.email,
+            strong: (chunks) => <strong>{chunks}</strong>,
+          })}
+        </p>
+        <p className="text-sm text-muted">{t("verifySpam")}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setDismissed(sentState);
+            setView("signin");
+          }}
+          className="link inline-flex min-h-11 items-center text-sm"
+        >
+          {tAuth("backToSignIn")}
+        </button>
       </div>
     );
   }
