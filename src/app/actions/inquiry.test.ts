@@ -2,7 +2,7 @@ import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { artworks } from "@/data/artworks";
 import { resetRateLimits } from "@/lib/rate-limit";
-import { INQUIRIES_EMAIL } from "@/lib/site";
+import { STUDIO_EMAIL } from "@/lib/site";
 import messages from "../../../messages/en.json";
 import { submitInquiry, type InquiryState } from "./inquiry";
 
@@ -60,9 +60,10 @@ describe("submitInquiry", () => {
     expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
       replyTo: "ana@example.com",
       subject: "Message from Ana",
-      sender: "inquiries",
     });
     expect(mocks.sendMail.mock.calls[0]![0].to).toBeUndefined();
+    // inquiries@ only receives: nothing is sent from it, and no inquiry email uses noreply.
+    for (const [mail] of mocks.sendMail.mock.calls) expect(mail.sender).toBeUndefined();
   });
 
   it("confirms to the visitor without repeating what they typed", async () => {
@@ -70,8 +71,7 @@ describe("submitInquiry", () => {
     const confirmation = mocks.sendMail.mock.calls[1]![0];
     expect(confirmation).toMatchObject({
       to: "ana@example.com",
-      replyTo: INQUIRIES_EMAIL,
-      sender: "inquiries",
+      replyTo: STUDIO_EMAIL,
       subject: "Your message to Matière Atelier",
     });
     expect(confirmation.html).toContain("/email/brush-stroke.png");

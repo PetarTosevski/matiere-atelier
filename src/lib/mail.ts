@@ -18,21 +18,18 @@ export type OutgoingMail = {
   /** Defaults to the artist's inbox (MAIL_TO); password reset links go to the account's email. */
   to?: string;
   /**
-   * Who it comes from, when not MAIL_FROM: "noreply" for account emails
-   * (verification, password resets, account deleted) from MAIL_FROM_NOREPLY,
-   * "inquiries" for inquiries (to the artist, and the visitor's confirmation)
-   * from MAIL_FROM_INQUIRIES. Each falls
-   * back to MAIL_FROM. Gmail sends from an address only if it is a "Send mail
-   * as" alias of SMTP_USER.
+   * "noreply" for account emails (verification, password resets, account
+   * deleted): sent from MAIL_FROM_NOREPLY when set. Everything else comes
+   * from MAIL_FROM (studio@). Gmail sends from an address only if it is a
+   * "Send mail as" alias of SMTP_USER.
    */
   sender?: Sender;
 };
 
-type Sender = "noreply" | "inquiries";
+type Sender = "noreply";
 
 const SENDER_ENV: Record<Sender, string> = {
   noreply: "MAIL_FROM_NOREPLY",
-  inquiries: "MAIL_FROM_INQUIRIES",
 };
 
 /** The From address for `sender`, or undefined to use MAIL_FROM. */

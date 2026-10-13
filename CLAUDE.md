@@ -279,12 +279,12 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ### Commissions, About, Contact
 - Commissions: intro copy (placeholder until the artist provides text) and a form with name, email, description of the desired piece, approximate size, and an optional budget. Sends a `COMMISSION` inquiry.
 - About: portrait and bio placeholders.
-- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. Who sends what (2026-10-13): inquiries reach the artist (`MAIL_TO`) from inquiries@ (`MAIL_FROM_INQUIRIES`), reply-to the visitor, with a subject per type ("Commission inquiry from Ana"); the visitor's confirmation also comes from inquiries@ (reply-to `INQUIRIES_EMAIL`); noreply@ (`MAIL_FROM_NOREPLY`) sends only account emails: verification, password resets and "account deleted". The artist's replies go out from studio@ by Gmail settings (studio@ as the default Send-as address, "Always reply from default address"), not code. The other Workspace aliases (orders, commissions, privacy, newsletter, shop) are not used yet.
+- Contact: name, email, message. Sends a `CONTACT` inquiry. Above the form, a "Prefer email?" line links to `STUDIO_EMAIL`. Who sends what (2026-10-13): inquiries@ only receives: inquiries go to it (`MAIL_TO`), reply-to the visitor, with a subject per type ("Commission inquiry from Ana"). Every email a visitor gets comes from studio@ (`MAIL_FROM`), the inquiry confirmation included (reply-to `STUDIO_EMAIL`), except account emails, which come from noreply@ (`MAIL_FROM_NOREPLY`): verification, password resets and "account deleted". The artist's replies go out from studio@ by Gmail settings (studio@ as the default Send-as address, "Always reply from default address"), not code. The other Workspace aliases (orders, commissions, privacy, newsletter, shop) are not used yet.
 
 ### Forms
 - One shared `InquiryForm` component, configured by `InquiryType`.
 - Server action validates with Zod, includes a honeypot field and a simple per-IP rate limit, then emails `MAIL_TO` with reply-to set to the sender.
-- Then the visitor gets a confirmation email (2026-10-13, `lib/confirmation-email.ts`): "Thank you" over a dry-brush stroke in the light theme's olive, a line per inquiry type (orders: nothing has been charged), the piece or pieces with prices for Request and Order, and a link back to the site. HTML with a plain-text version; the stroke is a PNG served from the site (`/email/brush-stroke.png`), so it shows once images load. It comes from inquiries@ (`MAIL_FROM_INQUIRIES`, falling back to `MAIL_FROM`) with reply-to `INQUIRIES_EMAIL`. It never repeats what the visitor typed (name, message), so the form can't be used to mail someone else chosen words. It is sent only after the artist's email succeeds, and a failed confirmation doesn't fail the inquiry.
+- Then the visitor gets a confirmation email (2026-10-13, `lib/confirmation-email.ts`): "Thank you" over a dry-brush stroke in the light theme's olive, a line per inquiry type (orders: nothing has been charged), the piece or pieces with prices for Request and Order, and a link back to the site. HTML with a plain-text version; the stroke is a PNG served from the site (`/email/brush-stroke.png`), so it shows once images load. It comes from studio@ (`MAIL_FROM`) with reply-to `STUDIO_EMAIL`. It never repeats what the visitor typed (name, message), so the form can't be used to mail someone else chosen words. It is sent only after the artist's email succeeds, and a failed confirmation doesn't fail the inquiry.
 - Clear success and error states written in plain language.
 
 ### Cart
@@ -385,10 +385,9 @@ SMTP_HOST=
 SMTP_PORT=
 SMTP_USER=
 SMTP_PASS=
-MAIL_FROM=
+MAIL_FROM=                # studio@: sender of every email except account emails, e.g. "Matière <studio@...>"
 MAIL_FROM_NOREPLY=        # optional: sender of account emails (verification, password resets, account deleted), e.g. "Matière <noreply@...>"; a Gmail "Send mail as" alias; falls back to MAIL_FROM
-MAIL_FROM_INQUIRIES=      # optional: sender of inquiries to the artist and the visitor's confirmation, e.g. "Matière <inquiries@...>"; same rules
-MAIL_TO=                  # the artist's inbox for inquiries
+MAIL_TO=                  # where inquiries arrive: inquiries@ (receives only)
 ```
 
 ## Design

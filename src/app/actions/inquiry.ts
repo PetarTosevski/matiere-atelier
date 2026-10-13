@@ -22,7 +22,7 @@ import { sendMail } from "@/lib/mail";
 import { isCartEnabled } from "@/lib/pricing";
 import { rateLimit } from "@/lib/rate-limit";
 import { getSiteSettings } from "@/lib/settings";
-import { getSiteUrl, INQUIRIES_EMAIL, SITE_NAME } from "@/lib/site";
+import { getSiteUrl, SITE_NAME, STUDIO_EMAIL } from "@/lib/site";
 
 export type InquiryErrorKey =
   | "invalid"
@@ -146,8 +146,8 @@ export async function submitInquiry(
   });
 
   try {
-    // From inquiries@ to the artist's inbox; replying goes to the visitor.
-    await sendMail({ ...message, replyTo: result.data.email, sender: "inquiries" });
+    // To the artist's inquiries inbox (MAIL_TO); replying goes to the visitor.
+    await sendMail({ ...message, replyTo: result.data.email });
     if (stored) await markInquiryEmailed(stored);
   } catch (error) {
     console.error("[inquiry] sending failed", error);
@@ -164,7 +164,7 @@ export async function submitInquiry(
   return { status: "success" };
 }
 
-/** The "we got your message" email to the visitor, in their locale, from and replied to inquiries@. */
+/** The "we got your message" email to the visitor, in their locale, from the studio (MAIL_FROM); replies go to studio@. */
 async function sendConfirmation(
   email: InquiryEmailInput,
   origin: string,
@@ -185,5 +185,5 @@ async function sendConfirmation(
   };
   const t = await getTranslations({ locale, namespace: "ConfirmationEmail" });
   const message = buildConfirmationEmail(input, (key, params) => t(key as never, params as never));
-  await sendMail({ ...message, to: email.data.email, replyTo: INQUIRIES_EMAIL, sender: "inquiries" });
+  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL });
 }
