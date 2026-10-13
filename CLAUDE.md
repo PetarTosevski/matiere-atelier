@@ -48,6 +48,7 @@ npm run test           # vitest run: unit tests and price-hiding render tests
 npx convex dev         # runs alongside npm run dev; pushes convex/ functions and schema on save
 npm run db:seed        # imports src/data/artworks.ts and its images into Convex (-- --reset to start over)
 npm run hash-password  # prints an ADMIN_PASSWORD_HASH line for .env (password typed hidden)
+npm run brand-images   # redraws the icons and the default share image (after a palette or name change)
 ```
 
 Run `lint`, `typecheck` and `test` before calling any task done.
@@ -68,6 +69,8 @@ src/
   app/
     layout.tsx                    pass-through root layout (imports globals.css)
     not-found.tsx                 404 for requests outside the locale routes
+    robots.ts, sitemap.ts         crawlers kept out until ALLOW_INDEXING=true; sitemap lists pages and published artworks
+    icon.png, apple-icon.png      site icons (npm run brand-images)
     globals.css                   base styles and small utilities
     tokens.css                    design tokens: the one file to change for palette and type
     fonts.ts                      Karla and Cormorant Garamond via next/font
@@ -155,6 +158,7 @@ messages/
 scripts/
   seed.mts          npm run db:seed (runs on Node's built-in TypeScript support)
   hash-password.mts npm run hash-password
+  brand-images.mts  npm run brand-images (next/og, Google Fonts TTFs fetched while drawing)
 convex/             Convex schema and functions (database and file storage)
   schema.ts         tables: artworks, aboutPage, siteSettings, inquiries, rateLimits, customers, passwordResets, adminCredentials
   storage.ts        deleteFilesIfPresent(): file cleanup that skips already-deleted files
@@ -162,6 +166,7 @@ convex/             Convex schema and functions (database and file storage)
   artworks.ts, pages.ts, settings.ts, inquiries.ts, rateLimits.ts, files.ts
 public/
   placeholders/     generated placeholder paintings, until real photos arrive
+  share-image.png   default Open Graph image (defaultShareImage() in lib/metadata.ts); artwork pages use their cover
 ```
 
 `lib/artworks.ts` exposes the same functions in both phases (`getPublishedArtworks()`, `getArtworkBySlug()`, and so on). Phase 2 swaps the static file for Convex inside this module without touching pages.
@@ -256,6 +261,11 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Details: title, dimensions, price, availability, primary action (from `getPriceView`), then the rendered markdown description.
 - Unknown or unpublished slugs return 404.
 - Metadata: page title, description excerpt, cover image as Open Graph image. Follow the price hiding rules.
+
+### Search engines and sharing
+- Until launch, `robots.txt` disallows everything and every storefront page sends `noindex, nofollow` (admin pages always do). Setting `ALLOW_INDEXING=true` in Vercel and redeploying opens the site and adds the sitemap to `robots.txt`. `/admin` is never named in `robots.txt`.
+- `sitemap.xml` lists Originals, Commissions, About, Contact and every published artwork (with its cover); admin changes refresh it.
+- Pages that aren't an artwork share `public/share-image.png`. It sits in the `[locale]` layout's `openGraph.images`, not in an `opengraph-image` file, because a segment's `openGraph` replaces its parent's, and a file under `[locale]` gets a `/-/` address.
 
 ### Request page (`/request/[slug]`)
 - Same layout as Contact, with the piece's thumbnail and title shown read-only above the form.
@@ -364,6 +374,7 @@ CONVEX_SERVER_SECRET=     # long random string; also set in Convex: npx convex e
 ADMIN_USERNAME=           # the admin's email address (sign-in name, and where reset links go)
 ADMIN_PASSWORD_HASH=      # from npm run hash-password
 SESSION_SECRET=           # at least 32 random characters
+ALLOW_INDEXING=           # "true" at launch lets search engines in (then redeploy); unset keeps them out
 SMTP_HOST=
 SMTP_PORT=
 SMTP_USER=

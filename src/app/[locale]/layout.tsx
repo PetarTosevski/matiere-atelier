@@ -12,7 +12,7 @@ import { ThemeScript } from "@/components/theme/ThemeScript";
 import { toLocale } from "@/i18n/locale";
 import { routing } from "@/i18n/routing";
 import { getExchangeRates } from "@/lib/exchange-rates";
-import { baseOpenGraph } from "@/lib/metadata";
+import { baseOpenGraph, defaultShareImage } from "@/lib/metadata";
 import { isCartEnabled } from "@/lib/pricing";
 import { getSiteSettings } from "@/lib/settings";
 import { getSiteUrl, isIndexingAllowed, SITE_NAME } from "@/lib/site";
@@ -34,7 +34,10 @@ export async function generateMetadata({
       template: t("titleTemplate", { siteName: SITE_NAME }),
     },
     description: t("description"),
-    openGraph: baseOpenGraph(locale),
+    openGraph: {
+      ...baseOpenGraph(locale),
+      images: [defaultShareImage(`${SITE_NAME}: ${t("description")}`)],
+    },
     // Until launch, ask search engines not to index (robots.txt also blocks them).
     robots: isIndexingAllowed() ? undefined : { index: false, follow: false },
   };

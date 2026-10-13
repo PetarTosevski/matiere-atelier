@@ -10,7 +10,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed.mts",
-    "hash-password": "node scripts/hash-password.mts"
+    "hash-password": "node scripts/hash-password.mts",
+    "brand-images": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/brand-images.mts"
   },
   "dependencies": {
     "bcryptjs": "3.0.3",

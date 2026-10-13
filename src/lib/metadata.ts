@@ -9,6 +9,14 @@ export function baseOpenGraph(locale: string) {
 }
 
 /**
+ * The share image for pages that aren't an artwork (artwork pages use their
+ * cover). Drawn by `npm run brand-images`.
+ */
+export function defaultShareImage(alt: string) {
+  return { url: "/share-image.png", width: 1200, height: 630, alt };
+}
+
+/**
  * Metadata for an artwork page. Prices are never included here, so a hidden
  * price can't leak through the title, description or Open Graph tags.
  */
