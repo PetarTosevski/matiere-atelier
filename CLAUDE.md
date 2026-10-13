@@ -234,7 +234,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 ## Phase 1: storefront
 
 ### Layout
-- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, theme toggle, "Cart (n)" link, "Login" button (or "My account" with a menu once signed in; from 768 px, in the menu below), all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
+- Header: wordmark (links to Originals), nav (Originals, Commissions, About, Contact), currency switcher, "Cart (n)" link, "Login" button (or "My account" with a menu once signed in; from 768 px, in the menu below), then the theme toggle at the far right, all in small tracked capitals, with a thin line under the header. Below 768 px the nav collapses into a menu (two-line icon); the header currency switcher and theme toggle show from 1024 px, and are in the menu and footer otherwise.
 - Footer: copyright line, Instagram and Contact links and the studio email (`STUDIO_EMAIL`, a mailto link; Instagram URL from config, placeholder for now), currency switcher, theme toggle.
 - No search.
 

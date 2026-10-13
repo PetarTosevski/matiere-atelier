@@ -25,13 +25,16 @@ export async function Header() {
           <nav aria-label={t("mainNavLabel")} className="hidden md:block">
             <NavLinks />
           </nav>
-          <div className="hidden items-center gap-8 lg:flex">
+          <div className="hidden lg:flex">
             <CurrencySwitcher />
-            <ThemeToggle siteTheme={settings.theme} />
           </div>
           {showCart && <CartLink />}
           <div className="hidden md:block">
             <AccountButton />
+          </div>
+          {/* Far right, after Login / My account. */}
+          <div className="hidden lg:flex">
+            <ThemeToggle siteTheme={settings.theme} />
           </div>
           <MobileMenu openLabel={t("openMenu")} closeLabel={t("closeMenu")}>
             <nav aria-label={t("mainNavLabel")}>
