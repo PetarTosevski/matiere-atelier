@@ -415,6 +415,7 @@ Decided:
 - "Edit page layout": reordering artworks plus editing the About page (portrait and bio) in the admin (2026-10-11).
 - HEIC uploads are rejected with a message (2026-10-11).
 - Light mode: visitors switch for themselves; the admin sets the default for everyone (2026-10-12).
+- Buttons: keep the current outline style (`button-primary`: accent outline that fills on hover, filled in the light theme; `button-quiet`: hairline box). Compared against solid, gallery-label, pill, arrow, sweep, passe-partout, capitals, quiet-outline and hanging-mark styles on 2026-10-13; no Material UI.
 - Shop currency: one site-wide currency, switchable in the admin among the `SHOP_CURRENCIES` (AUD and the Asian currencies added 2026-10-12); switching relabels prices, and "Convert prices" converts them at the ECB rate, rounded to whole amounts (2026-10-11, conversion added 2026-10-12).
 - Database and file storage: Convex, Free or Starter plan (2026-10-11). Replaces the earlier Prisma + SQLite + local uploads plan.
 - Hosting: Vercel Hobby for now, until the artist starts selling (2026-10-13). Hobby's terms are non-commercial only, so the site moves to a paid plan or another host before taking real orders.
