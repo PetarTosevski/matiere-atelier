@@ -74,4 +74,4 @@
 sync:
     remote: "git+ssh://git@github.com/PetarTosevski/matiere-atelier-beads.git"
 
-# remote: "git+ssh://git@github.com/PetarTosevski/matiere-atelier.git"
+# remote: "git+ssh://git@github.com/PetarTosevski/matiere-atelier-beads.git"

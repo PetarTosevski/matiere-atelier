@@ -424,6 +424,7 @@ Decided:
 - Hosting: Vercel Hobby for now, until the artist starts selling (2026-10-13). Hobby's terms are non-commercial only, so the site moves to a paid plan or another host before taking real orders.
 - Deploys: every push to `master` deploys to production. Commits must be authored with the email on the developer's GitHub and Vercel accounts; Vercel Hobby blocks deployments whose commit author it can't match (the WSL default `petar@DESKTOP-…localdomain` was blocked, fixed 2026-10-13).
 - Git hosting: private GitHub repository https://github.com/PetarTosevski/matiere-atelier (default branch `master`, renamed from `main` on 2026-10-12).
+- Beads task data syncs to its own private repo, https://github.com/PetarTosevski/matiere-atelier-beads (2026-10-13), not the site repo: Dolt's `__dolt_remote_info__` branch there triggered Vercel preview builds and GitHub pull request banners. Set in `.beads/config.yaml` (`sync.remote`) and `bd dolt remote list`.
 
 ## Later (do not build yet)
 
