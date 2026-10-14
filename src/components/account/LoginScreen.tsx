@@ -189,7 +189,6 @@ export function LoginScreen({
       <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${view}`} className="space-y-6">
         {resetDone && !isCreate && <FormSuccess>{t("resetDone")}</FormSuccess>}
         {deleted && <FormSuccess>{t("deleted")}</FormSuccess>}
-        <FormAlert>{state.status === "error" && t("errors", { error: state.error })}</FormAlert>
         {/* key: switching tabs starts each form fresh. */}
         <form key={view} action={isCreate ? createFormAction : signInFormAction} noValidate className="space-y-5">
           {isCreate && (
@@ -218,6 +217,8 @@ export function LoginScreen({
             <button type="submit" disabled={signingIn || creating} className="button-primary w-full">
               {isCreate ? (creating ? t("creating") : t("create")) : signingIn ? t("signingIn") : t("signIn")}
             </button>
+            {/* Under the button, where the eye is after clicking; the field itself says what to fix. */}
+            <FormAlert className="mt-4">{state.status === "error" && t("errors", { error: state.error })}</FormAlert>
           </div>
         </form>
       </div>

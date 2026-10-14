@@ -120,10 +120,10 @@ export function Checkbox({ label, name, defaultChecked }: { label: ReactNode; na
 }
 
 /** The message at the top of a form; announced when it appears. */
-export function FormAlert({ children }: { children: ReactNode }) {
+export function FormAlert({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div role="alert">
-      {children && <p className="border-l-2 border-accent pl-3">{children}</p>}
+      {children && <p className={`border-l-2 border-accent pl-3 ${className}`}>{children}</p>}
     </div>
   );
 }
