@@ -5,6 +5,7 @@ import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { createAccountAction, forgotPasswordAction, signInAction, type SignInState } from "@/app/actions/account";
 import { Checkbox, FormAlert, FormSuccess, PasswordField, TextField } from "@/components/auth/fields";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
+import { Turnstile } from "@/components/Turnstile";
 import { Link } from "@/i18n/navigation";
 import { accountStore, type AccountHint } from "./account-store";
 
@@ -193,9 +194,12 @@ export function LoginScreen({
               </button>
             </div>
           )}
-          <button type="submit" disabled={signingIn || creating} className="button-primary w-full">
-            {isCreate ? (creating ? t("creating") : t("create")) : signingIn ? t("signingIn") : t("signIn")}
-          </button>
+          <div>
+            {isCreate && <Turnstile action="create-account" resetOn={create} />}
+            <button type="submit" disabled={signingIn || creating} className="button-primary w-full">
+              {isCreate ? (creating ? t("creating") : t("create")) : signingIn ? t("signingIn") : t("signIn")}
+            </button>
+          </div>
         </form>
       </div>
     </div>

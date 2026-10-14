@@ -17,6 +17,7 @@ import {
 } from "@/lib/inquiry";
 import { buildConfirmationEmail, type ConfirmationEmailInput } from "@/lib/confirmation-email";
 import { buildInquiryEmail, type InquiryEmailInput } from "@/lib/inquiry-email";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { domainAcceptsMail } from "@/lib/email-domain";
 import { recordInquiry, markInquiryEmailed } from "@/lib/inquiries";
 import { sendMail } from "@/lib/mail";
@@ -30,7 +31,8 @@ export type InquiryErrorKey =
   | "rateLimited"
   | "unavailable"
   | "cartChanged"
-  | "sendFailed";
+  | "sendFailed"
+  | "botCheck";
 
 export type InquiryState =
   | { status: "idle" }
@@ -79,6 +81,9 @@ export async function submitInquiry(
     return { status: "error", error: "invalid", fieldErrors: result.fieldErrors, values };
   }
 
+  if (!(await verifyTurnstile(form, await clientIp()))) {
+    return { status: "error", error: "botCheck", values };
+  }
   if (!(await rateLimit(`inquiry:${await clientIp()}`, LIMIT))) {
     return { status: "error", error: "rateLimited", values };
   }

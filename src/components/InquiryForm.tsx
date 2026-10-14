@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { accountStore } from "@/components/account/account-store";
 import { submitInquiry, type InquiryState } from "@/app/actions/inquiry";
+import { Turnstile } from "@/components/Turnstile";
 import { HONEYPOT_FIELD, inquiryFields, type InquiryField } from "@/lib/inquiry";
 import type { InquiryType } from "@/lib/types";
 
@@ -140,9 +141,13 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
         />
       </div>
 
-      <button type="submit" disabled={pending} className="button-primary w-full sm:w-auto">
-        {pending ? t("sending") : t("submit", { type })}
-      </button>
+      {/* The bot check sits on top of the button in case it asks for a click. */}
+      <div>
+        <Turnstile action="inquiry" resetOn={state} />
+        <button type="submit" disabled={pending} className="button-primary w-full sm:w-auto">
+          {pending ? t("sending") : t("submit", { type })}
+        </button>
+      </div>
     </form>
   );
 }

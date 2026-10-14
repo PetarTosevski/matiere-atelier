@@ -21,6 +21,7 @@ import {
 } from "@/lib/customer-auth";
 import { changeAdminPassword, isAdminEmail, sendAdminResetEmail, signInAsAdmin, signOutEverywhere } from "@/lib/admin-account";
 import { verifyCredentials } from "@/lib/auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { domainAcceptsMail } from "@/lib/email-domain";
 import { sendMail } from "@/lib/mail";
 import { burnPasswordCheck, checkPassword, hashPassword, VERIFY_LINK_MS } from "@/lib/password";
@@ -40,7 +41,8 @@ export type AccountErrorKey =
   | "sendFailed"
   | "expired"
   | "wrongCurrent"
-  | "adminAccount";
+  | "adminAccount"
+  | "botCheck";
 
 export type SignInState =
   | { status: "idle" }
@@ -125,6 +127,9 @@ export async function createAccountAction(_previous: SignInState, form: FormData
   if (!areAccountsAvailable()) return { status: "error", error: "notConfigured" };
   const parsed = parseAccountForm("createAccount", form);
   if (!parsed.success) return { status: "error", error: "invalid", fieldErrors: parsed.fieldErrors, values: parsed.values };
+  if (!(await verifyTurnstile(form, await clientIp()))) {
+    return { status: "error", error: "botCheck", values: parsed.values };
+  }
   if (!(await rateLimit(`account-create:${await clientIp()}`, { limit: 5, windowMs: 60 * 60 * 1000 }))) {
     return { status: "error", error: "rateLimited", values: parsed.values };
   }

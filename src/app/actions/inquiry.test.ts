@@ -9,11 +9,13 @@ import { submitInquiry, type InquiryState } from "./inquiry";
 const mocks = vi.hoisted(() => ({
   sendMail: vi.fn(),
   acceptsMail: true,
+  human: true,
   ip: "203.0.113.1",
   settings: { showPrices: true, currency: "EUR", theme: "dark" as const },
 }));
 
 vi.mock("@/lib/mail", () => ({ sendMail: mocks.sendMail }));
+vi.mock("@/lib/turnstile", () => ({ verifyTurnstile: async () => mocks.human }));
 vi.mock("@/lib/email-domain", () => ({ domainAcceptsMail: async () => mocks.acceptsMail }));
 vi.mock("@/lib/settings", () => ({
   getSiteSettings: async () => ({ ...mocks.settings }),
@@ -51,10 +53,18 @@ beforeEach(() => {
   mocks.sendMail.mockResolvedValue(undefined);
   mocks.ip = "203.0.113.1";
   mocks.acceptsMail = true;
+  mocks.human = true;
   mocks.settings = { showPrices: true, currency: "EUR", theme: "dark" as const };
 });
 
 describe("submitInquiry", () => {
+  it("refuses a form that fails the bot check and keeps what was typed", async () => {
+    mocks.human = false;
+    const state = await submitInquiry(idle, form(contact));
+    expect(state).toMatchObject({ status: "error", error: "botCheck", values: { name: "Ana", message: "Hello" } });
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
   it("refuses an address whose domain takes no mail, so nothing bounces", async () => {
     mocks.acceptsMail = false;
     const state = await submitInquiry(idle, form(contact));

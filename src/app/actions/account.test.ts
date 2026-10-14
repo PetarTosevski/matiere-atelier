@@ -16,8 +16,10 @@ const mocks = vi.hoisted(() => ({
   checkPassword: vi.fn(),
   getCustomer: vi.fn(),
   acceptsMail: true,
+  human: true,
 }));
 
+vi.mock("@/lib/turnstile", () => ({ verifyTurnstile: async () => mocks.human }));
 vi.mock("@/lib/email-domain", () => ({ domainAcceptsMail: async () => mocks.acceptsMail }));
 
 vi.mock("@/lib/convex", () => ({
@@ -88,6 +90,7 @@ beforeEach(() => {
   mocks.checkPassword.mockResolvedValue(true);
   mocks.getCustomer.mockResolvedValue(null);
   mocks.acceptsMail = true;
+  mocks.human = true;
 });
 
 describe("createAccountAction", () => {
@@ -103,6 +106,16 @@ describe("createAccountAction", () => {
     const mail = mocks.sendMail.mock.calls[0]![0];
     expect(mail).toMatchObject({ to: "ana@example.com", sender: "noreply", toVisitor: true });
     expect(mail.text).toContain("/en/account/verify?token=tok");
+  });
+
+  it("refuses a form that fails the bot check, before making the account", async () => {
+    mocks.human = false;
+    const state = await createAccountAction(
+      idle,
+      form({ locale: "en", firstName: "Ana", email: "ana@example.com", password: "12345678" }),
+    );
+    expect(state).toMatchObject({ status: "error", error: "botCheck" });
+    expect(mocks.convexMutation).not.toHaveBeenCalled();
   });
 
   it("refuses an address whose domain takes no mail, before making the account", async () => {
