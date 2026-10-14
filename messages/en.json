@@ -153,8 +153,8 @@
     },
     "formErrors": "{error, select, invalid {Please check the fields marked below.} rateLimited {You have sent several messages in a short time. Please wait a few minutes and try again.} unavailable {This piece is no longer available.} cartChanged {Your cart changed since you opened this page. Please check it and send again.} sendFailed {Your message could not be sent. Please try again later, or email the artist directly.} other {Something went wrong. Please try again.}}",
     "success": {
-      "title": "Thank you, your message was sent",
-      "body": "{type, select, COMMISSION {The artist will reply by email to talk about your commission.} REQUEST {The artist will reply by email about this piece.} other {The artist will reply by email.}}"
+      "title": "{type, select, COMMISSION {Thank you for trusting us with your commission} REQUEST {Thank you for your interest in this piece} ORDER {Thank you for your order request} other {Thank you for getting in touch}}",
+      "body": "{type, select, COMMISSION {It means a great deal that you’d like a piece made just for you. We’ll read your ideas carefully and be in touch by email soon to talk it through together.} REQUEST {We’re so glad this piece spoke to you. We’ll be in touch by email soon with everything you’d like to know.} ORDER {We’ll be in touch by email soon to arrange payment and shipping. Nothing has been charged.} other {Your message is with us, and we’ll reply by email soon.}}"
     }
   },
   "Email": {

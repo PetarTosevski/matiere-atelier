@@ -55,7 +55,7 @@ export function InquiryForm({ type, hidden = {}, onSuccess, onCartChanged }: Pro
   if (state.status === "success") {
     return (
       <div ref={successRef} tabIndex={-1} role="status" className="focus:outline-none">
-        <h2 className="font-serif text-3xl">{t("success.title")}</h2>
+        <h2 className="font-serif text-3xl">{t("success.title", { type })}</h2>
         <p className="mt-2 text-muted">{t("success.body", { type })}</p>
       </div>
     );
