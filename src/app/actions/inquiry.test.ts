@@ -60,10 +60,11 @@ describe("submitInquiry", () => {
     expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
       replyTo: "ana@example.com",
       subject: "Message from Ana",
+      sender: "inquiries",
     });
     expect(mocks.sendMail.mock.calls[0]![0].to).toBeUndefined();
-    // inquiries@ only receives: nothing is sent from it, and no inquiry email uses noreply.
-    for (const [mail] of mocks.sendMail.mock.calls) expect(mail.sender).toBeUndefined();
+    // The visitor's confirmation comes from studio@ (MAIL_FROM).
+    expect(mocks.sendMail.mock.calls[1]![0].sender).toBeUndefined();
   });
 
   it("confirms to the visitor without repeating what they typed", async () => {
