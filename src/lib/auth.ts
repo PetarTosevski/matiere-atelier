@@ -1,8 +1,10 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { api, convexMutation, convexQuery, isConvexConfigured } from "@/lib/convex";
 import { checkPassword, hashPassword } from "@/lib/password";
 import { isLive, readSession, renewSession, saveSession, type SessionTiming } from "@/lib/session";
+import { PREVIEW_COOKIE, previewCookieOptions, previewCookieValue } from "@/lib/site-lock";
 
 // Admin sign-in. The admin signs in with ADMIN_USERNAME (an email address).
 // The password hash comes from ADMIN_PASSWORD_HASH until the password is
@@ -79,6 +81,9 @@ export async function signInAdmin(remember: boolean): Promise<void> {
   session.username = adminEmail()!;
   session.version = (await credentials())?.sessionVersion ?? 0;
   await saveSession(session, COOKIE, remember);
+  // While the site is locked, the artist's browser can see the real storefront.
+  const preview = await previewCookieValue();
+  if (preview) (await cookies()).set(PREVIEW_COOKIE, preview, previewCookieOptions);
 }
 
 export async function signOutAdmin(): Promise<void> {

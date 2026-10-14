@@ -110,6 +110,12 @@
     "body": "This page doesn't exist, or the piece is no longer on show.",
     "backToOriginals": "See all originals"
   },
+  "ComingSoon": {
+    "description": "Original paintings, available directly from the studio. Opening soon.",
+    "title": "Opening <em>soon</em>",
+    "body": "Original paintings, available directly from the studio. The shop opens soon; until then, you can follow along on Instagram or write to the studio.",
+    "instagram": "Instagram"
+  },
   "CartNotices": {
     "removed": "{title} was removed from your cart because {reason, select, SOLD {it has sold} other {it is no longer for sale}}.",
     "unavailable": "A piece in your cart is no longer available and was removed.",

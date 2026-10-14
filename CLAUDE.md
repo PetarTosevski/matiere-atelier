@@ -60,7 +60,7 @@ To preview showcase mode locally, set `showPrices: false` in `src/data/settings.
 
 ```
 src/
-  proxy.ts                        next-intl locale redirects (Next 16 name for middleware)
+  proxy.ts                        next-intl locale redirects (Next 16 name for middleware); the pre-launch site lock
   global.d.ts                     types next-intl locales and message keys from en.json
   i18n/
     routing.ts                    locales list (only "en" for now)
@@ -70,7 +70,8 @@ src/
   app/
     layout.tsx                    pass-through root layout (imports globals.css)
     not-found.tsx                 404 for requests outside the locale routes
-    robots.ts, sitemap.ts         crawlers kept out until ALLOW_INDEXING=true; sitemap lists pages and published artworks
+    robots.ts, sitemap.ts         crawlers kept out until ALLOW_INDEXING=true; sitemap lists pages and published artworks (nothing while locked)
+    coming-soon/page.tsx          "Opening soon" holding page, own <html>; the proxy rewrites to it while SITE_LOCKED=true
     icon.png, apple-icon.png      site icons (npm run brand-images)
     globals.css                   base styles and small utilities
     tokens.css                    design tokens: the one file to change for palette and type
@@ -153,6 +154,7 @@ src/
     markdown-format.ts  toolbar edits for the description field
     order.ts        compareArtworks(): Originals order, usable in the browser too
     admin-hint.ts   adminEditTarget(): where the storefront's Edit link goes from each page
+    site-lock.ts    pre-launch lock: SITE_LOCKED, preview token and cookie (used by the proxy)
   data/
     artworks.ts     Phase 1 artwork data
     settings.ts     Phase 1 site settings
@@ -270,6 +272,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 
 ### Search engines and sharing
 - Until launch, `robots.txt` disallows everything and every storefront page sends `noindex, nofollow` (admin pages always do). Setting `ALLOW_INDEXING=true` in Vercel and redeploying opens the site and adds the sitemap to `robots.txt`. `/admin` is never named in `robots.txt`.
+- **Site lock before launch** (2026-10-14): with `SITE_LOCKED=true`, `src/proxy.ts` rewrites every storefront request to the "Opening soon" page (`app/coming-soon`: wordmark, a line, Instagram and the studio email; noindex). `/admin`, `/api` and `/[locale]/unsubscribe` stay open. A browser sees the real site once it has the `matiere_preview` cookie (90 days, an HMAC of `SITE_PREVIEW_TOKEN` with `SESSION_SECRET`, so changing either revokes every cookie), set by opening any page with `?preview=<SITE_PREVIEW_TOKEN>` or by signing in to the admin. `?preview=off` removes it. At launch: delete `SITE_LOCKED` in Vercel (and set `ALLOW_INDEXING=true`), then redeploy.
 - `sitemap.xml` lists Originals, Commissions, About, Contact and every published artwork (with its cover); admin changes refresh it.
 - Pages that aren't an artwork share `public/share-image.png`. It sits in the `[locale]` layout's `openGraph.images`, not in an `opengraph-image` file, because a segment's `openGraph` replaces its parent's, and a file under `[locale]` gets a `/-/` address.
 
@@ -385,6 +388,8 @@ ADMIN_USERNAME=           # the admin's email address (sign-in name, and where r
 ADMIN_PASSWORD_HASH=      # from npm run hash-password
 SESSION_SECRET=           # at least 32 random characters
 ALLOW_INDEXING=           # "true" at launch lets search engines in (then redeploy); unset keeps them out
+SITE_LOCKED=              # "true" shows visitors the "Opening soon" page until launch (/admin stays open); unset at launch, then redeploy
+SITE_PREVIEW_TOKEN=       # long random string: any page with ?preview=<token> shows that browser the real site (?preview=off undoes it)
 SMTP_HOST=
 SMTP_PORT=
 SMTP_USER=

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { getPublishedArtworks } from "@/lib/artworks";
 import { getSiteUrl } from "@/lib/site";
+import { isSiteLocked } from "@/lib/site-lock";
 
 // Public pages and every published artwork. Drafts never appear, because
 // getPublishedArtworks() only returns published pieces. Admin changes refresh
@@ -9,6 +10,8 @@ import { getSiteUrl } from "@/lib/site";
 const PAGES = ["/originals", "/commissions", "/about", "/contact"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // While the site is hidden (SITE_LOCKED), it lists nothing.
+  if (isSiteLocked()) return [];
   const artworks = await getPublishedArtworks();
   const site = getSiteUrl();
 
