@@ -173,6 +173,26 @@
     "notGiven": "Not given",
     "replyHint": "Reply to this email to answer {name} directly."
   },
+  "NewWorkEmail": {
+    "subject": "{count, plural, one {New work: {title}} other {# new works at {siteName}}}",
+    "heading": "{count, plural, one {New work} other {New works}}",
+    "greeting": "Hello {name},",
+    "intro": "{count, plural, one {A new piece has just found its place in the studio, and you’re among the first to see it.} other {# new pieces have just found their place in the studio, and you’re among the first to see them.}}",
+    "viewPiece": "View piece",
+    "seeAll": "See all originals",
+    "footer": "You’re receiving this because you asked to hear about new work at {site}.",
+    "unsubscribe": "Unsubscribe"
+  },
+  "Unsubscribe": {
+    "metaTitle": "Unsubscribe",
+    "heading": "Stop new-work <em>emails</em>?",
+    "body": "You won’t hear from us when new pieces are released. Your account stays as it is, and you can turn the emails back on under Account details.",
+    "submit": "Unsubscribe",
+    "submitting": "Unsubscribing…",
+    "done": "You’re unsubscribed. We won’t email you about new work again.",
+    "invalid": "This unsubscribe link isn’t valid. Turn the emails off under Account details instead, or write to us.",
+    "browse": "Browse originals"
+  },
   "ConfirmationEmail": {
     "subject": "{type, select, ORDER {Your order request to {siteName}} other {Your message to {siteName}}}",
     "heading": "Thank you",

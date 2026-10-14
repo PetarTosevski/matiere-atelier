@@ -22,16 +22,20 @@ export type ConfirmationEmailInput = {
 export const BRUSH_STROKE = { path: "/email/brush-stroke.png", width: 200, height: 26 };
 
 // The light theme's colours (src/app/tokens.css): most inboxes are light.
-const PAPER = "#eee6da";
-const PANEL = "#f8f3eb";
-const INK = "#2a231c";
-const MUTED = "#5e5347";
-const ACCENT = "#4f5d2f";
-const LINE = "#ddd2c2";
-const SERIF = "'Cormorant Garamond', Georgia, 'Times New Roman', serif";
-const SANS = "Karla, 'Helvetica Neue', Arial, sans-serif";
+// Shared with the new-work email (lib/new-work-email.ts).
+export const EMAIL_STYLE = {
+  PAPER: "#eee6da",
+  PANEL: "#f8f3eb",
+  INK: "#2a231c",
+  MUTED: "#5e5347",
+  ACCENT: "#4f5d2f",
+  LINE: "#ddd2c2",
+  SERIF: "'Cormorant Garamond', Georgia, 'Times New Roman', serif",
+  SANS: "Karla, 'Helvetica Neue', Arial, sans-serif",
+};
+const { PAPER, PANEL, INK, MUTED, ACCENT, LINE, SERIF, SANS } = EMAIL_STYLE;
 
-const escapeHtml = (value: string) =>
+export const escapeHtml = (value: string) =>
   value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

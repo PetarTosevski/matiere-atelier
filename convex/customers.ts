@@ -172,3 +172,27 @@ export const remove = serverMutation({
     return true;
   },
 });
+
+/**
+ * Who gets the "new work" email: accounts that ticked "Email me when new work
+ * is released" and confirmed their address (so nothing bounces).
+ */
+export const newsletterSubscribers = serverQuery({
+  args: {},
+  handler: async (ctx) => {
+    const all = await ctx.db.query("customers").collect();
+    return all
+      .filter((doc) => doc.newsletter && doc.emailVerified === true)
+      .map((doc) => ({ id: doc._id, email: doc.email, firstName: doc.firstName }));
+  },
+});
+
+/** From the unsubscribe link in a newsletter email (checked in Next.js). */
+export const unsubscribe = serverMutation({
+  args: { id: v.string() },
+  handler: async (ctx, { id }) => {
+    const customerId = ctx.db.normalizeId("customers", id);
+    const doc = customerId ? await ctx.db.get(customerId) : null;
+    if (doc?.newsletter) await ctx.db.patch(doc._id, { newsletter: false });
+  },
+});

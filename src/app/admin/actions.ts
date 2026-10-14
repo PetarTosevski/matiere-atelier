@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { parseAboutForm, type AboutFormErrors } from "@/lib/about-form";
@@ -26,6 +27,7 @@ import { isConvexConfigured } from "@/lib/convex";
 import { consumeResetToken } from "@/lib/password-reset";
 import { isShopCurrency } from "@/lib/currency";
 import { getExchangeRate, type ExchangeRate } from "@/lib/exchange-rates";
+import { announceNewWork } from "@/lib/newsletter";
 import { saveAboutPage } from "@/lib/pages";
 import type { SiteSettings } from "@/lib/types";
 import { rateLimit } from "@/lib/rate-limit";
@@ -192,13 +194,16 @@ export async function publishChangesAction(changes: unknown): Promise<PublishSta
       return { status: "error", errors: parsed.errors, failed: !hasFieldErrors };
     }
     const settings: SiteSettings = { currency: parsed.currency, showPrices: parsed.showPrices, theme: parsed.theme };
+    let announce: string[];
     try {
-      await applyCollectionChanges(settings, parsed.artworks);
+      ({ announce } = await applyCollectionChanges(settings, parsed.artworks));
     } catch (error) {
       console.error("[admin] publishing changes failed", error);
       return { status: "error", failed: true };
     }
     refreshStorefront();
+    // Pieces on the site for the first time: email subscribers once the response is sent.
+    if (announce.length > 0) after(() => announceNewWork(announce));
     const works = (await getAllArtworksForAdmin()).map(toEditorWork);
     return { status: "published", works, settings };
   });

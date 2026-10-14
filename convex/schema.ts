@@ -66,7 +66,15 @@ export const artworkFields = {
 };
 
 export default defineSchema({
-  artworks: defineTable(artworkFields)
+  artworks: defineTable({
+    ...artworkFields,
+    /**
+     * When subscribers were emailed about the piece (the first time it went on
+     * the site). Pieces already on the site when this was added get it on the
+     * next publish, without an email.
+     */
+    announcedAt: v.optional(v.number()),
+  })
     .index("by_slug", ["slug"])
     .index("by_published", ["published"]),
 

@@ -218,7 +218,10 @@ export const applyChanges = serverMutation({
     if (!/^[A-Z]{3}$/.test(currency)) throw new ConvexError("currency must be an ISO 4217 code");
 
     const ids: Id<"artworks">[] = [];
+    /** Pieces on the site for the first time: subscribers get an email about these. */
+    const announce: Id<"artworks">[] = [];
     const unusedFiles: Id<"_storage">[] = [];
+    const now = Date.now();
     for (const { id, ...artwork } of artworks) {
       // Every price is in the shop currency; amounts are never converted.
       const next = { ...artwork, currency };
@@ -228,10 +231,20 @@ export const applyChanges = serverMutation({
         if (!current) throw new ConvexError("artwork not found");
         const kept = new Set(next.images.map((image) => image.storageId));
         unusedFiles.push(...current.images.map((image) => image.storageId).filter((sid) => !kept.has(sid)));
-        await ctx.db.patch(id, next);
+        // Once on the site, a piece counts as announced: hiding and showing it again sends nothing.
+        const firstTime = next.published && !current.published && current.announcedAt === undefined;
+        const announcedAt = current.announcedAt ?? (current.published || firstTime ? now : undefined);
+        await ctx.db.patch(id, { ...next, announcedAt });
+        if (firstTime) announce.push(id);
         ids.push(id);
       } else {
-        ids.push(await ctx.db.insert("artworks", { ...next, createdAt: new Date().toISOString() }));
+        const id = await ctx.db.insert("artworks", {
+          ...next,
+          createdAt: new Date().toISOString(),
+          announcedAt: next.published ? now : undefined,
+        });
+        if (next.published) announce.push(id);
+        ids.push(id);
       }
     }
 
@@ -251,6 +264,6 @@ export const applyChanges = serverMutation({
     else await ctx.db.insert("siteSettings", { showPrices, currency, theme });
 
     await deleteFiles(ctx, unusedFiles);
-    return ids as string[];
+    return { ids: ids as string[], announce: announce as string[] };
   },
 });

@@ -23,10 +23,13 @@ export type OutgoingMail = {
    * deleted): sent from MAIL_FROM_NOREPLY when set. "inquiries" for the
    * inquiry email to the artist: from MAIL_FROM_INQUIRIES when set, so the
    * inbox can filter on it. Everything else comes from MAIL_FROM (studio@).
-   * Gmail sends from an address only if it is a "Send mail as" alias of
-   * SMTP_USER.
+   * "newsletter" for the new-work email to subscribers: from
+   * MAIL_FROM_NEWSLETTER when set. Gmail sends from an address only if it is
+   * a "Send mail as" alias of SMTP_USER.
    */
   sender?: Sender;
+  /** Extra headers, such as List-Unsubscribe on the newsletter. */
+  headers?: Record<string, string>;
   /**
    * The address was typed by a visitor (confirmations, account emails). If it
    * doesn't exist, the bounce lands in the studio's inbox, so these count
@@ -48,11 +51,12 @@ export class VisitorMailLimitError extends Error {
   }
 }
 
-type Sender = "noreply" | "inquiries";
+type Sender = "noreply" | "inquiries" | "newsletter";
 
 const SENDER_ENV: Record<Sender, string> = {
   noreply: "MAIL_FROM_NOREPLY",
   inquiries: "MAIL_FROM_INQUIRIES",
+  newsletter: "MAIL_FROM_NEWSLETTER",
 };
 
 /** The From address for `sender`, or undefined to use MAIL_FROM. */
@@ -103,6 +107,7 @@ export async function sendMail(mail: OutgoingMail): Promise<void> {
       subject: mail.subject,
       text: mail.text,
       html: mail.html,
+      headers: mail.headers,
     });
     return;
   }
@@ -120,6 +125,7 @@ async function writeToOutbox(mail: OutgoingMail) {
     subject: mail.subject,
     text: mail.text,
     html: mail.html,
+    headers: mail.headers,
   });
 
   await mkdir(OUTBOX_DIR, { recursive: true });

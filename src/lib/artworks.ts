@@ -99,7 +99,7 @@ export async function deleteArtwork(id: string): Promise<void> {
 export async function applyCollectionChanges(
   settings: SiteSettings,
   artworks: (ArtworkInput & { id: string | null })[],
-): Promise<string[]> {
+): Promise<{ ids: string[]; announce: string[] }> {
   requireConvex();
   return convexMutation(api.artworks.applyChanges, {
     currency: settings.currency,
