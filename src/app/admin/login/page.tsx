@@ -19,13 +19,18 @@ export default async function AdminLoginPage({ searchParams }: PageProps<"/admin
 
   return (
     <AdminAuthShell>
-      <AuthHeading
-        eyebrow={t("eyebrow")}
-        heading={t.rich("heading", { em: (chunks) => <em>{chunks}</em> })}
-        lede={t("lede")}
+      <LoginForm
+        heading={
+          <>
+            <AuthHeading
+              eyebrow={t("eyebrow")}
+              heading={t.rich("heading", { em: (chunks) => <em>{chunks}</em> })}
+              lede={t("lede")}
+            />
+            {reset === "done" && <FormSuccess>{t("resetDone")}</FormSuccess>}
+          </>
+        }
       />
-      {reset === "done" && <FormSuccess>{t("resetDone")}</FormSuccess>}
-      <LoginForm />
       <p className="text-sm text-muted">{t("ownerOnly")}</p>
     </AdminAuthShell>
   );

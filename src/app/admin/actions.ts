@@ -20,6 +20,7 @@ import {
   type AccountSummary,
 } from "@/lib/admin-account";
 import { getAdminSession, isAdminConfigured, requireAdmin, UnauthorizedError, verifyCredentials } from "@/lib/auth";
+import { checkAdminCode, isAdminCodeRequired, sendAdminCode } from "@/lib/admin-code";
 import { getCustomer } from "@/lib/customer-auth";
 import { isConvexConfigured } from "@/lib/convex";
 import { consumeResetToken } from "@/lib/password-reset";
@@ -58,23 +59,49 @@ function refreshStorefront() {
 // ---- Sign in ----
 
 export type LoginState = {
-  error: "invalid" | "rateLimited" | "notConfigured" | null;
+  error: "invalid" | "rateLimited" | "notConfigured" | "sendFailed" | "codeWrong" | "codeExpired" | null;
   /** Echoed back so a typo in the password doesn't clear the email. */
   email?: string;
+  /** "code": the password was right and a code went to the admin's email. */
+  step?: "code";
 };
 
+const FIFTEEN_MINUTES = 15 * 60 * 1000;
+
+/** Step one checks the password and emails a code; step two (a "code" field) checks the code. */
 export async function loginAction(_previous: LoginState, form: FormData): Promise<LoginState> {
   if (!isAdminConfigured()) return { error: "notConfigured" };
+  if (form.has("code")) return verifyCode(String(form.get("code") ?? "").slice(0, 20));
   const email = String(form.get("email") ?? "").slice(0, 254);
   const password = String(form.get("password") ?? "").slice(0, 1000);
   const remember = form.get("remember") === "on";
 
-  if (!(await rateLimit(`login:${await clientIp()}`, { limit: 5, windowMs: 15 * 60 * 1000 }))) {
+  if (!(await rateLimit(`login:${await clientIp()}`, { limit: 5, windowMs: FIFTEEN_MINUTES }))) {
     return { error: "rateLimited", email };
   }
   if (!(await verifyCredentials(email, password))) return { error: "invalid", email };
 
+  if (isAdminCodeRequired()) {
+    try {
+      await sendAdminCode(remember);
+    } catch (error) {
+      console.error("[admin] sign-in code email failed", error);
+      return { error: "sendFailed", email };
+    }
+    return { error: null, email, step: "code" };
+  }
   await signInAsAdmin(remember);
+  redirect("/admin");
+}
+
+async function verifyCode(code: string): Promise<LoginState> {
+  if (!(await rateLimit(`admin-code:${await clientIp()}`, { limit: 10, windowMs: FIFTEEN_MINUTES }))) {
+    return { error: "rateLimited", step: "code" };
+  }
+  const result = await checkAdminCode(code);
+  if (result.status === "wrong") return { error: "codeWrong", step: "code" };
+  if (result.status === "expired") return { error: "codeExpired" };
+  await signInAsAdmin(result.remember);
   redirect("/admin");
 }
 

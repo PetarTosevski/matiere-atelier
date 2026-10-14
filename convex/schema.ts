@@ -133,6 +133,8 @@ export default defineSchema({
     tokenHash: v.string(),
     subject: v.string(),
     expiresAt: v.number(),
+    /** Sign-in codes ("admin-code") only: wrong guesses so far. */
+    attempts: v.optional(v.number()),
   })
     .index("by_token", ["tokenHash"])
     .index("by_subject", ["subject"]),

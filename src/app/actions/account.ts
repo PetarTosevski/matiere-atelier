@@ -22,6 +22,7 @@ import {
 import { changeAdminPassword, isAdminEmail, sendAdminResetEmail, signInAsAdmin, signOutEverywhere } from "@/lib/admin-account";
 import { verifyCredentials } from "@/lib/auth";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { checkAdminCode, isAdminCodeRequired, sendAdminCode } from "@/lib/admin-code";
 import { domainAcceptsMail } from "@/lib/email-domain";
 import { sendMail } from "@/lib/mail";
 import { burnPasswordCheck, checkPassword, hashPassword, VERIFY_LINK_MS } from "@/lib/password";
@@ -42,14 +43,18 @@ export type AccountErrorKey =
   | "expired"
   | "wrongCurrent"
   | "adminAccount"
-  | "botCheck";
+  | "botCheck"
+  | "codeWrong"
+  | "codeExpired";
 
 export type SignInState =
   | { status: "idle" }
   | { status: "error"; error: AccountErrorKey; fieldErrors?: AccountFieldErrors; values?: Record<string, string> }
   | { status: "signedIn"; firstName: string; name: string; email: string; created: boolean }
   /** A confirmation link went to `email`: after creating an account, or signing in before confirming. */
-  | { status: "verifySent"; email: string; resent: boolean };
+  | { status: "verifySent"; email: string; resent: boolean }
+  /** The admin's email and password were right; a sign-in code went to that address. */
+  | { status: "adminCode"; email: string; error?: AccountErrorKey };
 
 export type VerifyEmailState = { error?: AccountErrorKey };
 
@@ -70,8 +75,9 @@ function localeOf(source: FormData | string) {
   return hasLocale(routing.locales, value) ? value : routing.defaultLocale;
 }
 
-export async function signInAction(_previous: SignInState, form: FormData): Promise<SignInState> {
+export async function signInAction(previous: SignInState, form: FormData): Promise<SignInState> {
   if (!areAccountsAvailable()) return { status: "error", error: "notConfigured" };
+  if (form.has("code")) return verifyAdminCode(previous, String(form.get("code") ?? "").slice(0, 20));
   const parsed = parseAccountForm("signIn", form);
   if (!parsed.success) return { status: "error", error: "invalid", fieldErrors: parsed.fieldErrors, values: parsed.values };
   if (!(await rateLimit(`account-login:${await clientIp()}`, { limit: 10, windowMs: FIFTEEN_MINUTES }))) {
@@ -87,6 +93,16 @@ export async function signInAction(_previous: SignInState, form: FormData): Prom
     }
     if (!(await verifyCredentials(email, password))) {
       return { status: "error", error: "wrongPassword", values: parsed.values };
+    }
+    // The admin also confirms a code sent to the admin's email.
+    if (isAdminCodeRequired()) {
+      try {
+        await sendAdminCode(remember);
+      } catch (error) {
+        console.error("[account] admin sign-in code email failed", error);
+        return { status: "error", error: "sendFailed", values: parsed.values };
+      }
+      return { status: "adminCode", email };
     }
     const account = await signInAsAdmin(remember);
     if (!account) return { status: "error", error: "notConfigured" };
@@ -157,6 +173,20 @@ export async function createAccountAction(_previous: SignInState, form: FormData
     return { status: "error", error: "sendFailed", values: parsed.values };
   }
   return { status: "verifySent", email, resent: false };
+}
+
+/** The admin's second step on /login: the code from the email. */
+async function verifyAdminCode(previous: SignInState, code: string): Promise<SignInState> {
+  const email = previous.status === "adminCode" ? previous.email : "";
+  if (!(await rateLimit(`admin-code:${await clientIp()}`, { limit: 10, windowMs: FIFTEEN_MINUTES }))) {
+    return { status: "adminCode", email, error: "rateLimited" };
+  }
+  const result = await checkAdminCode(code);
+  if (result.status === "wrong") return { status: "adminCode", email, error: "codeWrong" };
+  if (result.status === "expired") return { status: "error", error: "codeExpired", values: { email } };
+  const account = await signInAsAdmin(result.remember);
+  if (!account) return { status: "error", error: "notConfigured" };
+  return { status: "signedIn", ...account, created: false };
 }
 
 /** Emails a one-time link (24 hours) that confirms the address. */

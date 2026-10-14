@@ -203,7 +203,19 @@
       "ownerOnly": "This area is for the site owner only.",
       "backToShop": "← Back to the shop",
       "resetDone": "Your password has been changed. Sign in with the new one.",
-      "errors": "{error, select, invalid {The email or password is not right.} rateLimited {Too many attempts. Please wait 15 minutes and try again.} notConfigured {Sign-in is not set up yet. Set ADMIN_USERNAME (an email address), ADMIN_PASSWORD_HASH and SESSION_SECRET in .env.} other {Something went wrong. Please try again.}}"
+      "errors": "{error, select, invalid {The email or password is not right.} rateLimited {Too many attempts. Please wait 15 minutes and try again.} notConfigured {Sign-in is not set up yet. Set ADMIN_USERNAME (an email address), ADMIN_PASSWORD_HASH and SESSION_SECRET in .env.} sendFailed {The sign-in code could not be sent. Please try again later.} codeWrong {That code isn’t right. Check the email and try again.} codeExpired {That code has expired or was tried too many times. Sign in again for a new one.} other {Something went wrong. Please try again.}}"
+    },
+    "code": {
+      "heading": "Check your <em>email</em>",
+      "lede": "We sent a 6-digit code to {email}. Enter it here to finish signing in. It works for 10 minutes.",
+      "label": "Sign-in code",
+      "submit": "Verify",
+      "submitting": "Checking…",
+      "startOver": "Didn’t get it? Sign in again for a new code.",
+      "email": {
+        "subject": "{code} is your {siteName} sign-in code",
+        "body": "Your sign-in code is:\n\n{code}\n\nEnter it on the sign-in page to finish signing in. It works once, for 10 minutes.\n\nIf you didn’t just sign in, someone knows your admin password. Change it now:\n{forgotLink}"
+      }
     },
     "list": {
       "title": "Artworks",
@@ -526,7 +538,7 @@
     "confirmEmail": "Confirm email",
     "confirming": "Confirming…",
     "verifyExpired": "This link has expired or was already used. Sign in with your email and password to get a new one.",
-    "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} wrongCurrent {Your current password is not right.} adminAccount {This is the studio’s own account, so it can’t be deleted here.} botCheck {We couldn’t confirm this was sent by a person. Please wait a moment and try again.} other {Something went wrong. Please try again.}}",
+    "errors": "{error, select, invalid {Please check the highlighted fields.} wrongPassword {The email or password is not right.} emailTaken {There is already an account for this email. Sign in instead, or reset your password.} rateLimited {Too many attempts. Please wait a few minutes and try again.} notConfigured {Accounts are not available right now. Please try again later.} sendFailed {The email could not be sent. Please try again later.} expired {This link has expired or was already used.} wrongCurrent {Your current password is not right.} adminAccount {This is the studio’s own account, so it can’t be deleted here.} botCheck {We couldn’t confirm this was sent by a person. Please wait a moment and try again.} codeWrong {That code isn’t right. Check the email and try again.} codeExpired {That code has expired or was tried too many times. Sign in again for a new one.} other {Something went wrong. Please try again.}}",
     "hello": "Hello, <em>{name}</em>",
     "sectionsLabel": "Account sections",
     "collectionTab": "My Collection",

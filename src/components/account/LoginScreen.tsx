@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { createAccountAction, forgotPasswordAction, signInAction, type SignInState } from "@/app/actions/account";
 import { Checkbox, FormAlert, FormSuccess, PasswordField, TextField } from "@/components/auth/fields";
+import { AdminCodeForm } from "@/components/auth/AdminCodeForm";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { Turnstile } from "@/components/Turnstile";
 import { Link } from "@/i18n/navigation";
@@ -32,6 +33,7 @@ export function LoginScreen({
 }) {
   const t = useTranslations("Account");
   const tAuth = useTranslations("Auth");
+  const tCode = useTranslations("Admin.code");
   const locale = useLocale();
   const tabsId = useId();
   const [view, setView] = useState<LoginView>(initialView);
@@ -116,6 +118,23 @@ export function LoginScreen({
           {tAuth("backToSignIn")}
         </button>
       </div>
+    );
+  }
+
+  // The admin's email and password were right: now the emailed code.
+  if (signIn.status === "adminCode" && signIn !== dismissed && view === "signin") {
+    return (
+      <AdminCodeForm
+        action={signInFormAction}
+        pending={signingIn}
+        email={signIn.email}
+        error={signIn.error && t("errors", { error: signIn.error })}
+        startOver={
+          <button type="button" onClick={() => setDismissed(signIn)} className="link inline-flex min-h-11 items-center text-sm">
+            {tCode("startOver")}
+          </button>
+        }
+      />
     );
   }
 

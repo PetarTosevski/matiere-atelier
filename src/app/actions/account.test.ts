@@ -17,6 +17,17 @@ const mocks = vi.hoisted(() => ({
   getCustomer: vi.fn(),
   acceptsMail: true,
   human: true,
+  isAdmin: false,
+  verifyCredentials: vi.fn(),
+  sendAdminCode: vi.fn(),
+  checkAdminCode: vi.fn(),
+  signInAsAdmin: vi.fn(),
+}));
+
+vi.mock("@/lib/admin-code", () => ({
+  isAdminCodeRequired: () => true,
+  sendAdminCode: mocks.sendAdminCode,
+  checkAdminCode: mocks.checkAdminCode,
 }));
 
 vi.mock("@/lib/turnstile", () => ({ verifyTurnstile: async () => mocks.human }));
@@ -45,13 +56,13 @@ vi.mock("@/lib/customer-auth", () => ({
   updateCustomerSessionVersion: async () => {},
 }));
 vi.mock("@/lib/admin-account", () => ({
-  isAdminEmail: () => false,
+  isAdminEmail: () => mocks.isAdmin,
   changeAdminPassword: vi.fn(),
   sendAdminResetEmail: vi.fn(),
-  signInAsAdmin: vi.fn(),
+  signInAsAdmin: mocks.signInAsAdmin,
   signOutEverywhere: vi.fn(),
 }));
-vi.mock("@/lib/auth", () => ({ verifyCredentials: vi.fn() }));
+vi.mock("@/lib/auth", () => ({ verifyCredentials: mocks.verifyCredentials }));
 vi.mock("@/lib/mail", () => ({ sendMail: mocks.sendMail }));
 vi.mock("@/lib/password", () => ({
   VERIFY_LINK_MS: 86_400_000,
@@ -91,6 +102,49 @@ beforeEach(() => {
   mocks.getCustomer.mockResolvedValue(null);
   mocks.acceptsMail = true;
   mocks.human = true;
+  mocks.isAdmin = false;
+});
+
+describe("the admin signing in on /login", () => {
+  const admin = { firstName: "Sara", name: "Sara", email: "sara@example.com" };
+
+  it("emails a code instead of signing in after the right password", async () => {
+    mocks.isAdmin = true;
+    mocks.verifyCredentials.mockResolvedValue(true);
+    const state = await signInAction(
+      idle,
+      form({ locale: "en", email: "sara@example.com", password: "pw", remember: "on" }),
+    );
+    expect(state).toEqual({ status: "adminCode", email: "sara@example.com" });
+    expect(mocks.sendAdminCode).toHaveBeenCalledWith(true);
+    expect(mocks.signInAsAdmin).not.toHaveBeenCalled();
+  });
+
+  it("sends no code for a wrong password", async () => {
+    mocks.isAdmin = true;
+    mocks.verifyCredentials.mockResolvedValue(false);
+    const state = await signInAction(idle, form({ locale: "en", email: "sara@example.com", password: "nope" }));
+    expect(state).toMatchObject({ status: "error", error: "wrongPassword" });
+    expect(mocks.sendAdminCode).not.toHaveBeenCalled();
+  });
+
+  it("signs in with the right code, keeping the remember choice", async () => {
+    mocks.checkAdminCode.mockResolvedValue({ status: "ok", remember: true });
+    mocks.signInAsAdmin.mockResolvedValue(admin);
+    const state = await signInAction({ status: "adminCode", email: admin.email }, form({ code: "123456" }));
+    expect(mocks.checkAdminCode).toHaveBeenCalledWith("123456");
+    expect(mocks.signInAsAdmin).toHaveBeenCalledWith(true);
+    expect(state).toEqual({ status: "signedIn", ...admin, created: false });
+  });
+
+  it("stays on the code step after a wrong code, and starts over once it has expired", async () => {
+    const pending: SignInState = { status: "adminCode", email: admin.email };
+    mocks.checkAdminCode.mockResolvedValue({ status: "wrong" });
+    expect(await signInAction(pending, form({ code: "000000" }))).toEqual({ ...pending, error: "codeWrong" });
+    mocks.checkAdminCode.mockResolvedValue({ status: "expired" });
+    expect(await signInAction(pending, form({ code: "000000" }))).toMatchObject({ status: "error", error: "codeExpired" });
+    expect(mocks.signInAsAdmin).not.toHaveBeenCalled();
+  });
 });
 
 describe("createAccountAction", () => {
