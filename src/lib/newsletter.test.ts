@@ -59,6 +59,8 @@ describe("announceNewWork", () => {
       "List-Unsubscribe": `<https://www.example.com/api/unsubscribe?c=c1&t=${token}>`,
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     });
+    // The cover goes through Next's resizer at a quality it allows (Next 16: 75 only).
+    expect(mail.html).toMatch(/\/_next\/image\?url=[^"]+&amp;w=1080&amp;q=75"/);
     // Nobody sees anyone else's address.
     expect(mocks.sendMail.mock.calls[1]![0].to).toBe("ben@example.com");
   });
@@ -91,6 +93,14 @@ describe("announceNewWork", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     await expect(announceNewWork([priced.id])).resolves.toBeUndefined();
     expect(mocks.sendMail).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("emailImageSize", () => {
+  it("fits the painting in the mat without cropping, and keeps tall ones short", async () => {
+    const { emailImageSize } = await import("./new-work-email");
+    expect(emailImageSize(2000, 1000)).toEqual({ width: 448, height: 224 });
+    expect(emailImageSize(1000, 2000)).toEqual({ width: 240, height: 480 });
   });
 });
 

@@ -44,8 +44,10 @@ export async function announceNewWork(artworkIds: string[]): Promise<void> {
         title: artwork.title,
         url: `${origin}/${locale}/originals/${artwork.slug}`,
         // Resized by Next.js, so subscribers don't each download the full upload.
+        // q must be one of images.qualities (Next 16 allows only 75 by default);
+        // mail apps that don't take WebP get a JPEG.
         image: cover
-          ? { ...cover, src: `${origin}/_next/image?url=${encodeURIComponent(cover.src)}&w=1080&q=80` }
+          ? { ...cover, src: `${origin}/_next/image?url=${encodeURIComponent(cover.src)}&w=1080&q=75` }
           : null,
         dimensions: artwork.dimensions ? tArtwork("dimensions", artwork.dimensions) : null,
         price: price ? formatPrice(price.amount, price.currency, locale) : null,
