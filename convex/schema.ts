@@ -92,13 +92,17 @@ export default defineSchema({
     email: v.string(),
     /** The rest of the form, as submitted (validated in Next.js). */
     details: v.record(v.string(), v.union(v.string(), v.array(v.string()))),
+    /** Counts up per type (REQUEST #1, #2, ...) for the email subject. Older rows have none. */
+    number: v.optional(v.number()),
     /** Whether the email to the artist went out. */
     emailed: v.boolean(),
     /** The signed-in customer who sent it, if any. */
     customerId: v.optional(v.id("customers")),
     /** ORDER only: the pieces as they were when the order was sent. */
     items: v.optional(v.array(orderItemValidator)),
-  }).index("by_customer", ["customerId"]),
+  })
+    .index("by_customer", ["customerId"])
+    .index("by_type_number", ["type", "number"]),
 
   /** Collector accounts. Passwords are bcrypt hashes made in Next.js. */
   customers: defineTable({

@@ -29,6 +29,8 @@ const oneLine = (value: string) => value.replace(/[\r\n]+/g, " ").trim();
 export function buildInquiryEmail(
   input: InquiryEmailInput,
   t: Translate,
+  /** The stored inquiry's number for its type; none without the database. */
+  number?: number,
 ): { subject: string; text: string } {
   const name = oneLine(input.data.name);
   const field = (label: string, value: string) =>
@@ -82,7 +84,14 @@ export function buildInquiryEmail(
   lines.push("", t("replyHint", { name }));
 
   return {
-    subject: oneLine(t("subject", { type: input.type, name, title })),
+    subject: oneLine(
+      t("subject", {
+        type: input.type,
+        number: number === undefined ? "none" : String(number),
+        name,
+        title,
+      }),
+    ),
     text: lines.join("\n"),
   };
 }

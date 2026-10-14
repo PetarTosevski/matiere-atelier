@@ -59,7 +59,7 @@ describe("submitInquiry", () => {
     expect(mocks.sendMail).toHaveBeenCalledTimes(2);
     expect(mocks.sendMail.mock.calls[0]![0]).toMatchObject({
       replyTo: "ana@example.com",
-      subject: "Message from Ana",
+      subject: "CONTACT · Ana",
       sender: "inquiries",
     });
     expect(mocks.sendMail.mock.calls[0]![0].to).toBeUndefined();
@@ -129,7 +129,7 @@ describe("submitInquiry", () => {
       form({ ...contact, type: "REQUEST", artworkSlug: "harbour-wall", message: "Any similar?" }),
     );
     const mail = mocks.sendMail.mock.calls[0]![0];
-    expect(mail.subject).toBe("Inquiry about Harbour Wall from Ana");
+    expect(mail.subject).toBe("REQUEST · Harbour Wall · Ana");
     expect(mail.text).toContain("/en/originals/harbour-wall");
   });
 

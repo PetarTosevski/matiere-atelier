@@ -15,7 +15,29 @@ export const record = serverMutation({
     items: v.optional(v.array(orderItemValidator)),
   },
   handler: async (ctx, inquiry) => {
-    return ctx.db.insert("inquiries", { ...inquiry, emailed: false });
+    // One more than the highest of this type, so wiping the table starts again at 1.
+    const last = await ctx.db
+      .query("inquiries")
+      .withIndex("by_type_number", (q) => q.eq("type", inquiry.type))
+      .order("desc")
+      .first();
+    const number = (last?.number ?? 0) + 1;
+    const id = await ctx.db.insert("inquiries", { ...inquiry, number, emailed: false });
+    return { id, number };
+  },
+});
+
+/**
+ * Deletes stored inquiries (test data before launch), which restarts the
+ * numbering at 1. Removes up to 500 per call; run it again while it
+ * returns done: false.
+ */
+export const clearAll = serverMutation({
+  args: {},
+  handler: async (ctx) => {
+    const batch = await ctx.db.query("inquiries").take(500);
+    for (const row of batch) await ctx.db.delete(row._id);
+    return { deleted: batch.length, done: batch.length < 500 };
   },
 });
 

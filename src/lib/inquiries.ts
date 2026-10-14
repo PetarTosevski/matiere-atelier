@@ -15,7 +15,7 @@ export async function recordInquiry(
   data: Validated,
   /** The signed-in customer, and for orders the pieces as they are now (for My Collection). */
   extra: { customerId?: Id<"customers">; items?: OrderItem[] } = {},
-): Promise<Id<"inquiries"> | null> {
+): Promise<{ id: Id<"inquiries">; number: number } | null> {
   if (!isConvexConfigured()) return null;
   const { name, email, ...rest } = data;
   const details: Record<string, string | string[]> = {};

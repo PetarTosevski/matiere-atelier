@@ -158,7 +158,7 @@
     }
   },
   "Email": {
-    "subject": "{type, select, CONTACT {Message from {name}} COMMISSION {Commission inquiry from {name}} REQUEST {Inquiry about {title} from {name}} ORDER {Order request from {name}} other {Message from {name}}}",
+    "subject": "{type, select, COMMISSION {COMMISSION} REQUEST {REQUEST} ORDER {ORDER} other {CONTACT}}{number, select, none {} other { #{number}}} · {type, select, REQUEST {{title} · {name}} other {{name}}}",
     "intro": "{type, select, CONTACT {New message from the website.} COMMISSION {New commission inquiry from the website.} REQUEST {New inquiry about a piece.} ORDER {New order request. Reply to arrange payment and shipping.} other {New message from the website.}}",
     "name": "Name",
     "email": "Email",

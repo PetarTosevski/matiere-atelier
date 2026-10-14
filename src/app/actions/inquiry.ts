@@ -131,24 +131,26 @@ export async function submitInquiry(
     email = input;
   }
 
-  // Emails go to the artist, so they use the default locale's copy.
-  const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Email" });
-  const message = buildInquiryEmail(email, (key, params) =>
-    t(key as never, params as never),
-  );
-
-  // Stored first, so an inquiry survives even if the email fails.
-  // A signed-in customer's orders show in My Collection.
+  // Stored first, so an inquiry survives even if the email fails, and its
+  // number goes in the subject. A signed-in customer's orders show in My Collection.
   const customer = await getCustomer();
   const stored = await recordInquiry(type.data, result.data, {
     customerId: customer?.id,
     items: orderItems,
   });
 
+  // Emails go to the artist, so they use the default locale's copy.
+  const t = await getTranslations({ locale: routing.defaultLocale, namespace: "Email" });
+  const message = buildInquiryEmail(
+    email,
+    (key, params) => t(key as never, params as never),
+    stored?.number,
+  );
+
   try {
     // From and to inquiries@ (MAIL_FROM_INQUIRIES, MAIL_TO); replying goes to the visitor.
     await sendMail({ ...message, replyTo: result.data.email, sender: "inquiries" });
-    if (stored) await markInquiryEmailed(stored);
+    if (stored) await markInquiryEmailed(stored.id);
   } catch (error) {
     console.error("[inquiry] sending failed", error);
     return { status: "error", error: "sendFailed", values };

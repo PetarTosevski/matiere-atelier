@@ -11,8 +11,9 @@ describe("buildInquiryEmail", () => {
     const email = buildInquiryEmail(
       { type: "CONTACT", data: { name: "Ana", email: "ana@example.com", message: "Hello there" } },
       t,
+      7,
     );
-    expect(email.subject).toBe("Message from Ana");
+    expect(email.subject).toBe("CONTACT #7 · Ana");
     expect(email.text).toContain("Name: Ana");
     expect(email.text).toContain("Email: ana@example.com");
     expect(email.text).toContain("Hello there");
@@ -27,8 +28,9 @@ describe("buildInquiryEmail", () => {
         artwork: { title: "Low Tide", url: "https://example.com/en/originals/low-tide" },
       },
       t,
+      3,
     );
-    expect(email.subject).toBe("Inquiry about Low Tide from Ana");
+    expect(email.subject).toBe("REQUEST #3 · Low Tide · Ana");
     expect(email.text).toContain("Piece: Low Tide (https://example.com/en/originals/low-tide)");
   });
 
@@ -44,8 +46,9 @@ describe("buildInquiryEmail", () => {
         totals: ["€2,090.50"],
       },
       t,
+      12,
     );
-    expect(email.subject).toBe("Order request from Ana");
+    expect(email.subject).toBe("ORDER #12 · Ana");
     expect(email.text).toContain("- Low Tide, €1,450 (https://x/1)");
     expect(email.text).toContain("- Quiet Orchard, €640.50 (https://x/2)");
     expect(email.text).toContain("Total: €2,090.50");
@@ -62,6 +65,8 @@ describe("buildInquiryEmail", () => {
     );
     expect(email.text).toContain("Approximate size: 60 x 80");
     expect(email.text).toContain("Budget: Not given");
+    // Without the database there is no number.
+    expect(email.subject).toBe("COMMISSION · Ana");
   });
 
   it("keeps visitor line breaks out of the subject", () => {
