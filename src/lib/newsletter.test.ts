@@ -57,6 +57,9 @@ describe("announceNewWork", () => {
     expect(mail.html.indexOf(`>${priced.title}</a>`)).toBeLessThan(mail.html.indexOf("<img src=\"https://www.example.com/_next/image"));
     const words = priced.description.replace(/[*_#>`[\]]/g, "").split(/\s+/).slice(0, 3).join(" ");
     expect(mail.text).toContain(words);
+    // Size and price come after the description, the price in its own cell.
+    expect(mail.html.indexOf(words)).toBeLessThan(mail.html.indexOf("€"));
+    expect(mail.html).toMatch(/<td align="right"[^>]*>€/);
     expect(mail.text).toContain(`https://www.example.com/en/originals/${priced.slug}`);
     const token = unsubscribeToken("c1");
     expect(mail.text).toContain(`https://www.example.com/en/unsubscribe?c=c1&t=${token}`);

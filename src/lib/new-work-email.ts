@@ -63,8 +63,8 @@ export function buildNewWorkEmail(input: NewWorkEmailInput, t: Translate): { sub
     "",
     ...input.pieces.flatMap((piece) => [
       piece.title,
+      ...(piece.description ? [piece.description] : []),
       ...(details(piece) ? [details(piece)] : []),
-      ...(piece.description ? ["", piece.description] : []),
       piece.url,
       "",
     ]),
@@ -85,13 +85,21 @@ export function buildNewWorkEmail(input: NewWorkEmailInput, t: Translate): { sub
         })()
       : "";
     const number = count > 1 ? `<span style="font-family:${SERIF};color:${ACCENT};">${String(index + 1).padStart(2, "0")}</span>&nbsp;&nbsp;` : "";
-    // Title and size above the painting, the description under it.
+    // Under the description, on a hairline: the size quiet on the left, the price in the accent serif on the right.
+    const facts =
+      piece.dimensions || piece.price
+        ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;border-top:1px solid ${LINE};"><tr>
+<td style="padding:14px 0 0;vertical-align:bottom;font-family:${SANS};font-size:15px;color:${MUTED};">${piece.dimensions ? escapeHtml(piece.dimensions) : "&nbsp;"}</td>
+${piece.price ? `<td align="right" style="padding:14px 0 0;vertical-align:bottom;font-family:${SERIF};font-size:28px;line-height:1;color:${ACCENT};white-space:nowrap;">${escapeHtml(piece.price)}</td>` : ""}
+</tr></table>`
+        : "";
+    // Title, painting, description, then size and price.
     return `<tr><td style="padding:36px 0 0;">
-<p style="margin:0 0 4px;font-family:${SERIF};font-size:28px;line-height:1.2;color:${INK};">${number}<a href="${escapeHtml(piece.url)}" style="color:${INK};text-decoration:none;">${escapeHtml(piece.title)}</a></p>
-${details(piece) ? `<p style="margin:0 0 16px;font-family:${SANS};font-size:15px;line-height:1.5;color:${MUTED};">${escapeHtml(details(piece))}</p>` : `<div style="height:12px;line-height:12px;">&nbsp;</div>`}
+<p style="margin:0 0 16px;font-family:${SERIF};font-size:28px;line-height:1.2;color:${INK};">${number}<a href="${escapeHtml(piece.url)}" style="color:${INK};text-decoration:none;">${escapeHtml(piece.title)}</a></p>
 ${image}
 ${piece.description ? `<p style="margin:18px 0 0;font-family:${SANS};font-size:16px;line-height:1.65;color:${INK};">${escapeHtml(piece.description)}</p>` : ""}
-<p style="margin:16px 0 0;"><a href="${escapeHtml(piece.url)}" style="font-family:${SANS};font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${ACCENT};text-decoration:none;border-bottom:1px solid ${ACCENT};padding-bottom:2px;">${escapeHtml(viewPiece)}&nbsp;→</a></p>
+${facts}
+<p style="margin:18px 0 0;"><a href="${escapeHtml(piece.url)}" style="font-family:${SANS};font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:${ACCENT};text-decoration:none;border-bottom:1px solid ${ACCENT};padding-bottom:2px;">${escapeHtml(viewPiece)}&nbsp;→</a></p>
 </td></tr>`;
   };
 
