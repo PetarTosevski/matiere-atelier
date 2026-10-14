@@ -52,6 +52,11 @@ describe("announceNewWork", () => {
     const mail = mocks.sendMail.mock.calls[0]![0];
     expect(mail).toMatchObject({ to: "ana@example.com", sender: "newsletter", subject: `New work: ${priced.title}` });
     expect(mail.text).toContain("Hello Ana,");
+    // Title first, then the description under the painting.
+    expect(mail.html.indexOf(`>${priced.title}</a>`)).toBeGreaterThan(0);
+    expect(mail.html.indexOf(`>${priced.title}</a>`)).toBeLessThan(mail.html.indexOf("<img src=\"https://www.example.com/_next/image"));
+    const words = priced.description.replace(/[*_#>`[\]]/g, "").split(/\s+/).slice(0, 3).join(" ");
+    expect(mail.text).toContain(words);
     expect(mail.text).toContain(`https://www.example.com/en/originals/${priced.slug}`);
     const token = unsubscribeToken("c1");
     expect(mail.text).toContain(`https://www.example.com/en/unsubscribe?c=c1&t=${token}`);

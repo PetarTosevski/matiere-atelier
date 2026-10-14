@@ -4,6 +4,7 @@ import { routing } from "@/i18n/routing";
 import { getArtworksByIds } from "@/lib/artworks";
 import { api, convexMutation, convexQuery, isConvexConfigured } from "@/lib/convex";
 import { formatPrice } from "@/lib/format";
+import { excerpt, markdownToPlainText } from "@/lib/markdown";
 import { sendMail } from "@/lib/mail";
 import { buildNewWorkEmail, type NewWorkPiece } from "@/lib/new-work-email";
 import { getPriceView } from "@/lib/pricing";
@@ -51,6 +52,8 @@ export async function announceNewWork(artworkIds: string[]): Promise<void> {
           : null,
         dimensions: artwork.dimensions ? tArtwork("dimensions", artwork.dimensions) : null,
         price: price ? formatPrice(price.amount, price.currency, locale) : null,
+        // Plain text, so nothing from the markdown can add markup to the email.
+        description: excerpt(markdownToPlainText(artwork.description), 320),
       };
     });
 
