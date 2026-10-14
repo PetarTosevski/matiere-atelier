@@ -12,7 +12,7 @@ describe("buildConfirmationEmail", () => {
   it("thanks the visitor and links back to the site", () => {
     const email = buildConfirmationEmail({ ...base, type: "CONTACT", pieces: [] }, t);
     expect(email.subject).toBe("Your message to Matière Atelier");
-    expect(email.text).toContain("Your message reached the studio.");
+    expect(email.text).toContain("We have received your message and will be in touch soon.");
     expect(email.text).toContain("https://www.example.com/en/originals");
     expect(email.text).toContain("entered on a form at www.example.com");
     expect(email.html).toContain('src="https://www.example.com/email/brush-stroke.png"');

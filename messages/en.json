@@ -175,10 +175,10 @@
   "ConfirmationEmail": {
     "subject": "{type, select, ORDER {Your order request to {siteName}} other {Your message to {siteName}}}",
     "heading": "Thank you",
-    "body": "{type, select, COMMISSION {Your commission inquiry reached the studio. The artist will reply by email to talk about the piece you have in mind.} REQUEST {Your inquiry reached the studio. The artist will reply by email about this piece.} ORDER {Your order request reached the studio. Nothing has been charged: the artist will reply by email to arrange payment and shipping.} other {Your message reached the studio. The artist will reply by email.}}",
+    "body": "{type, select, COMMISSION {We have received your commission inquiry and will be in touch soon to hear more about the piece you have in mind.} REQUEST {We have received your inquiry about this piece and will be in touch soon.} ORDER {We have received your order request and will be in touch soon to arrange payment and shipping. Nothing has been charged.} other {We have received your message and will be in touch soon.}}",
     "pieces": "{count, plural, one {The piece} other {The pieces}}",
     "total": "Total",
-    "replyNote": "To add anything, reply to this email.",
+    "replyNote": "For any further questions, simply reply to this email. We’d love to hear from you.",
     "visit": "Visit the studio",
     "footer": "You got this email because this address was entered on a form at {site}. If that wasn’t you, you can ignore it."
   },
