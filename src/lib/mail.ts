@@ -2,6 +2,7 @@ import "server-only";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
+import { rateLimit } from "@/lib/rate-limit";
 
 // Sends inquiry emails to the artist (MAIL_TO), confirmations to visitors, and
 // password reset links to account holders, through SMTP. In development,
@@ -26,7 +27,26 @@ export type OutgoingMail = {
    * SMTP_USER.
    */
   sender?: Sender;
+  /**
+   * The address was typed by a visitor (confirmations, account emails). If it
+   * doesn't exist, the bounce lands in the studio's inbox, so these count
+   * toward a site-wide hourly cap (VISITOR_MAIL_LIMIT).
+   */
+  toVisitor?: boolean;
 };
+
+/**
+ * At most this many emails an hour to visitor-typed addresses, site-wide,
+ * so nobody can flood the inbox with bounces by rotating IP addresses. Far
+ * above what a small studio sends.
+ */
+export const VISITOR_MAIL_LIMIT = { limit: 30, windowMs: 60 * 60 * 1000 };
+
+export class VisitorMailLimitError extends Error {
+  constructor() {
+    super("Hourly limit for emails to visitor addresses reached");
+  }
+}
 
 type Sender = "noreply" | "inquiries";
 
@@ -69,6 +89,9 @@ function smtpConfig() {
 }
 
 export async function sendMail(mail: OutgoingMail): Promise<void> {
+  if (mail.toVisitor && !(await rateLimit("visitor-mail", VISITOR_MAIL_LIMIT))) {
+    throw new VisitorMailLimitError();
+  }
   const config = smtpConfig();
 
   if (config) {

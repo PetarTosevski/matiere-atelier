@@ -149,6 +149,7 @@
     "errors": {
       "required": "Please fill this in.",
       "invalidEmail": "Please enter an email address like name@example.com.",
+      "noMailDomain": "This email address can’t receive mail. Please check it for typos.",
       "tooLong": "This is too long. Please shorten it."
     },
     "formErrors": "{error, select, invalid {Please check the fields marked below.} rateLimited {You have sent several messages in a short time. Please wait a few minutes and try again.} unavailable {This piece is no longer available.} cartChanged {Your cart changed since you opened this page. Please check it and send again.} sendFailed {Your message could not be sent. Please try again later, or email us directly.} other {Something went wrong. Please try again.}}",
@@ -463,6 +464,7 @@
     "errors": {
       "required": "Please fill this in.",
       "invalidEmail": "That doesn’t look like an email address.",
+      "noMailDomain": "This email address can’t receive mail. Please check it for typos.",
       "tooLong": "That’s too long.",
       "tooShort": "Use at least 8 characters.",
       "mismatch": "The two passwords don’t match."

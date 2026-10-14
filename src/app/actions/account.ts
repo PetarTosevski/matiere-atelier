@@ -21,6 +21,7 @@ import {
 } from "@/lib/customer-auth";
 import { changeAdminPassword, isAdminEmail, sendAdminResetEmail, signInAsAdmin, signOutEverywhere } from "@/lib/admin-account";
 import { verifyCredentials } from "@/lib/auth";
+import { domainAcceptsMail } from "@/lib/email-domain";
 import { sendMail } from "@/lib/mail";
 import { burnPasswordCheck, checkPassword, hashPassword, VERIFY_LINK_MS } from "@/lib/password";
 import { consumeResetToken, createResetToken } from "@/lib/password-reset";
@@ -129,6 +130,10 @@ export async function createAccountAction(_previous: SignInState, form: FormData
   }
 
   const { email, firstName, password, newsletter } = parsed.data;
+  // The verification email would bounce into the studio's inbox.
+  if (!(await domainAcceptsMail(email))) {
+    return { status: "error", error: "invalid", fieldErrors: { email: "noMailDomain" }, values: parsed.values };
+  }
   // The admin's account exists already (it signs in with the admin password).
   if (isAdminEmail(email)) return { status: "error", error: "emailTaken", fieldErrors: {}, values: parsed.values };
   const id = await convexMutation(api.customers.create, {
@@ -160,6 +165,7 @@ async function sendVerificationEmail(id: Id<"customers">, email: string, locale:
     text: t("body", { siteName: SITE_NAME, link }),
     replyTo: STUDIO_EMAIL,
     sender: "noreply",
+    toVisitor: true,
   });
 }
 
@@ -214,6 +220,7 @@ export async function forgotPasswordAction(
         subject: t("subject", { siteName: SITE_NAME }),
         text: t("body", { siteName: SITE_NAME, link }),
         sender: "noreply",
+        toVisitor: true,
       });
     } catch (error) {
       console.error("[account] reset email failed", error);
@@ -317,6 +324,7 @@ export async function deleteAccountAction(_previous: FormState, form: FormData):
       text: t("body", { siteName: SITE_NAME, email: STUDIO_EMAIL }),
       replyTo: STUDIO_EMAIL,
       sender: "noreply",
+      toVisitor: true,
     });
   } catch (error) {
     console.error("[account] deletion confirmation failed", error);

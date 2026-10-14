@@ -5,7 +5,7 @@ import type { InquiryType } from "@/lib/types";
 // Server-side validation for every inquiry form. Error messages are message
 // keys (Form.errors.*), translated by the form, never shown raw.
 
-export type FieldErrorKey = "required" | "invalidEmail" | "tooLong";
+export type FieldErrorKey = "required" | "invalidEmail" | "noMailDomain" | "tooLong";
 
 const required = (max: number) =>
   z

@@ -3,7 +3,7 @@ import { z } from "zod";
 // Server-side checks for the sign-in, account and password forms (customers
 // and admin). Errors are message keys (Account.errors.*), never shown raw.
 
-export type AccountFieldError = "required" | "invalidEmail" | "tooLong" | "tooShort" | "mismatch";
+export type AccountFieldError = "required" | "invalidEmail" | "noMailDomain" | "tooLong" | "tooShort" | "mismatch";
 
 export const MIN_PASSWORD = 8;
 /** bcrypt only reads the first 72 bytes; longer passwords are refused rather than cut. */

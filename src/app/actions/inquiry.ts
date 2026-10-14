@@ -17,6 +17,7 @@ import {
 } from "@/lib/inquiry";
 import { buildConfirmationEmail, type ConfirmationEmailInput } from "@/lib/confirmation-email";
 import { buildInquiryEmail, type InquiryEmailInput } from "@/lib/inquiry-email";
+import { domainAcceptsMail } from "@/lib/email-domain";
 import { recordInquiry, markInquiryEmailed } from "@/lib/inquiries";
 import { sendMail } from "@/lib/mail";
 import { isCartEnabled } from "@/lib/pricing";
@@ -80,6 +81,10 @@ export async function submitInquiry(
 
   if (!(await rateLimit(`inquiry:${await clientIp()}`, LIMIT))) {
     return { status: "error", error: "rateLimited", values };
+  }
+  // Mail to a domain that takes none would bounce into the studio's inbox.
+  if (!(await domainAcceptsMail(result.data.email))) {
+    return { status: "error", error: "invalid", fieldErrors: { email: "noMailDomain" }, values };
   }
 
   const localeValue = form.get("locale");
@@ -187,5 +192,5 @@ async function sendConfirmation(
   };
   const t = await getTranslations({ locale, namespace: "ConfirmationEmail" });
   const message = buildConfirmationEmail(input, (key, params) => t(key as never, params as never));
-  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL });
+  await sendMail({ ...message, to: email.data.email, replyTo: STUDIO_EMAIL, toVisitor: true });
 }

@@ -8,11 +8,13 @@ import { submitInquiry, type InquiryState } from "./inquiry";
 
 const mocks = vi.hoisted(() => ({
   sendMail: vi.fn(),
+  acceptsMail: true,
   ip: "203.0.113.1",
   settings: { showPrices: true, currency: "EUR", theme: "dark" as const },
 }));
 
 vi.mock("@/lib/mail", () => ({ sendMail: mocks.sendMail }));
+vi.mock("@/lib/email-domain", () => ({ domainAcceptsMail: async () => mocks.acceptsMail }));
 vi.mock("@/lib/settings", () => ({
   getSiteSettings: async () => ({ ...mocks.settings }),
 }));
@@ -48,10 +50,24 @@ beforeEach(() => {
   mocks.sendMail.mockReset();
   mocks.sendMail.mockResolvedValue(undefined);
   mocks.ip = "203.0.113.1";
+  mocks.acceptsMail = true;
   mocks.settings = { showPrices: true, currency: "EUR", theme: "dark" as const };
 });
 
 describe("submitInquiry", () => {
+  it("refuses an address whose domain takes no mail, so nothing bounces", async () => {
+    mocks.acceptsMail = false;
+    const state = await submitInquiry(idle, form(contact));
+    expect(state).toMatchObject({ status: "error", error: "invalid", fieldErrors: { email: "noMailDomain" } });
+    expect(mocks.sendMail).not.toHaveBeenCalled();
+  });
+
+  it("counts the visitor's confirmation toward the hourly cap", async () => {
+    await submitInquiry(idle, form(contact));
+    expect(mocks.sendMail.mock.calls[0]![0].toVisitor).toBeUndefined();
+    expect(mocks.sendMail.mock.calls[1]![0]).toMatchObject({ to: "ana@example.com", toVisitor: true });
+  });
+
   it("sends a valid contact message with reply-to set to the visitor", async () => {
     const state = await submitInquiry(idle, form(contact));
     expect(state).toEqual({ status: "success" });

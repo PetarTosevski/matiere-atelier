@@ -15,7 +15,10 @@ const mocks = vi.hoisted(() => ({
   consumeResetToken: vi.fn(),
   checkPassword: vi.fn(),
   getCustomer: vi.fn(),
+  acceptsMail: true,
 }));
+
+vi.mock("@/lib/email-domain", () => ({ domainAcceptsMail: async () => mocks.acceptsMail }));
 
 vi.mock("@/lib/convex", () => ({
   api: {
@@ -84,6 +87,7 @@ beforeEach(() => {
   mocks.sendMail.mockResolvedValue(undefined);
   mocks.checkPassword.mockResolvedValue(true);
   mocks.getCustomer.mockResolvedValue(null);
+  mocks.acceptsMail = true;
 });
 
 describe("createAccountAction", () => {
@@ -97,8 +101,19 @@ describe("createAccountAction", () => {
     expect(mocks.signInCustomer).not.toHaveBeenCalled();
     expect(mocks.createResetToken).toHaveBeenCalledWith("verify:c1", 86_400_000);
     const mail = mocks.sendMail.mock.calls[0]![0];
-    expect(mail).toMatchObject({ to: "ana@example.com", sender: "noreply" });
+    expect(mail).toMatchObject({ to: "ana@example.com", sender: "noreply", toVisitor: true });
     expect(mail.text).toContain("/en/account/verify?token=tok");
+  });
+
+  it("refuses an address whose domain takes no mail, before making the account", async () => {
+    mocks.acceptsMail = false;
+    const state = await createAccountAction(
+      idle,
+      form({ locale: "en", firstName: "Ana", email: "ana@example.con", password: "12345678" }),
+    );
+    expect(state).toMatchObject({ status: "error", error: "invalid", fieldErrors: { email: "noMailDomain" } });
+    expect(mocks.convexMutation).not.toHaveBeenCalled();
+    expect(mocks.sendMail).not.toHaveBeenCalled();
   });
 
   it("refuses an email that has a confirmed account", async () => {
