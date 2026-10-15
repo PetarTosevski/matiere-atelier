@@ -6,12 +6,14 @@ const SECRET = "x".repeat(32);
 describe("site lock", () => {
   afterEach(() => vi.unstubAllEnvs());
 
-  it("is locked only when SITE_LOCKED is exactly true", () => {
+  it("is locked only when SITE_LOCKED is true, in any letter case", () => {
     vi.stubEnv("SITE_LOCKED", "");
     expect(isSiteLocked()).toBe(false);
     vi.stubEnv("SITE_LOCKED", "1");
     expect(isSiteLocked()).toBe(false);
     vi.stubEnv("SITE_LOCKED", "true");
+    expect(isSiteLocked()).toBe(true);
+    vi.stubEnv("SITE_LOCKED", " TRUE ");
     expect(isSiteLocked()).toBe(true);
   });
 

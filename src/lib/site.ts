@@ -16,5 +16,5 @@ export const STUDIO_EMAIL = "studio@matiereatelier.info";
  * production environment and redeploy to open the site to them.
  */
 export function isIndexingAllowed(): boolean {
-  return process.env.ALLOW_INDEXING === "true";
+  return process.env.ALLOW_INDEXING?.trim().toLowerCase() === "true";
 }

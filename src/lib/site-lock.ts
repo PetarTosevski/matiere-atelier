@@ -12,7 +12,7 @@ export const COMING_SOON_PATH = "/coming-soon";
 const PREVIEW_MAX_AGE = 90 * 24 * 60 * 60; // seconds
 
 export function isSiteLocked(): boolean {
-  return process.env.SITE_LOCKED === "true";
+  return process.env.SITE_LOCKED?.trim().toLowerCase() === "true";
 }
 
 export function previewToken(): string | null {
