@@ -169,6 +169,8 @@ convex/             Convex schema and functions (database and file storage)
   storage.ts        deleteFilesIfPresent(): file cleanup that skips already-deleted files
   guard.ts          every function checks CONVEX_SERVER_SECRET (see Phase 2 Database)
   artworks.ts, pages.ts, settings.ts, inquiries.ts, rateLimits.ts, files.ts
+  cleanup.ts        internal job: deletes expired reset links and sign-in codes, and rate-limit rows idle for a day (batched)
+  crons.ts          runs cleanup every 6 hours
 public/
   placeholders/     generated placeholder paintings, until real photos arrive
   share-image.png   default Open Graph image (defaultShareImage() in lib/metadata.ts); artwork pages use their cover
@@ -374,6 +376,7 @@ Every component that shows a price, availability, or buy action gets it from `ge
 - Local development runs an anonymous local Convex backend (`CONVEX_AGENT_MODE=anonymous npx convex dev`, data on this machine only). To move to the cloud: `npx convex login`, then `npx convex dev --configure` to create or link a cloud project, `npx convex env set CONVEX_SERVER_SECRET ...`, and `npm run db:seed`.
 - Without Convex configured, `lib/convex.ts` falls back to `src/data` in development and tests only; production throws instead of serving placeholders.
 - Commit `convex/_generated/` (Convex recommends it); it is ignored by ESLint.
+- Only `convex/guard.ts` may import the raw `query`/`mutation`/`action` builders (lint rule). Internal functions (`internalMutation`, for crons) are fine without the secret: they can't be called from outside.
 - After any admin write, revalidate the affected storefront pages (`revalidatePath`).
 
 ## Environment

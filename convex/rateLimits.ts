@@ -16,8 +16,9 @@ export const hit = serverMutation({
     const allowed = recent.length < limit;
     const hits = allowed ? [...recent, now] : recent;
 
-    if (doc) await ctx.db.patch(doc._id, { hits });
-    else await ctx.db.insert("rateLimits", { key, hits });
+    const lastHit = hits.at(-1);
+    if (doc) await ctx.db.patch(doc._id, { hits, lastHit });
+    else await ctx.db.insert("rateLimits", { key, hits, lastHit });
     return allowed;
   },
 });

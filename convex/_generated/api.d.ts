@@ -10,6 +10,8 @@
 
 import type * as adminCredentials from "../adminCredentials.js";
 import type * as artworks from "../artworks.js";
+import type * as cleanup from "../cleanup.js";
+import type * as crons from "../crons.js";
 import type * as customers from "../customers.js";
 import type * as files from "../files.js";
 import type * as guard from "../guard.js";
@@ -29,6 +31,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   adminCredentials: typeof adminCredentials;
   artworks: typeof artworks;
+  cleanup: typeof cleanup;
+  crons: typeof crons;
   customers: typeof customers;
   files: typeof files;
   guard: typeof guard;

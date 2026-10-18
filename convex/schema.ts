@@ -145,7 +145,8 @@ export default defineSchema({
     attempts: v.optional(v.number()),
   })
     .index("by_token", ["tokenHash"])
-    .index("by_subject", ["subject"]),
+    .index("by_subject", ["subject"])
+    .index("by_expiresAt", ["expiresAt"]),
 
   /**
    * A single document: the admin password once it has been reset from the
@@ -160,5 +161,9 @@ export default defineSchema({
   rateLimits: defineTable({
     key: v.string(),
     hits: v.array(v.number()),
-  }).index("by_key", ["key"]),
+    /** Time of the newest hit, so the cleanup job finds unused rows by index. Missing on rows from before it. */
+    lastHit: v.optional(v.number()),
+  })
+    .index("by_key", ["key"])
+    .index("by_lastHit", ["lastHit"]),
 });
