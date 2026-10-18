@@ -24,6 +24,27 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unnecessary-type-assertion": "error",
     },
   },
+  // Every public Convex function checks the server secret, so the raw
+  // builders may only be used inside the wrappers in convex/guard.ts.
+  // internalQuery/internalMutation stay allowed: nobody outside can call them.
+  {
+    files: ["convex/**/*.ts"],
+    ignores: ["convex/guard.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "(^|/)_generated/server$",
+              importNames: ["query", "mutation", "action", "httpAction"],
+              message: "Use serverQuery / serverMutation / serverAction from ./guard, which check the secret.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
