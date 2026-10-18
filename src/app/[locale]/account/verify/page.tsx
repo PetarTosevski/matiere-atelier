@@ -27,7 +27,7 @@ export default async function VerifyEmailPage({ params, searchParams }: PageProp
         {valid ? (
           <>
             <p className="text-muted">{t("verifyLede")}</p>
-            <VerifyEmailForm token={token as string} />
+            <VerifyEmailForm token={token} />
           </>
         ) : (
           <>

@@ -76,6 +76,9 @@ export function CartProvider({
       } else {
         setResolved({ key: ids.join(","), items: result.items });
       }
+    }).catch((error: unknown) => {
+      // Offline or a server error: keep the cart as it is and try on the next load.
+      console.error("[cart] could not check the cart", error);
     });
 
     return () => {

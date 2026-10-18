@@ -170,7 +170,7 @@ describe("pages", () => {
       params: Promise.resolve({ locale: "en" }),
       searchParams: Promise.resolve({}),
     };
-    return serializeTree(await OriginalsPage(props as never));
+    return serializeTree(await OriginalsPage(props));
   }
 
   it.each(published.map((a) => [a.slug] as const))(

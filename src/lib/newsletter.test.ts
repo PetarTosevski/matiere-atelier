@@ -2,13 +2,12 @@ import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { artworks } from "@/data/artworks";
 import messages from "../../messages/en.json";
-import type { SiteSettings } from "@/lib/types";
 
 const mocks = vi.hoisted(() => ({
   convexQuery: vi.fn(),
   convexMutation: vi.fn(),
   sendMail: vi.fn(),
-  settings: { showPrices: true, currency: "EUR", theme: "dark" } as SiteSettings,
+  settings: { showPrices: true, currency: "EUR", theme: "dark" },
 }));
 
 vi.mock("@/lib/convex", () => ({

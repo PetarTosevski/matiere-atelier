@@ -40,7 +40,7 @@ export function serverQuery<Args extends PropertyValidators, Result>(definition:
     handler: async (ctx, allArgs) => {
       const { secret, ...args } = allArgs as ObjectType<Args> & { secret: string };
       requireSecret(secret);
-      return definition.handler(ctx as QueryCtx, args as unknown as ObjectType<Args>);
+      return definition.handler(ctx, args as unknown as ObjectType<Args>);
     },
   });
 }
@@ -54,7 +54,7 @@ export function serverMutation<Args extends PropertyValidators, Result>(definiti
     handler: async (ctx, allArgs) => {
       const { secret, ...args } = allArgs as ObjectType<Args> & { secret: string };
       requireSecret(secret);
-      return definition.handler(ctx as MutationCtx, args as unknown as ObjectType<Args>);
+      return definition.handler(ctx, args as unknown as ObjectType<Args>);
     },
   });
 }
@@ -68,7 +68,7 @@ export function serverAction<Args extends PropertyValidators, Result>(definition
     handler: async (ctx, allArgs) => {
       const { secret, ...args } = allArgs as ObjectType<Args> & { secret: string };
       requireSecret(secret);
-      return definition.handler(ctx as ActionCtx, args as unknown as ObjectType<Args>);
+      return definition.handler(ctx, args as unknown as ObjectType<Args>);
     },
   });
 }

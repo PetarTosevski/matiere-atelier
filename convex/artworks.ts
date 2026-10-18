@@ -264,6 +264,6 @@ export const applyChanges = serverMutation({
     else await ctx.db.insert("siteSettings", { showPrices, currency, theme });
 
     await deleteFiles(ctx, unusedFiles);
-    return { ids: ids as string[], announce: announce as string[] };
+    return { ids, announce };
   },
 });

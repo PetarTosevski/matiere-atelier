@@ -38,21 +38,21 @@ type ArgsWithoutSecret<F extends FunctionReference<"query" | "mutation" | "actio
 function withSecret<F extends FunctionReference<"query" | "mutation" | "action">>(
   args: ArgsWithoutSecret<F>,
 ): FunctionArgs<F> {
-  return { ...args, secret: process.env.CONVEX_SERVER_SECRET } as FunctionArgs<F>;
+  return { ...args, secret: process.env.CONVEX_SERVER_SECRET };
 }
 
 export function convexQuery<F extends FunctionReference<"query">>(
   fn: F,
   args: ArgsWithoutSecret<F>,
 ): Promise<FunctionReturnType<F>> {
-  return getClient().query(fn, withSecret<F>(args) as never);
+  return getClient().query(fn, withSecret<F>(args));
 }
 
 export function convexMutation<F extends FunctionReference<"mutation">>(
   fn: F,
   args: ArgsWithoutSecret<F>,
 ): Promise<FunctionReturnType<F>> {
-  return getClient().mutation(fn, withSecret<F>(args) as never);
+  return getClient().mutation(fn, withSecret<F>(args));
 }
 
 let warned = false;

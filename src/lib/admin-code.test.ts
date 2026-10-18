@@ -6,6 +6,8 @@ import messages from "../../messages/en.json";
 const mocks = vi.hoisted(() => ({
   convexMutation: vi.fn(),
   sendMail: vi.fn(),
+  // The rule misreads this cast: without it the type is {} and the tests can't read fields.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
   cookie: {} as Record<string, unknown>,
 }));
 

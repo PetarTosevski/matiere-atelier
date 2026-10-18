@@ -6,7 +6,6 @@ import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { discardUploadsAction, saveAboutAction, type AboutState } from "@/app/admin/actions";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import { uploadImage, type UploadProblem } from "@/components/admin/collection/upload";
-import type { AboutFieldError } from "@/lib/about-form";
 import { routing } from "@/i18n/routing";
 import type { AboutPageForAdmin } from "@/lib/pages";
 
@@ -51,7 +50,7 @@ export function AboutForm({ about, placeholderBio }: { about: AboutPageForAdmin 
     if (state.status === "saved" && portrait?.isNew) setPortrait({ ...portrait, isNew: false });
   }
 
-  const errorKey = (key: "bio" | "portrait") => state.errors?.[key] as AboutFieldError | undefined;
+  const errorKey = (key: "bio" | "portrait") => state.errors?.[key];
   const fieldError = (key: "bio" | "portrait") => {
     const error = errorKey(key);
     return error ? t(`errors.${error}`) : null;

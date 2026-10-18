@@ -28,6 +28,9 @@
       ]
     },
     "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
     "allowImportingTsExtensions": true
   },
   "include": [

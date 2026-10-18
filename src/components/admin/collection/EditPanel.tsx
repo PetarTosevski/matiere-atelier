@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { gridPosition } from "@/components/grid";
 import { MarkdownField } from "@/components/admin/MarkdownField";
-import type { ArtworkFieldError, ArtworkFormErrors } from "@/lib/artwork-form";
+import type { ArtworkFormErrors } from "@/lib/artwork-form";
 import type { EditorImage, EditorWork } from "@/lib/collection-changes";
 import { currencySymbol, hasMinorUnit } from "@/lib/currency";
 import { formatPrice } from "@/lib/format";
@@ -69,7 +69,7 @@ export function EditPanel({
 
   const fieldError = (key: keyof ArtworkFormErrors) => {
     const error = errors[key];
-    return error ? tForm(`errors.${error as ArtworkFieldError}`) : null;
+    return error ? tForm(`errors.${error}`) : null;
   };
   const describe = (key: keyof ArtworkFormErrors, hint?: string) =>
     [hint, errors[key] ? `${id}-${key}-error` : null].filter(Boolean).join(" ") || undefined;

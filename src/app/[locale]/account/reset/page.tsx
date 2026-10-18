@@ -25,7 +25,7 @@ export default async function AccountResetPage({ params, searchParams }: PagePro
       <div className="max-w-[26rem] space-y-8">
         <h1 className="heading-display">{t.rich("resetHeading", { em: (chunks) => <em>{chunks}</em> })}</h1>
         {valid ? (
-          <CustomerResetForm token={token as string} />
+          <CustomerResetForm token={token} />
         ) : (
           <>
             <p>{t("resetExpired")}</p>
