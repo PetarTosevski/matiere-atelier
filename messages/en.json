@@ -110,6 +110,11 @@
     "body": "This page doesn't exist, or the piece is no longer on show.",
     "backToOriginals": "See all originals"
   },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "body": "This page couldn't load. Please try again in a moment.",
+    "retry": "Try again"
+  },
   "ComingSoon": {
     "description": "Original paintings, available directly from the studio. Opening soon.",
     "title": "Opening <em>soon</em>",
